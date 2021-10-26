@@ -5,19 +5,25 @@ VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Src", "Src", "{5677D595-06F0-4877-A90E-93967CF4135A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NiftyLaunchpad.ConsoleApp", "Src\ConsoleApp\NiftyLaunchpad.ConsoleApp.csproj", "{F39841C1-5D7C-4766-BC17-AC524EF0A601}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NiftyLaunchpad.ConsoleApp", "Src\ConsoleApp\NiftyLaunchpad.ConsoleApp.csproj", "{F39841C1-5D7C-4766-BC17-AC524EF0A601}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NiftyLaunchpad.WebApi", "Src\WebApi\NiftyLaunchpad.WebApi.csproj", "{E4891F6E-2839-445B-BA6D-DA0F0D78010C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NiftyLaunchpad.WebApi", "Src\WebApi\NiftyLaunchpad.WebApi.csproj", "{E4891F6E-2839-445B-BA6D-DA0F0D78010C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NiftyLaunchpad.Lib", "Src\Lib\NiftyLaunchpad.Lib.csproj", "{6B154640-ED3F-4F19-8727-C6923208508B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NiftyLaunchpad.Lib", "Src\Lib\NiftyLaunchpad.Lib.csproj", "{6B154640-ED3F-4F19-8727-C6923208508B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{028CE8C0-9CFB-46E1-B8C3-AE5CC3B14555}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NiftyLaunchpad.Lib.UnitTests", "Tests\Lib.UnitTests\NiftyLaunchpad.Lib.UnitTests.csproj", "{50B7669F-11EF-473E-8185-46EA17AEBC1E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NiftyLaunchpad.Lib.UnitTests", "Tests\Lib.UnitTests\NiftyLaunchpad.Lib.UnitTests.csproj", "{50B7669F-11EF-473E-8185-46EA17AEBC1E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Benchmarks", "Benchmarks", "{3B857B89-1029-4034-978A-65B6529EE504}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NiftyLaunchpad.Lib.Benchmarks", "Benchmarks\Lib.Benchmarks\NiftyLaunchpad.Lib.Benchmarks.csproj", "{A8580B6D-CD03-455C-83DC-D54AD8BD9733}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NiftyLaunchpad.Lib.Benchmarks", "Benchmarks\Lib.Benchmarks\NiftyLaunchpad.Lib.Benchmarks.csproj", "{A8580B6D-CD03-455C-83DC-D54AD8BD9733}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4B253C4B-D02A-4960-A6BD-33C516B81F9A}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,9 +33,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{F39841C1-5D7C-4766-BC17-AC524EF0A601}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -93,11 +96,17 @@ Global
 		{A8580B6D-CD03-455C-83DC-D54AD8BD9733}.Release|x86.ActiveCfg = Release|Any CPU
 		{A8580B6D-CD03-455C-83DC-D54AD8BD9733}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{F39841C1-5D7C-4766-BC17-AC524EF0A601} = {5677D595-06F0-4877-A90E-93967CF4135A}
 		{E4891F6E-2839-445B-BA6D-DA0F0D78010C} = {5677D595-06F0-4877-A90E-93967CF4135A}
 		{6B154640-ED3F-4F19-8727-C6923208508B} = {5677D595-06F0-4877-A90E-93967CF4135A}
 		{50B7669F-11EF-473E-8185-46EA17AEBC1E} = {028CE8C0-9CFB-46E1-B8C3-AE5CC3B14555}
 		{A8580B6D-CD03-455C-83DC-D54AD8BD9733} = {3B857B89-1029-4034-978A-65B6529EE504}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {AFCC9825-6748-4973-955C-A7E5A2E0676A}
 	EndGlobalSection
 EndGlobal
