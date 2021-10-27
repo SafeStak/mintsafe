@@ -2,6 +2,7 @@ using System;
 
 namespace NiftyLaunchpad.WebApi
 {
+
     public class WeatherForecast
     {
         public DateTime Date { get; set; }
@@ -10,6 +11,6 @@ namespace NiftyLaunchpad.WebApi
 
         public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 
-        public string Summary { get; set; }
+        public string? Summary { get; set; }
     }
 }
