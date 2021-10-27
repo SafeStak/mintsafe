@@ -26,9 +26,20 @@ namespace NiftyLaunchpad.Lib
         string MediaType,
         NiftyFile[] Files,
         DateTime CreatedAt,
+        Royalty Royalty,
         Dictionary<string, string> Attributes);
 
-    public record NiftyFile(Guid Id, string Name, string Url);
+    public record NiftyFile(
+        Guid Id, 
+        string Name, 
+        string Url);
 
-    public record CollectionAggregate(NiftyCollection Collection, Nifty[] Tokens);
+    public record Royalty(
+        double PortionOfSale,
+        string Address);
+
+    public record CollectionAggregate(
+        NiftyCollection Collection, 
+        Nifty[] Tokens, 
+        NiftySalePeriod ActiveSale);
 }

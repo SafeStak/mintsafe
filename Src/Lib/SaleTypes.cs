@@ -7,15 +7,15 @@ namespace NiftyLaunchpad.Lib
         Guid Id,
         Guid CollectionId,
         string PolicyId,
+        bool IsActive,
         string Name,
         string Description,
         long LovelacesPerToken,
         string SaleAddress,
-        bool IsActive,
-        DateTime From,
-        DateTime To,
         int TotalReleaseQuantity,
-        int MaxAllowedPurchaseQuantity);
+        int MaxAllowedPurchaseQuantity,
+        DateTime? Start = null,
+        DateTime? End = null);
 
     public record NiftySalePurchaseRequest(
         Guid SalePeriodId,
@@ -27,6 +27,15 @@ namespace NiftyLaunchpad.Lib
     {
         public static NiftySalePurchaseRequest FromUtxo(Utxo utxo, NiftySalePeriod sale)
         {
+            if (!sale.IsActive)
+                throw new SaleInactiveException("Sale is inactive");
+
+            if (sale.Start.HasValue && sale.Start > DateTime.UtcNow)
+                throw new SalePeriodOutOfRangeException("Sale has not started", sale.Start, sale.End);
+
+            if (sale.End.HasValue && sale.End < DateTime.UtcNow)
+                throw new SalePeriodOutOfRangeException("Sale has ended", sale.Start, sale.End);
+
             var lovelaceValue = utxo.Values.First(v => v.Unit == "lovelace");
             if (lovelaceValue.Quantity < sale.LovelacesPerToken)
                 throw new InsufficientPaymentException($"Insufficient lovelaces for purchase", sale.LovelacesPerToken, lovelaceValue.Quantity, "lovelace");
@@ -43,6 +52,27 @@ namespace NiftyLaunchpad.Lib
                 NiftyQuantityRequested: quantity,
                 ChangeInLovelace: change);
         }
+    }
+
+    public class SalePeriodOutOfRangeException : ApplicationException
+    {
+        public DateTime? SaleStartDateTime { get; }
+        public DateTime? SaleEndDateTime { get; }
+        public DateTime Now { get; }
+
+        public SalePeriodOutOfRangeException(
+            string message, DateTime? saleStartDateTime, DateTime? saleEndDateTime) : base(message)
+        {
+            SaleStartDateTime = saleStartDateTime;
+            SaleEndDateTime = saleEndDateTime;
+            Now = DateTime.UtcNow;
+        }
+    }
+
+    public class SaleInactiveException : ApplicationException
+    {
+        public SaleInactiveException(
+            string message) : base(message) { }
     }
 
     public class InsufficientPaymentException : ApplicationException

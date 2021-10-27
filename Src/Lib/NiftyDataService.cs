@@ -21,8 +21,8 @@ namespace NiftyLaunchpad.Lib
                 IsActive: true,
                 Publishers: new[] { "BRIKMAESTRO", "NiftyLaunchpad.net" },
                 BrandImage: "ipfs://cid",
-                CreatedAt: new DateTime(2022, 6, 4, 0, 0, 0, DateTimeKind.Utc),
-                LockedAt: new DateTime(2022, 10, 26, 0, 0, 0, DateTimeKind.Utc));
+                CreatedAt: new DateTime(2022, 9, 4, 0, 0, 0, DateTimeKind.Utc),
+                LockedAt: new DateTime(2022, 11, 30, 0, 0, 0, DateTimeKind.Utc));
 
             var tokens = new[]
             {
@@ -39,6 +39,7 @@ namespace NiftyLaunchpad.Lib
                     Files: new[] {
                         new NiftyFile(Guid.NewGuid(), "Full Resolution", "ipfs://cidfull")
                     },
+                    Royalty: new Royalty(0, null),
                     CreatedAt: new DateTime(2021, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                     Attributes: new Dictionary<string,string>
                     {
@@ -58,6 +59,7 @@ namespace NiftyLaunchpad.Lib
                     Files: new[] {
                         new NiftyFile(Guid.NewGuid(), "Full Resolution", "ipfs://cidfull")
                     },
+                    Royalty: new Royalty(0, null),
                     CreatedAt: new DateTime(2021, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                     Attributes: new Dictionary<string,string>
                     {
@@ -77,6 +79,7 @@ namespace NiftyLaunchpad.Lib
                     Files: new[] {
                         new NiftyFile(Guid.NewGuid(), "Full Resolution", "ipfs://cidfull")
                     },
+                    Royalty: new Royalty(0, null),
                     CreatedAt: new DateTime(2021, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                     Attributes: new Dictionary<string,string>
                     {
@@ -96,6 +99,7 @@ namespace NiftyLaunchpad.Lib
                     Files: new[] {
                         new NiftyFile(Guid.NewGuid(), "Full Resolution", "ipfs://cidfull")
                     },
+                    Royalty: new Royalty(0, null),
                     CreatedAt: new DateTime(2021, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                     Attributes: new Dictionary<string,string>
                     {
@@ -115,6 +119,7 @@ namespace NiftyLaunchpad.Lib
                     Files: new[] {
                         new NiftyFile(Guid.NewGuid(), "Full Resolution", "ipfs://cidfull")
                     },
+                    Royalty: new Royalty(0, null),
                     CreatedAt: new DateTime(2021, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                     Attributes: new Dictionary<string,string>
                     {
@@ -126,7 +131,7 @@ namespace NiftyLaunchpad.Lib
                     PolicyId: "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                     IsMintable: true,
                     AssetName: "brikmaestro0006",
-                    Name: "BRIKMAESTRO #1 BRIKKED",
+                    Name: "BRIKMAESTRO #6 BRIKKED",
                     Description: "BRIKKED M8",
                     Artists: new[] { "BRIKMAESTRO" },
                     Image: "ipfs://cidpreview",
@@ -134,10 +139,11 @@ namespace NiftyLaunchpad.Lib
                     Files: new[] {
                         new NiftyFile(Guid.NewGuid(), "Full Resolution", "ipfs://cidfull")
                     },
+                    Royalty: new Royalty(0, null),
                     CreatedAt: new DateTime(2021, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                     Attributes: new Dictionary<string,string>
                     {
-                        { "key1", "BRIKMAESTRO #1 BRIKKED" }
+                        { "key1", "BRIKMAESTRO #6 BRIKKED" }
                     }
                 ),
                 new Nifty(
@@ -153,6 +159,7 @@ namespace NiftyLaunchpad.Lib
                     Files: new[] {
                         new NiftyFile(Guid.NewGuid(), "Full Resolution", "ipfs://cidfull")
                     },
+                    Royalty: new Royalty(0, null),
                     CreatedAt: new DateTime(2021, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                     Attributes: new Dictionary<string,string>
                     {
@@ -172,6 +179,7 @@ namespace NiftyLaunchpad.Lib
                     Files: new[] {
                         new NiftyFile(Guid.NewGuid(), "Full Resolution", "ipfs://cidfull")
                     },
+                    Royalty: new Royalty(0, null),
                     CreatedAt: new DateTime(2021, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                     Attributes: new Dictionary<string,string>
                     {
@@ -180,27 +188,31 @@ namespace NiftyLaunchpad.Lib
                 ),
             };
 
-            return Task.FromResult(new CollectionAggregate(collection, tokens));
-        }
-
-        public Task<NiftySalePeriod> GetSaleAggregateForCollectionAsync(
-            Guid collectionId, CancellationToken ct = default)
-        {
             var sale = new NiftySalePeriod(
                 Id: Guid.Parse("69da836f-9e0b-4ec4-98e8-094efaeac38b"),
                 CollectionId: collectionId,
                 PolicyId: "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
+                IsActive: true,
                 Name: "Preview Launch #1",
                 Description: "Limited 500 item launch",
                 LovelacesPerToken: 10000000,
                 SaleAddress: "addr_test1vre6wmde3qz7h7eerk98lgtkuzjd5nfqj4wy0fwntymr20qee2cxk",
-                IsActive: true,
-                From: new DateTime(2022, 11, 30, 0, 0, 0, DateTimeKind.Utc),
-                To: new DateTime(2022, 12, 30, 0, 0, 0, DateTimeKind.Utc),
                 TotalReleaseQuantity: 500,
                 MaxAllowedPurchaseQuantity: 5);
+            
+            var activeSale = collection.IsActive && IsSaleOpen(sale) ? sale : null;
 
-            return Task.FromResult(sale);
+            return Task.FromResult(new CollectionAggregate(collection, tokens, ActiveSale: activeSale));
+        }
+
+        private static bool IsSaleOpen(NiftySalePeriod sale)
+        {
+            if (!sale.IsActive
+                || (sale.Start.HasValue && sale.Start < DateTime.UtcNow)
+                || (sale.End.HasValue && sale.End > DateTime.UtcNow))
+                return false;
+
+            return true;
         }
     }
 }

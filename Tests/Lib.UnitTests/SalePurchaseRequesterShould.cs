@@ -31,6 +31,7 @@ namespace NiftyLaunchpad.Lib.UnitTests
 
         [Theory]
         [InlineData(10000000, 10000000, 0)]
+        [InlineData(34000001, 34000000, 1)]
         [InlineData(25000000, 10000000, 5000000)]
         public void Correctly_Calculate_Change(
             long utxoValueLovelace, long costPerTokenLovelace, int expectedChange)
@@ -48,8 +49,30 @@ namespace NiftyLaunchpad.Lib.UnitTests
         }
 
         [Theory]
-        [InlineData(1500000, 1510000)]
-        [InlineData(10000000, 15000000)]
+        [InlineData(1, 10, "9df6598c24f9a44cf1b10c527d670b3c5a9b9d435f81af15a5773b4b267b62e0", "9ef60a89-8a04-40a9-b45d-2174d64f761f")]
+        [InlineData(10000, 100000, "9df6598c24f9a44cf1b10c527d670b3c5a9b9d435f81af15a5773b4b267b62e0", "f16d7a02-61f2-4ec3-ba81-b29a5f07a68f")]
+        public void Correctly_Maps_Values_When_Sale_Is_Active_And_Within_Start_End_Dates(
+            int secondsAfterStart, int secondsBeforeEnd, string txHash, string saleId)
+        {
+            var sale = GenerateSalePeriod(
+                saleId: saleId, 
+                start: DateTime.UtcNow.AddSeconds(-secondsAfterStart), 
+                end: DateTime.UtcNow.AddSeconds(secondsBeforeEnd));
+
+            var salePurchase = SalePurchaseRequester.FromUtxo(
+                    new Utxo(
+                        txHash,
+                        0,
+                        new[] { new UtxoValue("lovelace", 10000000) }),
+                    sale);
+
+            salePurchase.TxHash.Should().Be(txHash);
+            salePurchase.SalePeriodId.Should().Be(Guid.Parse(saleId));
+        }
+
+        [Theory]
+        [InlineData(1500000, 1500001)]
+        [InlineData(34999999, 35000000)]
         public void Throws_InsufficientPaymentException_When_Utxo_Value_Is_Less_Than_LovelacesPerToken(
             long utxoValueLovelace, long costPerTokenLovelace)
         {
@@ -66,6 +89,24 @@ namespace NiftyLaunchpad.Lib.UnitTests
             };
 
             action.Should().Throw<InsufficientPaymentException>();
+        }
+
+        [Fact]
+        public void Throws_SaleInactiveException_When_Sale_Is_Inactive()
+        {
+            var sale = GenerateSalePeriod(isActive: false);
+
+            Action action = () =>
+            {
+                SalePurchaseRequester.FromUtxo(
+                    new Utxo(
+                        "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
+                        0,
+                        new[] { new UtxoValue("lovelace", 100000000) }),
+                    sale);
+            };
+
+            action.Should().Throw<SaleInactiveException>();
         }
 
         [Theory]
@@ -89,11 +130,58 @@ namespace NiftyLaunchpad.Lib.UnitTests
             action.Should().Throw<MaxAllowedPurchaseQuantityExceededException>();
         }
 
+        [Theory]
+        [InlineData(10)]
+        [InlineData(3600)]
+        public void Throws_SalePeriodOutOfRangeException_When_Sale_Has_Not_Started(
+            int secondsInTheFuture)
+        {
+            var sale = GenerateSalePeriod(start: DateTime.UtcNow.AddSeconds(secondsInTheFuture));
+
+            Action action = () =>
+            {
+                SalePurchaseRequester.FromUtxo(
+                    new Utxo(
+                        "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
+                        0,
+                        new[] { new UtxoValue("lovelace", 100000000) }),
+                    sale);
+            };
+
+            action.Should().Throw<SalePeriodOutOfRangeException>();
+        }
+
+        [Theory]
+        [InlineData(1)]
+        [InlineData(3600)]
+        public void Throws_SalePeriodOutOfRangeException_When_Sale_Has_Already_Ended(
+            int secondsInThePast)
+        {
+            var sale = GenerateSalePeriod(end: DateTime.UtcNow.AddSeconds(-secondsInThePast));
+
+            Action action = () =>
+            {
+                SalePurchaseRequester.FromUtxo(
+                    new Utxo(
+                        "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
+                        0,
+                        new[] { new UtxoValue("lovelace", 100000000) }),
+                    sale);
+            };
+
+            action.Should().Throw<SalePeriodOutOfRangeException>();
+        }
+
         public NiftySalePeriod GenerateSalePeriod(
-            long costPerTokenLovelace = 10000000, int maxAllowedPurchaseQuantity = 5, bool isActive = true)
+            bool isActive = true,
+            string saleId = null,
+            long costPerTokenLovelace = 10000000, 
+            int maxAllowedPurchaseQuantity = 5, 
+            DateTime? start = null,
+            DateTime? end = null)
         {
             return new NiftySalePeriod(
-                Id: Guid.Parse("69da836f-9e0b-4ec4-98e8-094efaeac38b"),
+                Id: saleId == null ? Guid.Parse("69da836f-9e0b-4ec4-98e8-094efaeac38b") : Guid.Parse(saleId),
                 CollectionId: Guid.Parse("e271ae1a-8831-4afd-8cb7-67a55c2bd6cd"),
                 PolicyId: "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                 Name: "Preview Launch #1",
@@ -101,8 +189,8 @@ namespace NiftyLaunchpad.Lib.UnitTests
                 LovelacesPerToken: costPerTokenLovelace,
                 SaleAddress: "addr_test1vre6wmde3qz7h7eerk98lgtkuzjd5nfqj4wy0fwntymr20qee2cxk",
                 IsActive: isActive,
-                From: new DateTime(2022, 11, 30, 0, 0, 0, DateTimeKind.Utc),
-                To: new DateTime(2022, 12, 30, 0, 0, 0, DateTimeKind.Utc),
+                Start: start,
+                End: end,
                 TotalReleaseQuantity: 500,
                 MaxAllowedPurchaseQuantity: maxAllowedPurchaseQuantity);
         }
