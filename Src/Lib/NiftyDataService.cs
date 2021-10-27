@@ -39,7 +39,7 @@ namespace NiftyLaunchpad.Lib
                     Files: new[] {
                         new NiftyFile(Guid.NewGuid(), "Full Resolution", "ipfs://cidfull")
                     },
-                    Royalty: new Royalty(0, null),
+                    Royalty: new Royalty(0, string.Empty),
                     CreatedAt: new DateTime(2021, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                     Attributes: new Dictionary<string,string>
                     {
@@ -59,7 +59,7 @@ namespace NiftyLaunchpad.Lib
                     Files: new[] {
                         new NiftyFile(Guid.NewGuid(), "Full Resolution", "ipfs://cidfull")
                     },
-                    Royalty: new Royalty(0, null),
+                    Royalty: new Royalty(0, string.Empty),
                     CreatedAt: new DateTime(2021, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                     Attributes: new Dictionary<string,string>
                     {
@@ -79,7 +79,7 @@ namespace NiftyLaunchpad.Lib
                     Files: new[] {
                         new NiftyFile(Guid.NewGuid(), "Full Resolution", "ipfs://cidfull")
                     },
-                    Royalty: new Royalty(0, null),
+                    Royalty: new Royalty(0, string.Empty),
                     CreatedAt: new DateTime(2021, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                     Attributes: new Dictionary<string,string>
                     {
@@ -99,7 +99,7 @@ namespace NiftyLaunchpad.Lib
                     Files: new[] {
                         new NiftyFile(Guid.NewGuid(), "Full Resolution", "ipfs://cidfull")
                     },
-                    Royalty: new Royalty(0, null),
+                    Royalty: new Royalty(0, string.Empty),
                     CreatedAt: new DateTime(2021, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                     Attributes: new Dictionary<string,string>
                     {
@@ -119,7 +119,7 @@ namespace NiftyLaunchpad.Lib
                     Files: new[] {
                         new NiftyFile(Guid.NewGuid(), "Full Resolution", "ipfs://cidfull")
                     },
-                    Royalty: new Royalty(0, null),
+                    Royalty: new Royalty(0, string.Empty),
                     CreatedAt: new DateTime(2021, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                     Attributes: new Dictionary<string,string>
                     {
@@ -139,7 +139,7 @@ namespace NiftyLaunchpad.Lib
                     Files: new[] {
                         new NiftyFile(Guid.NewGuid(), "Full Resolution", "ipfs://cidfull")
                     },
-                    Royalty: new Royalty(0, null),
+                    Royalty: new Royalty(0, string.Empty),
                     CreatedAt: new DateTime(2021, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                     Attributes: new Dictionary<string,string>
                     {
@@ -159,7 +159,7 @@ namespace NiftyLaunchpad.Lib
                     Files: new[] {
                         new NiftyFile(Guid.NewGuid(), "Full Resolution", "ipfs://cidfull")
                     },
-                    Royalty: new Royalty(0, null),
+                    Royalty: new Royalty(0, string.Empty),
                     CreatedAt: new DateTime(2021, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                     Attributes: new Dictionary<string,string>
                     {
@@ -179,7 +179,7 @@ namespace NiftyLaunchpad.Lib
                     Files: new[] {
                         new NiftyFile(Guid.NewGuid(), "Full Resolution", "ipfs://cidfull")
                     },
-                    Royalty: new Royalty(0, null),
+                    Royalty: new Royalty(0, string.Empty),
                     CreatedAt: new DateTime(2021, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                     Attributes: new Dictionary<string,string>
                     {
@@ -200,9 +200,9 @@ namespace NiftyLaunchpad.Lib
                 TotalReleaseQuantity: 500,
                 MaxAllowedPurchaseQuantity: 5);
             
-            var activeSale = collection.IsActive && IsSaleOpen(sale) ? sale : null;
+            var activeSales = collection.IsActive && IsSaleOpen(sale) ? new[] { sale } : Array.Empty<NiftySalePeriod>();
 
-            return Task.FromResult(new CollectionAggregate(collection, tokens, ActiveSale: activeSale));
+            return Task.FromResult(new CollectionAggregate(collection, tokens, ActiveSales: activeSales));
         }
 
         private static bool IsSaleOpen(NiftySalePeriod sale)

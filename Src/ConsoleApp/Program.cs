@@ -15,12 +15,12 @@ var utxoRetriever = new UtxoRetriever(settings);
 
 var collectionId = Guid.Parse("d5b35d3d-14cc-40ba-94f4-fe3b28bd52ae");
 var collection = await dataService.GetCollectionAsync(collectionId, cts.Token);
-var activeSale = collection.ActiveSale;
-if (activeSale == null)
+if (collection.ActiveSales.Length == 0)
 {
     Console.WriteLine($"{collection.Collection.Name} with {collection.Tokens.Length} has no active sales!");
     return;
 }
+var activeSale = collection.ActiveSales[0];
 
 var salePurchaseRequests = new HashSet<NiftySalePurchaseRequest>();
 var timer = new PeriodicTimer(TimeSpan.FromSeconds(settings.PollingIntervalSeconds));

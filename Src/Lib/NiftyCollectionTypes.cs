@@ -41,5 +41,5 @@ namespace NiftyLaunchpad.Lib
     public record CollectionAggregate(
         NiftyCollection Collection, 
         Nifty[] Tokens, 
-        NiftySalePeriod ActiveSale);
+        NiftySalePeriod[] ActiveSales);
 }

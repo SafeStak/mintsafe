@@ -26,17 +26,18 @@ namespace NiftyLaunchpad.Lib
                         "query", "utxo",
                         GetNetworkParameter(),
                         "--address", address
+
                     ), noEcho: true);
 
                 var lines = rawUtxoTable.Split(Environment.NewLine);
                 foreach (var utxoLine in lines[2..])
                 {
-                    Console.WriteLine($"Found LINE: {utxoLine}");
+                    Console.WriteLine($"Found Line: {utxoLine}");
 
-                    var contentSegments = rawUtxoTable.Split('\t');
+                    var contentSegments = utxoLine.Split('\t');
                     foreach (var contentSegment in contentSegments)
                     {
-                        Console.WriteLine($"Found Content: {contentSegment}");
+                        Console.WriteLine($"Found Line Segment: {contentSegment}");
                     }
                 }
             }
