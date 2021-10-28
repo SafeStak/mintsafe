@@ -19,7 +19,7 @@ namespace NiftyLaunchpad.Lib.UnitTests
         {
             var sale = GenerateSalePeriod(costPerTokenLovelace: costPerTokenLovelace);
 
-            var salePurchase = SalePurchaseRequester.FromUtxo(
+            var salePurchase = SalePurchaseGenerator.FromUtxo(
                     new Utxo(
                         "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                         0,
@@ -38,7 +38,7 @@ namespace NiftyLaunchpad.Lib.UnitTests
         {
             var sale = GenerateSalePeriod(costPerTokenLovelace: costPerTokenLovelace);
 
-            var salePurchase = SalePurchaseRequester.FromUtxo(
+            var salePurchase = SalePurchaseGenerator.FromUtxo(
                     new Utxo(
                         "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                         0,
@@ -59,15 +59,15 @@ namespace NiftyLaunchpad.Lib.UnitTests
                 start: DateTime.UtcNow.AddSeconds(-secondsAfterStart), 
                 end: DateTime.UtcNow.AddSeconds(secondsBeforeEnd));
 
-            var salePurchase = SalePurchaseRequester.FromUtxo(
+            var salePurchase = SalePurchaseGenerator.FromUtxo(
                     new Utxo(
                         txHash,
                         0,
                         new[] { new UtxoValue("lovelace", 10000000) }),
                     sale);
 
-            salePurchase.TxHash.Should().Be(txHash);
-            salePurchase.SalePeriodId.Should().Be(Guid.Parse(saleId));
+            salePurchase.Utxo.TxHash.Should().Be(txHash); // TODO: more field assertions
+            salePurchase.SaleId.Should().Be(Guid.Parse(saleId));
         }
 
         [Theory]
@@ -80,7 +80,7 @@ namespace NiftyLaunchpad.Lib.UnitTests
 
             Action action = () =>
             {
-                SalePurchaseRequester.FromUtxo(
+                SalePurchaseGenerator.FromUtxo(
                     new Utxo(
                         "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865", 
                         0, 
@@ -98,7 +98,7 @@ namespace NiftyLaunchpad.Lib.UnitTests
 
             Action action = () =>
             {
-                SalePurchaseRequester.FromUtxo(
+                SalePurchaseGenerator.FromUtxo(
                     new Utxo(
                         "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                         0,
@@ -119,7 +119,7 @@ namespace NiftyLaunchpad.Lib.UnitTests
 
             Action action = () =>
             {
-                SalePurchaseRequester.FromUtxo(
+                SalePurchaseGenerator.FromUtxo(
                     new Utxo(
                         "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                         0,
@@ -140,7 +140,7 @@ namespace NiftyLaunchpad.Lib.UnitTests
 
             Action action = () =>
             {
-                SalePurchaseRequester.FromUtxo(
+                SalePurchaseGenerator.FromUtxo(
                     new Utxo(
                         "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                         0,
@@ -161,7 +161,7 @@ namespace NiftyLaunchpad.Lib.UnitTests
 
             Action action = () =>
             {
-                SalePurchaseRequester.FromUtxo(
+                SalePurchaseGenerator.FromUtxo(
                     new Utxo(
                         "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                         0,
@@ -172,7 +172,7 @@ namespace NiftyLaunchpad.Lib.UnitTests
             action.Should().Throw<SalePeriodOutOfRangeException>();
         }
 
-        public NiftySalePeriod GenerateSalePeriod(
+        public NiftySale GenerateSalePeriod(
             bool isActive = true,
             string saleId = null,
             long costPerTokenLovelace = 10000000, 
@@ -180,10 +180,9 @@ namespace NiftyLaunchpad.Lib.UnitTests
             DateTime? start = null,
             DateTime? end = null)
         {
-            return new NiftySalePeriod(
+            return new NiftySale(
                 Id: saleId == null ? Guid.Parse("69da836f-9e0b-4ec4-98e8-094efaeac38b") : Guid.Parse(saleId),
                 CollectionId: Guid.Parse("e271ae1a-8831-4afd-8cb7-67a55c2bd6cd"),
-                PolicyId: "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                 Name: "Preview Launch #1",
                 Description: "Limited 500 item launch",
                 LovelacesPerToken: costPerTokenLovelace,

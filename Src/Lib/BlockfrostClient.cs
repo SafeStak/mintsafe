@@ -17,8 +17,8 @@ namespace NiftyLaunchpad.Lib
 
     public class BlockfrostClient
     {
-        private const string HashedApiKeyMetricName = "Key";
-
+        private const string TestnetBaseUrl = "https://cardano-testnet.blockfrost.io";
+        private const string MainnetBaseUrl = "https://cardano-mainnet.blockfrost.io";
         private readonly HttpClient _httpClient;
 
         public BlockfrostClient(HttpClient httpClient)
@@ -26,8 +26,30 @@ namespace NiftyLaunchpad.Lib
             _httpClient = httpClient;
         }
 
-        private async Task<HttpResponseMessage> GetResponseAsync(
-            string queryString, string apiKey, CancellationToken ct = default)
+        public Task<Utxo[]> GetUtxosAtAddressAsync(string address, CancellationToken ct = default)
+        {
+            var relativePath = $"api/v0/addresses/{address}/utxos";
+
+            return Task.FromResult(Array.Empty<Utxo>());
+        }
+
+        public Task<Utxo[]> GetTransactionAsync(string txHash, CancellationToken ct = default)
+        {
+            var relativePath = $"api/v0/txs/{txHash}/utxos";
+
+            return Task.FromResult(Array.Empty<Utxo>());
+        }
+
+        public Task<string> SubmitTransactionAsync(byte[] txSignedBinary, CancellationToken ct = default)
+        {
+            const string relativePath = "api/v0/tx/submit";
+            // Content-Type: application/cbor
+
+            return Task.FromResult("");
+        }
+
+        private async Task<HttpResponseMessage> GetAsync(
+            string queryString, CancellationToken ct = default)
         {
             var stopwatch = Stopwatch.StartNew();
 
