@@ -1,4 +1,6 @@
-﻿public record TxBasic(string TxHash, TxIo[] Inputs, TxIo[] Outputs);
+﻿using System.Linq;
+
+public record TxBasic(string TxHash, TxIo[] Inputs, TxIo[] Outputs);
 public record TxIo(string TxHash, int OutputIndex, UtxoValue[] Values, string Address);
 
 public record Utxo(string TxHash, int OutputIndex, UtxoValue[] Values);
@@ -33,3 +35,15 @@ public record TxSubmitCommand(
     string TxSignedPath,
     string NetworkSegment);
 
+public static class UtxoExtensions
+{
+    public static long Lovelaces(this Utxo utxo)
+    {
+        return utxo.Values.First(v => v.Unit == "lovelace").Quantity;
+    }
+
+    public static string ShortForm(this Utxo utxo)
+    {
+        return $"{utxo.TxHash}#{utxo.OutputIndex}";
+    }
+}

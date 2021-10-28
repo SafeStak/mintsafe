@@ -53,7 +53,8 @@ namespace NiftyLaunchpad.Lib
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine(ex);
+                Console.WriteLine("Cannot run CLI, reverting to fake UTxOs");
+                //Console.Error.WriteLine(ex);
                 await Task.Delay(1000, ct);
                 return new[]
                 {
