@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
-using System.Reflection;
 using System.Threading;
 
 
@@ -15,6 +14,8 @@ var settings = new NiftyLaunchpadSettings(
     Network: Network.Testnet,
     BlockFrostApiKey: "testneto96qDwlg4GaoKFfmKxPlHQhSkbea80cW",
     //BlockFrostApiKey: "mainnetGk6cqBgfG4nkQtvA1F80hJHfXzYQs8bW",
+    BasePath: @"C:\ws\temp\niftylaunchpad\",
+    //BasePath: "~/testnet-node/kc/niftylaunchpad/",
     PollingIntervalSeconds: 3);
 var dataService = new NiftyDataService();
 
@@ -34,10 +35,9 @@ if (mintableTokens.Count == 0)
     Console.WriteLine($"{collection.Collection.Name} with {collection.Tokens.Length} tokens has no MINTABLE tokens!");
     return;
 }
-
 Console.WriteLine($"{collection.Collection.Name} has an active sale for {mintableTokens.Count} Nifties at {activeSale.SaleAddress}{Environment.NewLine}{activeSale.LovelacesPerToken} lovelaces per NFT and {activeSale.MaxAllowedPurchaseQuantity} max allowed");
 
-var blockFrostClient = new BlockfrostClient(GetHttpClient(settings));
+var blockFrostClient = new BlockfrostClient(GetBlockFrostHttpClient(settings));
 var utxoRetriever = new UtxoRetriever(settings);
 var tokenAllocator = new TokenAllocator(settings, mintableTokens);
 var tokenDistributor = new TokenDistributor(
@@ -72,8 +72,8 @@ do
             var tokens = await tokenAllocator.AllocateTokensAsync(purchaseRequest, cts.Token);
             Console.WriteLine($"Successfully allocated {tokens.Length} tokens");
 
-            var txResult = await tokenDistributor.MintAsync(tokens, purchaseRequest, collection.Collection, activeSale, cts.Token);
-            Console.WriteLine($"Successfully minted {tokens.Length} tokens from Tx {txResult}");
+            var txHash = await tokenDistributor.DistributeNiftiesForSalePurchase(tokens, purchaseRequest, collection.Collection, activeSale, cts.Token);
+            Console.WriteLine($"Successfully minted {tokens.Length} tokens from Tx {txHash}");
 
             utxosSuccessfullyProcessed.Add(saleUtxo.ShortForm());
         }
@@ -110,7 +110,7 @@ do
 } while (await timer.WaitForNextTickAsync(cts.Token));
 
 
-static HttpClient GetHttpClient(NiftyLaunchpadSettings settings)
+static HttpClient GetBlockFrostHttpClient(NiftyLaunchpadSettings settings)
 {
     // Easiest way to get an IHttpClientFactory is via Microsoft.Extensions.DependencyInjection.ServiceProvider
     var serviceProvider = new ServiceCollection().AddHttpClient().BuildServiceProvider();

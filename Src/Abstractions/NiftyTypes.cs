@@ -15,7 +15,8 @@ public record NiftyCollection(
     string BrandImage,
     string[] Publishers,
     DateTime CreatedAt,
-    DateTime LockedAt);
+    DateTime LockedAt,
+    long SlotExpiry);
 
 public record Nifty(
     Guid Id,
@@ -50,6 +51,7 @@ public record NiftySale(
     string Description,
     long LovelacesPerToken,
     string SaleAddress,
+    string DepositAddress,
     int TotalReleaseQuantity,
     int MaxAllowedPurchaseQuantity,
     DateTime? Start = null,

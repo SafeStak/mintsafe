@@ -12,10 +12,8 @@ public record TxBuildCommand(
     UtxoValue[] Mint, 
     string MintingScriptPath,
     string MetadataJsonPath,
-    long TtlSlot,
-    long Fee, 
-    string TxRawOutputPath);
-public record TxOutput(string Address, UtxoValue[] Value);
+    long TtlSlot);
+public record TxOutput(string Address, UtxoValue[] Values);
 
 public record TxCalculateFeeCommand(
     string TxRawPath,

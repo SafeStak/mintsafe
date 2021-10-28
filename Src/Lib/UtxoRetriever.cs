@@ -59,14 +59,14 @@ namespace NiftyLaunchpad.Lib
                         "127745e23b81a5a5e22a409ce17ae8672b234dda7be1f09fc9e3a11906bd3a11",
                         0,
                         new [] { new UtxoValue("lovelace", 1000000000) }),
-                    new Utxo(
-                        "2032080672d43e6cdf8ade97fc1bf839effe1be45434e0e304ea1e538c0e3721",
-                        2,
-                        new [] { new UtxoValue("lovelace", 1000000000) }),
-                    new Utxo(
-                        "5611a9a5846caeda54e3aa5c7f6b9f26c639fd60be601d7fbc918d1e9a241500",
-                        5,
-                        new [] { new UtxoValue("lovelace", 1000000000) }),
+                    //new Utxo(
+                    //    "2032080672d43e6cdf8ade97fc1bf839effe1be45434e0e304ea1e538c0e3721",
+                    //    2,
+                    //    new [] { new UtxoValue("lovelace", 1000000000) }),
+                    //new Utxo(
+                    //    "5611a9a5846caeda54e3aa5c7f6b9f26c639fd60be601d7fbc918d1e9a241500",
+                    //    5,
+                    //    new [] { new UtxoValue("lovelace", 1000000000) }),
                 };
             }
         }

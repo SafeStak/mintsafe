@@ -8,7 +8,8 @@ namespace NiftyLaunchpad.Lib.UnitTests
     {
         public static NiftyLaunchpadSettings GenerateSettings()
         {
-            return new NiftyLaunchpadSettings(Network.Testnet, 5, "testnetabc");
+            return new NiftyLaunchpadSettings(
+                Network.Testnet, 5, "~/nlp/", "testnetabc");
         }
 
         public static NiftyCollection GenerateCollection(
@@ -24,7 +25,8 @@ namespace NiftyLaunchpad.Lib.UnitTests
                 Publishers: new[] { "BRIKMAESTRO", "NiftyLaunchpad.net" },
                 BrandImage: "ipfs://cid",
                 CreatedAt: new DateTime(2022, 9, 4, 0, 0, 0, DateTimeKind.Utc),
-                LockedAt: new DateTime(2022, 11, 30, 0, 0, 0, DateTimeKind.Utc));
+                LockedAt: new DateTime(2022, 11, 30, 0, 0, 0, DateTimeKind.Utc),
+                SlotExpiry: 44674366);
         }
 
         public static List<Nifty> GenerateTokens(int mintableTokenCount)

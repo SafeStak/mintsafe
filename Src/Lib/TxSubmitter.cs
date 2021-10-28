@@ -14,9 +14,9 @@ namespace NiftyLaunchpad.Lib
 
         public async Task<string> SubmitTxAsync(byte[] txSignedBinary, CancellationToken ct = default)
         {
-            var submission = await _blockFrostClient.SubmitTransactionAsync(txSignedBinary, ct);
+            var txHash = await _blockFrostClient.SubmitTransactionAsync(txSignedBinary, ct);
 
-            return submission;
+            return txHash;
         }
     }
 }
