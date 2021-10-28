@@ -19,7 +19,7 @@ public record NiftyCollection(
 
 public record Nifty(
     Guid Id,
-    Guid NiftyCollectionId,
+    Guid CollectionId,
     bool IsMintable,
     string AssetName,
     string Name,
@@ -30,6 +30,7 @@ public record Nifty(
     NiftyFile[] Files,
     DateTime CreatedAt,
     Royalty Royalty,
+    string Version,
     Dictionary<string, string> Attributes);
 
 public record NiftyFile(

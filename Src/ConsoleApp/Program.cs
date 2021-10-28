@@ -29,6 +29,7 @@ Console.WriteLine($"{collection.Collection.Name} has an active sale for {mintabl
 var utxoRetriever = new UtxoRetriever(settings);
 var tokenManager = new TokenManager(mintableTokens);
 var utxosLocked = new HashSet<string>();
+var utxosSuccessfullyProcessed = new HashSet<string>();
 var timer = new PeriodicTimer(TimeSpan.FromSeconds(settings.PollingIntervalSeconds));
 var stopwatch = Stopwatch.StartNew();
 do
@@ -55,6 +56,8 @@ do
 
             var txResult = await tokenManager.MintAsync(tokens, purchaseRequest, cts.Token);
             Console.WriteLine($"Successfully minted {tokens.Length} tokens from Tx {txResult}");
+
+            utxosSuccessfullyProcessed.Add(saleUtxo.ShortForm());
         }
         catch (AllMintableTokensForSaleAllocated ex)
         {
@@ -81,5 +84,5 @@ do
             utxosLocked.Add(saleUtxo.ShortForm());
         }
     }
-    Console.WriteLine($"Currently Locked {utxosLocked.Count} UTxOs");
+    Console.WriteLine($"Successful: {utxosSuccessfullyProcessed.Count} UTxOs | Locked: {utxosLocked.Count} UTxOs");
 } while (await timer.WaitForNextTickAsync(cts.Token));
