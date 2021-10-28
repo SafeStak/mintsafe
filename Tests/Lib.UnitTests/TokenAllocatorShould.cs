@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -17,8 +16,8 @@ namespace NiftyLaunchpad.Lib.UnitTests
         public async Task Allocate_Right_Amount_Of_Tokens_Given_Sufficient_Mintable_Tokens_When_Purchase_Request_Is_Valid(
             int mintableTokenCount, int requestedQuantity, int expectedAllocatedQuantity)
         {
-            var mintableTokens = GenerateTokens(mintableTokenCount);
-            var _allocator = new TokenManager(mintableTokens);
+            var mintableTokens = Generator.GenerateTokens(mintableTokenCount);
+            var _allocator = new TokenAllocator(Generator.GenerateSettings(), mintableTokens);
             var request = new NiftySalePurchaseRequest(
                 Guid.NewGuid(),
                 Guid.NewGuid(),
@@ -38,8 +37,8 @@ namespace NiftyLaunchpad.Lib.UnitTests
         public void Throws_AllMintableTokensForSaleAllocated_When_No_Mintable_Tokens_Are_Left(
             int mintableTokenCount, int requestedQuantity)
         {
-            var mintableTokens = GenerateTokens(mintableTokenCount);
-            var _allocator = new TokenManager(mintableTokens);
+            var mintableTokens = Generator.GenerateTokens(mintableTokenCount);
+            var _allocator = new TokenAllocator(Generator.GenerateSettings(), mintableTokens);
             var request = new NiftySalePurchaseRequest(
                 Guid.NewGuid(),
                 Guid.NewGuid(),
@@ -62,8 +61,8 @@ namespace NiftyLaunchpad.Lib.UnitTests
         public void Throws_ArgumentException_When_Requesting_Zero_Or_Negative_Token_Quantity(
             int mintableTokenCount, int requestedQuantity)
         {
-            var mintableTokens = GenerateTokens(mintableTokenCount);
-            var _allocator = new TokenManager(mintableTokens);
+            var mintableTokens = Generator.GenerateTokens(mintableTokenCount);
+            var _allocator = new TokenAllocator(Generator.GenerateSettings(), mintableTokens);
             var request = new NiftySalePurchaseRequest(
                 Guid.NewGuid(),
                 Guid.NewGuid(),
@@ -77,27 +76,6 @@ namespace NiftyLaunchpad.Lib.UnitTests
             };
 
             asyncTask.Should().ThrowAsync<ArgumentException>();
-        }
-
-        private static List<Nifty> GenerateTokens(int mintableTokenCount)
-        {
-            return Enumerable.Range(0, mintableTokenCount)
-                .Select(i => new Nifty(
-                    Guid.NewGuid(),
-                    Guid.NewGuid(),
-                    true,
-                    $"Token{i}",
-                    $"Token {i}",
-                    $"Token {i} Description",
-                    new[] { "NiftyLaunchpad.net" },
-                    $"ipfs://{i}",
-                    "image/png",
-                    Array.Empty<NiftyFile>(),
-                    DateTime.UtcNow,
-                    new Royalty(0, string.Empty),
-                    "1.0",
-                    new Dictionary<string, string>()))
-                .ToList();
         }
     }
 }

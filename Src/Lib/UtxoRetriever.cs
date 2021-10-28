@@ -1,9 +1,6 @@
 ﻿using SimpleExec;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -59,17 +56,17 @@ namespace NiftyLaunchpad.Lib
                 return new[]
                 {
                     new Utxo(
-                        "768c63e27a1c816a83dc7b07e78af673b2400de8849ea7e7b734ae1333d100d2",
+                        "127745e23b81a5a5e22a409ce17ae8672b234dda7be1f09fc9e3a11906bd3a11",
                         0,
-                        new [] { new UtxoValue("lovelace",10000000)}),
+                        new [] { new UtxoValue("lovelace", 1000000000) }),
                     new Utxo(
-                        "4c4e67bafa15e742c13c592b65c8f74c769cd7d9af04c848099672d1ba391b49",
+                        "2032080672d43e6cdf8ade97fc1bf839effe1be45434e0e304ea1e538c0e3721",
                         2,
-                        new [] { new UtxoValue("lovelace",20000000)}),
+                        new [] { new UtxoValue("lovelace", 1000000000) }),
                     new Utxo(
-                        "8c309cc90e3d493264a12b2667582cf09287a88c22bcc1b9b75dc305896b2e1b",
+                        "5611a9a5846caeda54e3aa5c7f6b9f26c639fd60be601d7fbc918d1e9a241500",
                         5,
-                        new [] { new UtxoValue("lovelace",10000000)}),
+                        new [] { new UtxoValue("lovelace", 1000000000) }),
                 };
             }
         }

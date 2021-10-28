@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -203,7 +201,7 @@ namespace NiftyLaunchpad.Lib
                 IsActive: true,
                 Name: "Preview Launch #1",
                 Description: "Limited 500 item launch",
-                LovelacesPerToken: 10000000,
+                LovelacesPerToken: 1000000000,
                 SaleAddress: "addr_test1vrldgv89yh0edkuwrvkkhc3yx4npfccdvtz7dfkn85a78rsu9nkm4",
                 TotalReleaseQuantity: 500,
                 MaxAllowedPurchaseQuantity: 5);

@@ -1,14 +1,12 @@
 ﻿using SimpleExec;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NiftyLaunchpad.Lib
 {
-    public class TxBuilder
+    public class TxBuilder : ITxBuilder
     {
         private readonly NiftyLaunchpadSettings _settings;
 
@@ -17,26 +15,30 @@ namespace NiftyLaunchpad.Lib
             _settings = settings;
         }
 
-        //public async Task<byte[]> BuildTx(TxBuildCommand buildCommand)
-        //{
-        //    try
-        //    {
-        //        var stopwatch = Stopwatch.StartNew();
-        //        var rawUtxoTable = await Command.ReadAsync(
-        //            "cardano-cli", string.Join(" ",
-        //                "query", "utxo",
-        //                GetNetworkParameter(),
-        //                "--address", address
-        //            ), noEcho: true);
-        //        Console.WriteLine($"UTxOs retrieved after {stopwatch.ElapsedMilliseconds}ms:{Environment.NewLine}{rawUtxoTable}");
-        //    }
-        //    catch
-        //    {
+        public async Task<byte[]> BuildTxAsync(
+            TxBuildCommand buildCommand, CancellationToken ct = default)
+        {
+            try
+            {
+                var stopwatch = Stopwatch.StartNew();
 
-        //    }
+                await Task.Delay(100);
+                var output = "Job done init";
+                //var output = await Command.ReadAsync(
+                //    "cardano-cli", string.Join(" ",
+                //        "transaction", "build-raw",
+                //        "--out-file", buildCommand.TxRawOutputPath
+                //    ), noEcho: true);
 
-        //    return Array.Empty<byte>;
-        //}
+                Console.WriteLine($"Tx built after {stopwatch.ElapsedMilliseconds}ms:{output}");
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine(ex);
+            }
+
+            return Array.Empty<byte>();
+        }
 
         private string GetNetworkParameter()
         {

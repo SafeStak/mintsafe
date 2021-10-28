@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 
 namespace NiftyLaunchpad.Lib
 {
-    public class TxSubmitter
+    public class TxSubmitter : ITxSubmitter
     {
         private readonly BlockfrostClient _blockFrostClient;
 

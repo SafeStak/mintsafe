@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 
 public record TxBasic(string TxHash, TxIo[] Inputs, TxIo[] Outputs);
-public record TxIo(string TxHash, int OutputIndex, UtxoValue[] Values, string Address);
+public record TxIo(string Address, int OutputIndex, UtxoValue[] Values);
 
 public record Utxo(string TxHash, int OutputIndex, UtxoValue[] Values);
 public record UtxoValue(string Unit, long Quantity);
@@ -44,6 +44,6 @@ public static class UtxoExtensions
 
     public static string ShortForm(this Utxo utxo)
     {
-        return $"{utxo.TxHash}#{utxo.OutputIndex}";
+        return $"{utxo.TxHash}__{utxo.OutputIndex}";
     }
 }

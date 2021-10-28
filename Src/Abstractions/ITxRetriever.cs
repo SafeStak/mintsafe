@@ -5,6 +5,6 @@ namespace NiftyLaunchpad.Abstractions
 {
     public interface ITxRetriever
     {
-        Task<TxBasic> GetBasicTx(string txHash, CancellationToken ct = default);
+        Task<TxBasic> GetBasicTxAsync(string txHash, CancellationToken ct = default);
     }
 }

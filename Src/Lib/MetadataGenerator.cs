@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NiftyLaunchpad.Lib
 {
-    public class MetadataGenerator
+    public class MetadataGenerator : IMetadataGenerator
     {
         public class NftStandardAsset
         {
@@ -20,7 +18,10 @@ namespace NiftyLaunchpad.Lib
         }
 
         public Task GenerateMetadataJsonFile(
-            Nifty[] nfts, NiftyCollection collection, string path)
+            Nifty[] nfts,
+            NiftyCollection collection,
+            string path,
+            CancellationToken ct = default)
         {
             var nftStandard = new Dictionary<
                 string, // 721
@@ -34,7 +35,7 @@ namespace NiftyLaunchpad.Lib
                 Dictionary<
                     string, // AssetName
                     NftStandardAsset>>();
-            
+
             var nftDictionary = new Dictionary<string, NftStandardAsset>();
             foreach (var nft in nfts)
             {

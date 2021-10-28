@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NiftyLaunchpad.Lib.UnitTests
 {
     public static class Generator
     {
+        public static NiftyLaunchpadSettings GenerateSettings()
+        {
+            return new NiftyLaunchpadSettings(Network.Testnet, 5, "testnetabc");
+        }
+
         public static NiftyCollection GenerateCollection(
             string id = null,
             string policyId = null)
