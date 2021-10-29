@@ -202,7 +202,7 @@ namespace NiftyLaunchpad.Lib
                 IsActive: true,
                 Name: "Preview Launch #1",
                 Description: "Limited 8 item launch",
-                LovelacesPerToken: 15000000,
+                LovelacesPerToken: 10000000,
                 SaleAddress: "addr_test1vqv2cldstkyvpjc88w2wd8yuk2g6pltm6lz2jzn0gqke35q5zgwuu",
                 DepositAddress: "addr_test1vpfkk396juz65kv3lrq6qjnneyqw4hlu949y8jy8ug465pqrxc3mg",
                 TotalReleaseQuantity: 500,
