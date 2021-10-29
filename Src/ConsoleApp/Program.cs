@@ -14,9 +14,9 @@ var settings = new NiftyLaunchpadSettings(
     Network: Network.Testnet,
     BlockFrostApiKey: "testneto96qDwlg4GaoKFfmKxPlHQhSkbea80cW",
     //BlockFrostApiKey: "mainnetGk6cqBgfG4nkQtvA1F80hJHfXzYQs8bW",
-    BasePath: @"C:\ws\temp\niftylaunchpad\",
-    //BasePath: "~/testnet-node/kc/niftylaunchpad/",
-    PollingIntervalSeconds: 3);
+    //BasePath: @"C:\ws\temp\niftylaunchpad\",
+    BasePath: "/home/knut/testnet-node/kc/niftylaunchpad/",
+    PollingIntervalSeconds: 10);
 var dataService = new NiftyDataService();
 
 // Get { Collection * Sale[] * Token[] }
@@ -50,6 +50,8 @@ var utxosLocked = new HashSet<string>();
 var utxosSuccessfullyProcessed = new HashSet<string>();
 var timer = new PeriodicTimer(TimeSpan.FromSeconds(settings.PollingIntervalSeconds));
 var stopwatch = Stopwatch.StartNew();
+try
+{
 do
 {
     var saleUtxos = await utxoRetriever.GetUtxosAtAddressAsync(activeSale.SaleAddress, cts.Token);
@@ -108,7 +110,11 @@ do
     }
     Console.WriteLine($"Successful: {utxosSuccessfullyProcessed.Count} UTxOs | Locked: {utxosLocked.Count} UTxOs");
 } while (await timer.WaitForNextTickAsync(cts.Token));
-
+}
+catch (System.OperationCanceledException)
+{
+    Console.WriteLine(" User cancelled.. exiting");
+}
 
 static HttpClient GetBlockFrostHttpClient(NiftyLaunchpadSettings settings)
 {
