@@ -89,13 +89,13 @@ namespace NiftyLaunchpad.Lib
                 var content = new ByteArrayContent(txSignedBinary);
                 content.Headers.ContentType = new MediaTypeHeaderValue("application/cbor");
 
-                //var response = await _httpClient.PostAsync(relativePath, content);
-                //var txHash = await response.Content.ReadAsStringAsync();
+                var response = await _httpClient.PostAsync(relativePath, content);
+                var txHash = await response.Content.ReadAsStringAsync();
 
-                //Console.WriteLine($"Finished getting response from {relativePath} after {sw.ElapsedMilliseconds}ms");
-                //return txHash;
-                await Task.Delay(100);
-                return "51e9b6577ad260c273aee5a3786d6b39cce44fc3c49bf44f395499d34b3814f5";
+                Console.WriteLine($"Finished getting response from {relativePath} after {sw.ElapsedMilliseconds}ms\n{txHash}");
+                return txHash;
+                // await Task.Delay(100);
+                // return "51e9b6577ad260c273aee5a3786d6b39cce44fc3c49bf44f395499d34b3814f5";
             }
             catch (Exception ex)
             {
