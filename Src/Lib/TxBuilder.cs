@@ -47,6 +47,7 @@ namespace NiftyLaunchpad.Lib
                     "--fee", "0",
                     "--out-file", feeCalculationTxBodyPath
                 );
+                Console.WriteLine(feeTxBuildArgs);
                 var feeTxBuildOutput = await Command.ReadAsync("cardano-cli", feeTxBuildArgs, noEcho: true);
                 //var feeTxBuildOutput = "";
                 Console.WriteLine($"Fee Tx built {feeTxBuildArgs}{Environment.NewLine}{feeTxBuildOutput}");
@@ -61,39 +62,41 @@ namespace NiftyLaunchpad.Lib
                     "--protocol-params-file", protocolParamsPath
                 );
                 var feeCalculationOutput = await Command.ReadAsync("cardano-cli", feeCalculationArgs, noEcho: true);
-                //var feeCalculationOutput = "12798";
+                var feeLovelaceQuantity = long.Parse(feeCalculationOutput.Split(' ')[0]); // Parse "199469 Lovelace"
                 Console.WriteLine($"Fee Calculated {feeCalculationArgs}{Environment.NewLine}{feeCalculationOutput}");
 
                 var mintTxBodyPath = Path.Combine(_settings.BasePath, $"mint-{id}.txraw");
                 var txBuildArgs = string.Join(" ",
                     "transaction", "build-raw",
                     GetTxInArgs(buildCommand),
-                    GetTxOutArgs(buildCommand, long.Parse(feeCalculationOutput)),
+                    GetTxOutArgs(buildCommand, feeLovelaceQuantity),
                     "--metadata-json-file", buildCommand.MetadataJsonPath,
                     GetMintArgs(buildCommand),
                     "--minting-script-file", buildCommand.MintingScriptPath,
                     "--invalid-hereafter", buildCommand.TtlSlot,
-                    "--fee", feeCalculationOutput,
+                    "--fee", feeLovelaceQuantity,
                     "--out-file", mintTxBodyPath
                 );
                 var txBuildOutput = await Command.ReadAsync("cardano-cli", txBuildArgs, noEcho: true);
                 //var txBuildOutput = "";
                 Console.WriteLine($"Mint Tx built {txBuildArgs}{Environment.NewLine}{txBuildOutput}");
 
-                var signedTxPath = Path.Combine(_settings.BasePath, $"{id}.txsigned");
+                var policySigningKeyPath = Path.Combine(_settings.BasePath, $"{policyId}.skey");
+                var saleAddressKeySigningPath = Path.Combine(_settings.BasePath, $"{saleId}.sale.skey");
+                var signedTxOutputPath = Path.Combine(_settings.BasePath, $"{id}.txsigned");
                 var txSignatureArgs = string.Join(" ",
                     "transaction", "sign",
-                    "--signing-key-file", $"{policyId}.skey",
-                    "--signing-key-file", $"{saleId}.sale.skey",
+                    "--signing-key-file", policySigningKeyPath,
+                    "--signing-key-file", saleAddressKeySigningPath,
                     "--tx-body-file", mintTxBodyPath,
                     networkMagic,
-                    "--out-file", signedTxPath
+                    "--out-file", signedTxOutputPath
                 );
                 var txSignatureOutput = await Command.ReadAsync("cardano-cli", txSignatureArgs, noEcho: true);
                 //var txSignatureOutput = "";
-                Console.WriteLine($"Real Tx built {txSignatureArgs}{Environment.NewLine}{txSignatureOutput}");
-
-                var signedTx = File.ReadAllBytes(signedTxPath);
+                Console.WriteLine($"Signed Tx built {txSignatureArgs}{Environment.NewLine}{txSignatureOutput}");
+                Console.WriteLine(File.ReadAllText(signedTxOutputPath));
+                var signedTx = File.ReadAllBytes(signedTxOutputPath);
                 //var signedTx = Array.Empty<byte>();
 
                 return signedTx;
@@ -130,10 +133,10 @@ namespace NiftyLaunchpad.Lib
                     lovelaces -= fee;
                 }
 
-                sb.Append($"--tx-out {output.Address}+{lovelaces} ");
+                sb.Append($"--tx-out {output.Address}+{lovelaces}");
                 foreach (var value in nativeTokens)
                 {
-                    sb.Append($"+{value.Quantity} {value.Unit} ");
+                    sb.Append($"+\"{value.Quantity} {value.Unit}\" ");
                 }
             }
             return sb.ToString().TrimEnd();
@@ -145,11 +148,12 @@ namespace NiftyLaunchpad.Lib
                 return string.Empty;
             
             var sb = new StringBuilder();
-            sb.Append($"--mint ");
+            sb.Append($"--mint \"");
             foreach (var value in command.Mint)
             {
-                sb.Append($"+{value.Quantity} {value.Unit} ");
+                sb.Append($"{value.Quantity} {value.Unit} ");
             }
+            sb.Append($"\"");
             return sb.ToString().TrimEnd();
         }
 

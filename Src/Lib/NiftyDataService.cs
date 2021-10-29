@@ -14,7 +14,7 @@ namespace NiftyLaunchpad.Lib
             var fakeCollectionId = Guid.Parse("d5b35d3d-14cc-40ba-94f4-fe3b28bd52ae");
             var collection = new NiftyCollection(
                 Id: fakeCollectionId,
-                PolicyId: "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
+                PolicyId: "cc5041e4fa717a9e24461a86701395af15a87298e9457cb969573b30",
                 Name: "TOP_SECRET_PROJECT",
                 Description: "Creations from TOP_SECRET_PROJECT",
                 IsActive: true,

@@ -39,6 +39,7 @@ namespace NiftyLaunchpad.Lib
             // Generate metadata file
             var metadataJsonFileName = $"metadata-{request.Utxo.ShortForm()}.json";
             var metadataJsonPath = Path.Combine(_settings.BasePath, metadataJsonFileName);
+
             await _metadataGenerator.GenerateMetadataJsonFile(nfts, collection, metadataJsonPath, ct);
 
             // Derive buyer address after getting source UTxO details from BF
@@ -65,7 +66,7 @@ namespace NiftyLaunchpad.Lib
                     new TxOutput(sale.DepositAddress, new[] { new UtxoValue("lovelace", depositAddressLovelaces) }) },
                 tokenMintValues,
                 policyScriptPath,
-                metadataJsonFileName,
+                metadataJsonPath,
                 collection.SlotExpiry);
 
             var txSubmissionBody = await _txBuilder.BuildTxAsync(txBuildCommand, collection.PolicyId, sale.Id.ToString());
