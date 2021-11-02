@@ -20,10 +20,10 @@ namespace NiftyLaunchpad.Lib
             var collection = new NiftyCollection(
                 Id: fakeCollectionId,
                 PolicyId: "e9b6f907ea790ca51957eb513430eb0ec155f8df654d48e961d7ea3e",
-                Name: "cryptoquokkas",
+                Name: "cryptochads",
                 Description: "Creations from TOP_SECRET_PROJECT",
                 IsActive: true,
-                Publishers: new[] { "cryptoquokkas.io", "mintsafe.io" },
+                Publishers: new[] { "cryptochads.io", "mintsafe.io" },
                 BrandImage: "ipfs://cid",
                 CreatedAt: new DateTime(2021, 9, 4, 0, 0, 0, DateTimeKind.Utc),
                 LockedAt: new DateTime(2021, 12, 25, 0, 0, 0, DateTimeKind.Utc),
@@ -39,10 +39,10 @@ namespace NiftyLaunchpad.Lib
                 IsActive: true,
                 Name: "Preview Launch #1",
                 Description: "Limited 150 item launch",
-                LovelacesPerToken: 3000000,
+                LovelacesPerToken: 75000000,
                 SaleAddress: "addr_test1vz0hx28mmdz0ey3pzqe5nxg08urjhzydpvvmcx4v4we5mvg6733n5",
                 ProceedsAddress: "addr_test1vzj4c522pr5n6texvcl24kl9enntr4knl4ucecd7pkt24mglna4pz",
-                TotalReleaseQuantity: 150,
+                TotalReleaseQuantity: 1,
                 MaxAllowedPurchaseQuantity: 150);
             
             var activeSales = collection.IsActive && IsSaleOpen(sale) ? new[] { sale } : Array.Empty<NiftySale>();
@@ -64,9 +64,9 @@ namespace NiftyLaunchpad.Lib
             int mintableTokenCount, 
             string collectionId = null, 
             bool isMintable = true,
-            string baseName = "cryptoquokkas",
-            string creatorsCsv = "cryptoquokkas.io,mintsafe.io",
-            string urlBase = "https://cryptoquokkas.io/ms/",
+            string baseName = "cryptochads",
+            string creatorsCsv = "cryptochads.io,mintsafe.io",
+            string urlBase = "https://cryptochads.io/ms/",
             string mediaType = "image/png",
             string createdAtIso8601 = "2021-01-01T19:30:00Z",
             double royaltyPortion = 0,

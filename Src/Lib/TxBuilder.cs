@@ -135,14 +135,14 @@ namespace NiftyLaunchpad.Lib
                     lovelacesOut -= fee;
                 }
 
-                sb.Append($"--tx-out {output.Address}+{lovelacesOut}");
+                sb.Append($"--tx-out \"{output.Address}+{lovelacesOut}");
                 
                 var nativeTokens = output.Values.Where(o => o.Unit != "lovelace").ToArray();
                 foreach (var value in nativeTokens)
                 {
-                    sb.Append($"+\"{value.Quantity} {value.Unit}\"");
+                    sb.Append($"+{value.Quantity} {value.Unit}");
                 }
-                sb.Append(" ");
+                sb.Append("\" ");
             }
             return sb.ToString().TrimEnd();
         }
@@ -156,9 +156,9 @@ namespace NiftyLaunchpad.Lib
             sb.Append($"--mint \"");
             foreach (var value in command.Mint)
             {
-                sb.Append($"{value.Quantity} {value.Unit} + ");
+                sb.Append($"{value.Quantity} {value.Unit}+");
             }
-            sb.Remove(sb.Length - 3, 3); // trim trailing + and space
+            sb.Remove(sb.Length - 1, 1); // trim trailing + 
             sb.Append("\"");
             return sb.ToString();
         }
