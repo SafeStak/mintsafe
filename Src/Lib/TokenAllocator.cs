@@ -24,6 +24,8 @@ namespace NiftyLaunchpad.Lib
 
         public Task<Nifty[]> AllocateTokensAsync(
             NiftySalePurchaseRequest request,
+            List<Nifty> allocatedTokens,
+            NiftySale sale,
             CancellationToken ct = default)
         {
             if (request.NiftyQuantityRequested <= 0)
@@ -32,8 +34,14 @@ namespace NiftyLaunchpad.Lib
             }
             if (request.NiftyQuantityRequested > _mintableNfts.Count)
             {
-                throw new AllMintableTokensForSaleAllocated(
-                    "All tokens already allocated", request.Utxo, request.NiftyQuantityRequested);
+                throw new NoMintableTokensLeftException(
+                    "No more mintable tokens in collection", request.Utxo, request.NiftyQuantityRequested);
+            }
+
+            if (request.NiftyQuantityRequested + allocatedTokens.Count > sale.TotalReleaseQuantity)
+            {
+                throw new SaleReleaseQuantityExceededException(
+                    "Cannot allocate tokens past sale realease quantity", request.Utxo, request.NiftyQuantityRequested);
             }
 
             var allocatedNfts = new List<Nifty>(request.NiftyQuantityRequested);

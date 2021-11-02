@@ -9,7 +9,7 @@ namespace NiftyLaunchpad.Lib
 {
     public class TokenDistributor
     {
-        private const int MinLovelaceUtxo = 2000000;
+        private const int MinLovelaceUtxo = 4000000;
 
         private readonly NiftyLaunchpadSettings _settings;
         private readonly IMetadataGenerator _metadataGenerator;

@@ -128,22 +128,21 @@ namespace NiftyLaunchpad.Lib
             var sb = new StringBuilder();
             foreach (var output in command.Outputs)
             {
-                var lovelaceOut = output.Values.First(v => v.Unit == "lovelace");
-                var lovelaces = lovelaceOut.Quantity;
-                var nativeTokens = output.Values.Where(o => o.Unit != "lovelace").ToArray();
-                
-                // Special case to deduct fee for deposit address (no native tokens)
-                var isDepositAddress = nativeTokens.Length == 0;
-                if (isDepositAddress)
+                // Determine the txout that will pay for the fee (i.e. the sale proceeds address and not the buyer)
+                var lovelacesOut = output.Values.First(v => v.Unit == "lovelace").Quantity;
+                if (output.IsFeeDeducted)
                 {
-                    lovelaces -= fee;
+                    lovelacesOut -= fee;
                 }
 
-                sb.Append($"--tx-out {output.Address}+{lovelaces}");
+                sb.Append($"--tx-out {output.Address}+{lovelacesOut}");
+                
+                var nativeTokens = output.Values.Where(o => o.Unit != "lovelace").ToArray();
                 foreach (var value in nativeTokens)
                 {
-                    sb.Append($"+\"{value.Quantity} {value.Unit}\" ");
+                    sb.Append($"+\"{value.Quantity} {value.Unit}\"");
                 }
+                sb.Append(" ");
             }
             return sb.ToString().TrimEnd();
         }

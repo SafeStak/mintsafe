@@ -29,9 +29,9 @@ if (collection.ActiveSales.Length == 0)
 
 var activeSale = collection.ActiveSales[0];
 var mintableTokens = collection.Tokens.Where(t => t.IsMintable).ToList();
-if (mintableTokens.Count == 0)
+if (mintableTokens.Count < activeSale.TotalReleaseQuantity)
 {
-    Console.WriteLine($"{collection.Collection.Name} with {collection.Tokens.Length} tokens has no MINTABLE tokens!");
+    Console.WriteLine($"{collection.Collection.Name} has {mintableTokens.Count} mintable tokens which is less than {activeSale.TotalReleaseQuantity} sale release quantity.");
     return;
 }
 
@@ -47,8 +47,9 @@ var tokenDistributor = new TokenDistributor(
     new TxRetriever(blockFrostClient),
     new TxBuilder(settings),
     //new FakeTxBuilder(settings),
-    //new TxSubmitter(blockFrostClient));
-    new FakeTxSubmitter(blockFrostClient));
+    new TxSubmitter(blockFrostClient));
+    //new FakeTxSubmitter(blockFrostClient));
+var mintedTokens = new List<Nifty>();
 var utxosLocked = new HashSet<string>();
 var utxosSuccessfullyProcessed = new HashSet<string>();
 var timer = new PeriodicTimer(TimeSpan.FromSeconds(settings.PollingIntervalSeconds));
@@ -75,15 +76,16 @@ try
                 var purchaseRequest = SalePurchaseGenerator.FromUtxo(saleUtxo, activeSale);
                 Console.WriteLine($"Successfully built purchase request: {purchaseRequest.NiftyQuantityRequested} NFTs for {saleUtxo.Lovelaces()} and {purchaseRequest.ChangeInLovelace} change");
 
-                var tokens = await tokenAllocator.AllocateTokensAsync(purchaseRequest, cts.Token);
+                var tokens = await tokenAllocator.AllocateTokensAsync(purchaseRequest, mintedTokens, activeSale, cts.Token);
                 Console.WriteLine($"Successfully allocated {tokens.Length} tokens");
+                mintedTokens.AddRange(tokens);
 
                 var txHash = await tokenDistributor.DistributeNiftiesForSalePurchase(tokens, purchaseRequest, collection.Collection, activeSale, cts.Token);
                 Console.WriteLine($"Successfully minted {tokens.Length} tokens from Tx {txHash}");
 
                 utxosSuccessfullyProcessed.Add(saleUtxo.ToString());
             }
-            catch (AllMintableTokensForSaleAllocated ex)
+            catch (SaleReleaseQuantityExceededException ex)
             {
                 Console.Error.WriteLine(ex);
             }
@@ -100,6 +102,10 @@ try
                 Console.Error.WriteLine(ex);
             }
             catch (MaxAllowedPurchaseQuantityExceededException ex)
+            {
+                Console.Error.WriteLine(ex);
+            }
+            catch (BlockfrostResponseException ex)
             {
                 Console.Error.WriteLine(ex);
             }

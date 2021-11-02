@@ -2,12 +2,27 @@
 
 namespace NiftyLaunchpad.Lib
 {
-    public class AllMintableTokensForSaleAllocated : ApplicationException
+    public class SaleReleaseQuantityExceededException : ApplicationException
     {
         public long RequestedQuantity { get; }
         public Utxo PurchaseAttemptUtxo { get; }
 
-        public AllMintableTokensForSaleAllocated(
+        public SaleReleaseQuantityExceededException(
+            string message, 
+            Utxo purchaseAttemptUtxo,
+            int requestedQuantity) : base(message)
+        {
+            RequestedQuantity = requestedQuantity;
+            PurchaseAttemptUtxo = purchaseAttemptUtxo;
+        }
+    }
+
+    public class NoMintableTokensLeftException : ApplicationException
+    {
+        public long RequestedQuantity { get; }
+        public Utxo PurchaseAttemptUtxo { get; }
+
+        public NoMintableTokensLeftException(
             string message, 
             Utxo purchaseAttemptUtxo,
             int requestedQuantity) : base(message)

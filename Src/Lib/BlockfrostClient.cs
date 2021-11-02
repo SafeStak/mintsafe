@@ -90,10 +90,15 @@ namespace NiftyLaunchpad.Lib
                 content.Headers.ContentType = new MediaTypeHeaderValue("application/cbor");
 
                 var response = await _httpClient.PostAsync(relativePath, content);
-                var txHash = await response.Content.ReadAsStringAsync();
+                if (response.IsSuccessStatusCode)
+                {
+                    var txHash = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"Finished getting response from {relativePath} after {sw.ElapsedMilliseconds}ms\n{txHash}");
+                    return txHash;
+                }
 
-                Console.WriteLine($"Finished getting response from {relativePath} after {sw.ElapsedMilliseconds}ms\n{txHash}");
-                return txHash;
+                var responseBody = await response.Content.ReadAsStringAsync();
+                throw new BlockfrostResponseException($"{response.StatusCode}:{responseBody}");
                 // await Task.Delay(100);
                 // return "51e9b6577ad260c273aee5a3786d6b39cce44fc3c49bf44f395499d34b3814f5";
             }
