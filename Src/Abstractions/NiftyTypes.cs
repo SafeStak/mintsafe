@@ -37,7 +37,9 @@ public record Nifty(
 public record NiftyFile(
     Guid Id,
     string Name,
-    string Url);
+    string MediaType,
+    string Url,
+    string FileHash = "");
 
 public record Royalty(
     double PortionOfSale,
@@ -51,7 +53,7 @@ public record NiftySale(
     string Description,
     long LovelacesPerToken,
     string SaleAddress,
-    string DepositAddress,
+    string ProceedsAddress,
     int TotalReleaseQuantity,
     int MaxAllowedPurchaseQuantity,
     DateTime? Start = null,

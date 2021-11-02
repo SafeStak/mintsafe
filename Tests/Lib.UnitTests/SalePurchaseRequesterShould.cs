@@ -183,7 +183,7 @@ namespace NiftyLaunchpad.Lib.UnitTests
                 Description: "Limited 500 item launch",
                 LovelacesPerToken: costPerTokenLovelace,
                 SaleAddress: "addr_test1vre6wmde3qz7h7eerk98lgtkuzjd5nfqj4wy0fwntymr20qee2cxk",
-                DepositAddress: "addr_test1vpfkk396juz65kv3lrq6qjnneyqw4hlu949y8jy8ug465pqrxc3mg",
+                ProceedsAddress: "addr_test1vpfkk396juz65kv3lrq6qjnneyqw4hlu949y8jy8ug465pqrxc3mg",
                 IsActive: isActive,
                 Start: start,
                 End: end,

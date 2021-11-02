@@ -3,7 +3,12 @@
 public record TxBasic(string TxHash, TxIo[] Inputs, TxIo[] Outputs);
 public record TxIo(string Address, int OutputIndex, UtxoValue[] Values);
 
-public record Utxo(string TxHash, int OutputIndex, UtxoValue[] Values);
+public record Utxo(string TxHash, int OutputIndex, UtxoValue[] Values)
+{
+    public override int GetHashCode() => ToString().GetHashCode();
+    public override string ToString() => $"{TxHash}__{OutputIndex}";
+}
+
 public record UtxoValue(string Unit, long Quantity);
 
 public record TxBuildCommand(
@@ -13,7 +18,7 @@ public record TxBuildCommand(
     string MintingScriptPath,
     string MetadataJsonPath,
     long TtlSlot);
-public record TxOutput(string Address, UtxoValue[] Values);
+public record TxOutput(string Address, UtxoValue[] Values, bool IsFeeDeducted = false);
 
 public record TxCalculateFeeCommand(
     string TxRawPath,
@@ -42,6 +47,6 @@ public static class UtxoExtensions
 
     public static string ShortForm(this Utxo utxo)
     {
-        return $"{utxo.TxHash}__{utxo.OutputIndex}";
+        return utxo.ToString();
     }
 }

@@ -78,4 +78,27 @@ namespace NiftyLaunchpad.Lib
                 : "--testnet-magic 1097911063";
         }
     }
+
+    public class FakeUtxoRetriever
+    {
+        private readonly NiftyLaunchpadSettings _settings;
+
+        public FakeUtxoRetriever(NiftyLaunchpadSettings settings)
+        {
+            _settings = settings;
+        }
+
+        public async Task<Utxo[]> GetUtxosAtAddressAsync(string address, CancellationToken ct = default)
+        {
+            await Task.Delay(1000, ct);
+            var utxos = Array.Empty<Utxo>();
+
+            return new[] {
+                new Utxo(
+                    "127745e23b81a5a5e22a409ce17ae8672b234dda7be1f09fc9e3a11906bd3a11",
+                    0,
+                    new[] { new UtxoValue("lovelace", 10000000) }),
+            };
+        }
+    }
 }

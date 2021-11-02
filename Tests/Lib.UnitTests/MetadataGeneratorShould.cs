@@ -36,7 +36,7 @@ namespace NiftyLaunchpad.Lib.UnitTests
                     string, // PolicyID
                     Dictionary<
                         string, // AssetName
-                        NftStandardAsset>>>>(json);
+                        CnftStandardAsset>>>>(json);
             deserialised["721"][collection.PolicyId].Keys.Count.Should().Be(nftCount);
         }
 

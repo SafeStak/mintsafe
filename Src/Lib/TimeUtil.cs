@@ -18,6 +18,18 @@ namespace NiftyLaunchpad.Lib
             return slotThen + (int)secondsDiff;
         }
 
+        public static DateTime GetUtcTimeFromTestnetSlot(long slot)
+        {
+            var then = new DateTime(2021, 10, 28, 14, 0, 4, DateTimeKind.Utc);
+            var slotThen = 41060390;
+
+            var slotDifference = slot - slotThen;
+
+            var time = then.AddSeconds(slotDifference);
+
+            return time;
+        }
+
         public static int GetMainnetSlotAt(DateTime utcDateTime)
         {
             if (utcDateTime.Kind != DateTimeKind.Utc)
@@ -30,6 +42,18 @@ namespace NiftyLaunchpad.Lib
             var secondsDiff = (utcDateTime - then).TotalSeconds;
 
             return slotThen + (int)secondsDiff;
+        }
+
+        public static DateTime GetUtcTimeFromMainnetSlot(long slot)
+        {
+            var then = new DateTime(2021, 10, 28, 14, 1, 0, DateTimeKind.Utc);
+            var slotThen = 43863369;
+
+            var slotDifference = slot - slotThen;
+
+            var time = then.AddSeconds(slotDifference);
+
+            return time;
         }
     }
 }

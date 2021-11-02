@@ -14,7 +14,7 @@ namespace NiftyLaunchpad.Lib
                 throw new SalePeriodOutOfRangeException("Sale has not started", utxo, sale.Start, sale.End);
 
             if (sale.End.HasValue && sale.End < DateTime.UtcNow)
-                throw new SalePeriodOutOfRangeException("Sale has ended", utxo, sale.Start, sale.End);
+                throw new SalePeriodOutOfRangeException("Sale has already ended", utxo, sale.Start, sale.End);
 
             var lovelaceValue = utxo.Values.First(v => v.Unit == "lovelace");
             if (lovelaceValue.Quantity < sale.LovelacesPerToken)

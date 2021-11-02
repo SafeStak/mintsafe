@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -7,205 +9,40 @@ namespace NiftyLaunchpad.Lib
 {
     public class NiftyDataService
     {
+        public const string FakeCollectionId = "d5b35d3d-14cc-40ba-94f4-fe3b28bd52ae";
+        public const string FakeSaleId = "69da836f-9e0b-4ec4-98e8-094efaeac38b";
+
         public Task<CollectionAggregate> GetCollectionAggregateAsync(
             Guid collectionId, CancellationToken ct = default) 
         {
             // Retrieve {Collection * ActiveSales * MintableTokens} from db
-            var fakeCollectionId = Guid.Parse("d5b35d3d-14cc-40ba-94f4-fe3b28bd52ae");
+            var fakeCollectionId = Guid.Parse(FakeCollectionId);
             var collection = new NiftyCollection(
                 Id: fakeCollectionId,
-                PolicyId: "cc5041e4fa717a9e24461a86701395af15a87298e9457cb969573b30",
+                PolicyId: "e9b6f907ea790ca51957eb513430eb0ec155f8df654d48e961d7ea3e",
                 Name: "TOP_SECRET_PROJECT",
                 Description: "Creations from TOP_SECRET_PROJECT",
                 IsActive: true,
-                Publishers: new[] { "TOP_SECRET_PROJECT.io", "NiftyLaunchpad.net" },
+                Publishers: new[] { "TOP_SECRET_PROJECT.io", "mintsafe.io" },
                 BrandImage: "ipfs://cid",
-                CreatedAt: new DateTime(2022, 9, 4, 0, 0, 0, DateTimeKind.Utc),
-                LockedAt: new DateTime(2022, 11, 30, 0, 0, 0, DateTimeKind.Utc),
-                SlotExpiry: 44674366);
+                CreatedAt: new DateTime(2021, 9, 4, 0, 0, 0, DateTimeKind.Utc),
+                LockedAt: new DateTime(2021, 12, 25, 0, 0, 0, DateTimeKind.Utc),
+                SlotExpiry: 46021186); // testnet christmas 
 
-            var tokens = new[]
-            {
-                new Nifty(
-                    Id: Guid.Parse("6f0c17b1-0f65-40af-ba23-7db90a913222"),
-                    CollectionId: fakeCollectionId,
-                    IsMintable: true,
-                    AssetName: "topsecret0001",
-                    Name: "TOP_SECRET_PROJECT #1 TOP",
-                    Description: "TOP M8",
-                    Artists: new[] { "TOP_SECRET_PROJECT" },
-                    Image: "ipfs://QmV896wmZc6Rp4pqCex5NN2nYUEjh2zFfGkNfC1qe5Dz4i",
-                    MediaType: "image/png",
-                    Files: new[] {
-                        new NiftyFile(Guid.NewGuid(), "Full Resolution", "ipfs://QmV896wmZc6Rp4pqCex5NN2nYUEjh2zFfGkNfC1qe5Dz4i")
-                    },
-                    CreatedAt: new DateTime(2021, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                    Royalty: new Royalty(0, string.Empty),
-                    Version: "1.0",
-                    Attributes: new Dictionary<string,string>
-                    {
-                        { "key1", "TOP_SECRET_PROJECT #1 TOP" }
-                    }
-                ),
-                new Nifty(
-                    Id: Guid.Parse("6cf9c598-5925-487d-8497-2d0083c6de10"),
-                    CollectionId: fakeCollectionId,
-                    IsMintable: true,
-                    AssetName: "topsecret0002",
-                    Name: "TOP_SECRET_PROJECT #2 TOP",
-                    Description: "TOP M8",
-                    Artists: new[] { "TOP_SECRET_PROJECT" },
-                    Image: "ipfs://QmV896wmZc6Rp4pqCex5NN2nYUEjh2zFfGkNfC1qe5Dz4i",
-                    MediaType: "image/png",
-                    Files: new[] {
-                        new NiftyFile(Guid.NewGuid(), "Full Resolution", "ipfs://QmV896wmZc6Rp4pqCex5NN2nYUEjh2zFfGkNfC1qe5Dz4i")
-                    },
-                    Royalty: new Royalty(0, string.Empty),
-                    CreatedAt: new DateTime(2021, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                    Version: "1.0",
-                    Attributes: new Dictionary<string,string>
-                    {
-                        { "key1", "TOP_SECRET_PROJECT #2 TOP" }
-                    }
-                ),
-                new Nifty(
-                    Id: Guid.Parse("934210ea-e118-4c74-9504-400f66655f8c"),
-                    CollectionId: fakeCollectionId,
-                    IsMintable: true,
-                    AssetName: "topsecret0003",
-                    Name: "TOP_SECRET_PROJECT #3 TOP",
-                    Description: "TOP M8",
-                    Artists: new[] { "TOP_SECRET_PROJECT" },
-                    Image: "ipfs://QmV896wmZc6Rp4pqCex5NN2nYUEjh2zFfGkNfC1qe5Dz4i",
-                    MediaType: "image/png",
-                    Files: new[] {
-                        new NiftyFile(Guid.NewGuid(), "Full Resolution", "ipfs://QmV896wmZc6Rp4pqCex5NN2nYUEjh2zFfGkNfC1qe5Dz4i")
-                    },
-                    Royalty: new Royalty(0, string.Empty),
-                    CreatedAt: new DateTime(2021, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                    Version: "1.0",
-                    Attributes: new Dictionary<string,string>
-                    {
-                        { "key1", "TOP_SECRET_PROJECT #3 TOP" }
-                    }
-                ),
-                new Nifty(
-                    Id: Guid.Parse("cfdc67f0-6383-4eda-a615-e4fc40e5ce4c"),
-                    CollectionId: fakeCollectionId,
-                    IsMintable: true,
-                    AssetName: "topsecret0004",
-                    Name: "TOP_SECRET_PROJECT #4 TOP",
-                    Description: "TOP M8",
-                    Artists: new[] { "TOP_SECRET_PROJECT" },
-                    Image: "ipfs://QmV896wmZc6Rp4pqCex5NN2nYUEjh2zFfGkNfC1qe5Dz4i",
-                    MediaType: "image/png",
-                    Files: new[] {
-                        new NiftyFile(Guid.NewGuid(), "Full Resolution", "ipfs://QmV896wmZc6Rp4pqCex5NN2nYUEjh2zFfGkNfC1qe5Dz4i")
-                    },
-                    Royalty: new Royalty(0, string.Empty),
-                    CreatedAt: new DateTime(2021, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                    Version: "1.0",
-                    Attributes: new Dictionary<string,string>
-                    {
-                        { "key1", "TOP_SECRET_PROJECT #4 TOP" }
-                    }
-                ),
-                new Nifty(
-                    Id: Guid.Parse("a9e7154d-a587-44d8-9bf0-8c37d5c82740"),
-                    CollectionId: fakeCollectionId,
-                    IsMintable: true,
-                    AssetName: "topsecret0005",
-                    Name: "TOP_SECRET_PROJECT #5 TOP",
-                    Description: "TOP M8",
-                    Artists: new[] { "TOP_SECRET_PROJECT" },
-                    Image: "ipfs://QmV896wmZc6Rp4pqCex5NN2nYUEjh2zFfGkNfC1qe5Dz4i",
-                    MediaType: "image/png",
-                    Files: new[] {
-                        new NiftyFile(Guid.NewGuid(), "Full Resolution", "ipfs://QmV896wmZc6Rp4pqCex5NN2nYUEjh2zFfGkNfC1qe5Dz4i")
-                    },
-                    Royalty: new Royalty(0, string.Empty),
-                    CreatedAt: new DateTime(2021, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                    Version: "1.0",
-                    Attributes: new Dictionary<string,string>
-                    {
-                        { "key1", "TOP_SECRET_PROJECT #5 TOP" }
-                    }
-                ),
-                new Nifty(
-                    Id: Guid.Parse("bce3060e-e72f-4d70-ac07-fce6bfb564fd"),
-                    CollectionId: fakeCollectionId,
-                    IsMintable: true,
-                    AssetName: "topsecret0006",
-                    Name: "TOP_SECRET_PROJECT #6 TOP",
-                    Description: "TOP M8",
-                    Artists: new[] { "TOP_SECRET_PROJECT" },
-                    Image: "ipfs://QmV896wmZc6Rp4pqCex5NN2nYUEjh2zFfGkNfC1qe5Dz4i",
-                    MediaType: "image/png",
-                    Files: new[] {
-                        new NiftyFile(Guid.NewGuid(), "Full Resolution", "ipfs://QmV896wmZc6Rp4pqCex5NN2nYUEjh2zFfGkNfC1qe5Dz4i")
-                    },
-                    Royalty: new Royalty(0, string.Empty),
-                    CreatedAt: new DateTime(2021, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                    Version: "1.0",
-                    Attributes: new Dictionary<string,string>
-                    {
-                        { "key1", "TOP_SECRET_PROJECT #6 TOP" }
-                    }
-                ),
-                new Nifty(
-                    Id: Guid.Parse("77ca34e1-657f-47c7-8706-758781f5c61c"),
-                    CollectionId: fakeCollectionId,
-                    IsMintable: true,
-                    AssetName: "topsecret0007",
-                    Name: "TOP_SECRET_PROJECT #7 TOP",
-                    Description: "TOP M8",
-                    Artists: new[] { "TOP_SECRET_PROJECT" },
-                    Image: "ipfs://QmV896wmZc6Rp4pqCex5NN2nYUEjh2zFfGkNfC1qe5Dz4i",
-                    MediaType: "image/png",
-                    Files: new[] {
-                        new NiftyFile(Guid.NewGuid(), "Full Resolution", "ipfs://QmV896wmZc6Rp4pqCex5NN2nYUEjh2zFfGkNfC1qe5Dz4i")
-                    },
-                    Royalty: new Royalty(0, string.Empty),
-                    CreatedAt: new DateTime(2021, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                    Version: "1.0",
-                    Attributes: new Dictionary<string,string>
-                    {
-                        { "key1", "TOP_SECRET_PROJECT #7 TOP" }
-                    }
-                ),
-                new Nifty(
-                    Id: Guid.Parse("8ca5b728-db6d-4040-a699-5c88e2084a20"),
-                    CollectionId: fakeCollectionId,
-                    IsMintable: true,
-                    AssetName: "topsecret0008",
-                    Name: "TOP_SECRET_PROJECT #8 TOP",
-                    Description: "TOP M8",
-                    Artists: new[] { "TOP_SECRET_PROJECT" },
-                    Image: "ipfs://QmV896wmZc6Rp4pqCex5NN2nYUEjh2zFfGkNfC1qe5Dz4i",
-                    MediaType: "image/png",
-                    Files: new[] {
-                        new NiftyFile(Guid.NewGuid(), "Full Resolution", "ipfs://QmV896wmZc6Rp4pqCex5NN2nYUEjh2zFfGkNfC1qe5Dz4i")
-                    },
-                    Royalty: new Royalty(0, string.Empty),
-                    CreatedAt: new DateTime(2021, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                    Version: "1.0",
-                    Attributes: new Dictionary<string,string>
-                    {
-                        { "key1", "TOP_SECRET_PROJECT #8 TOP" }
-                    }
-                ),
-            };
+            var tokens = GenerateTokens(
+                1000,
+                FakeCollectionId);
 
             var sale = new NiftySale(
-                Id: Guid.Parse("69da836f-9e0b-4ec4-98e8-094efaeac38b"),
+                Id: Guid.Parse(FakeSaleId),
                 CollectionId: fakeCollectionId,
                 IsActive: true,
                 Name: "Preview Launch #1",
-                Description: "Limited 8 item launch",
+                Description: "Limited 150 item launch",
                 LovelacesPerToken: 10000000,
-                SaleAddress: "addr_test1vqv2cldstkyvpjc88w2wd8yuk2g6pltm6lz2jzn0gqke35q5zgwuu",
-                DepositAddress: "addr_test1vpfkk396juz65kv3lrq6qjnneyqw4hlu949y8jy8ug465pqrxc3mg",
-                TotalReleaseQuantity: 500,
+                SaleAddress: "addr_test1vz0hx28mmdz0ey3pzqe5nxg08urjhzydpvvmcx4v4we5mvg6733n5",
+                ProceedsAddress: "addr_test1vzj4c522pr5n6texvcl24kl9enntr4knl4ucecd7pkt24mglna4pz",
+                TotalReleaseQuantity: 150,
                 MaxAllowedPurchaseQuantity: 3);
             
             var activeSales = collection.IsActive && IsSaleOpen(sale) ? new[] { sale } : Array.Empty<NiftySale>();
@@ -221,6 +58,60 @@ namespace NiftyLaunchpad.Lib
                 return false;
 
             return true;
+        }
+
+        public static Nifty[] GenerateTokens(
+            int mintableTokenCount, 
+            string collectionId = null, 
+            bool isMintable = true,
+            string baseName = "TOP_SECRET_PROJECT",
+            string creatorsCsv = "nftproject.io,mintsafe.io",
+            string urlBase = "https://nftproject.io/ms/",
+            string mediaType = "image/png",
+            string createdAtIso8601 = "2021-01-01T19:30:00Z",
+            double royaltyPortion = 0,
+            string royaltyAddress = "",
+            string version = "1",
+            string attributeKey = "size",
+            string attributeValue = "full")
+        {
+            DateTime.TryParseExact(
+                createdAtIso8601,
+                @"yyyy-MM-dd\THH:mm:ss\Z",
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.AssumeUniversal,
+                out var dateTimeParsed);
+
+            Dictionary<string, string> GetAttributesForIndex(int i)
+            {
+                return new Dictionary<string, string>
+                {
+                    { attributeKey, $"{attributeValue}{i}" },
+                    { "seq", $"{i}" },
+                    { "hash", $"b87f88c72702fff1748e58b87e9141a42c0dbedc29a78cb0d4a5cd81" },
+                };
+            }
+
+            return Enumerable.Range(0, mintableTokenCount)
+                .Select(i => new Nifty(
+                    Guid.NewGuid(),
+                    collectionId == null ? Guid.NewGuid() : Guid.Parse(collectionId),
+                    isMintable,
+                    $"{baseName}{i}",
+                    $"{baseName} {i}",
+                    $"{baseName} {i} Description",
+                    creatorsCsv.Split(','),
+                    $"{urlBase}{i}.png",
+                    mediaType,
+                    new[] {
+                        new NiftyFile(Guid.NewGuid(), "full_res_png", "image/png", $"{urlBase}{i}.png"),
+                        new NiftyFile(Guid.NewGuid(), "specs_pdf", "application/pdf", $"{urlBase}{i}.pdf")
+                    },
+                    dateTimeParsed.AddDays(i),
+                    new Royalty(royaltyPortion, royaltyAddress),
+                    version,
+                    GetAttributesForIndex(i)))
+                .ToArray();
         }
     }
 }

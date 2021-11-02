@@ -9,6 +9,8 @@ namespace NiftyLaunchpad.Lib
 {
     public class TokenDistributor
     {
+        private const int MinLovelaceUtxo = 2000000;
+
         private readonly NiftyLaunchpadSettings _settings;
         private readonly IMetadataGenerator _metadataGenerator;
         private readonly ITxRetriever _txRetriever;
@@ -31,26 +33,26 @@ namespace NiftyLaunchpad.Lib
 
         public async Task<string> DistributeNiftiesForSalePurchase(
             Nifty[] nfts, 
-            NiftySalePurchaseRequest request, 
+            NiftySalePurchaseRequest purchaseRequest, 
             NiftyCollection collection,
             NiftySale sale,
             CancellationToken ct = default)
         {
             // Generate metadata file
-            var metadataJsonFileName = $"metadata-{request.Utxo.ShortForm()}.json";
+            var metadataJsonFileName = $"metadata-{purchaseRequest.Utxo}.json";
             var metadataJsonPath = Path.Combine(_settings.BasePath, metadataJsonFileName);
-
             await _metadataGenerator.GenerateMetadataJsonFile(nfts, collection, metadataJsonPath, ct);
 
             // Derive buyer address after getting source UTxO details from BF
-            var txIo = await _txRetriever.GetBasicTxAsync(request.Utxo.TxHash);
+            var txIo = await _txRetriever.GetBasicTxAsync(purchaseRequest.Utxo.TxHash);
             var buyerAddress = txIo.Inputs.First().Address;
 
             // Map UtxoValues for new tokens
-            long buyerLovelacesReturned = 2000000;
-            var tokenMintValues = nfts.Select(n => new UtxoValue($"{collection.PolicyId}.{n.AssetName}", 1)).ToArray();
-            var buyerOutputUtxoValues = GetTxOutputUtxoValues(tokenMintValues, buyerLovelacesReturned);
-            var depositAddressLovelaces = request.Utxo.Lovelaces() - buyerLovelacesReturned;
+            long buyerLovelacesReturned = MinLovelaceUtxo + purchaseRequest.ChangeInLovelace;
+            var tokenMintUtxoValues = nfts.Select(n => new UtxoValue($"{collection.PolicyId}.{n.AssetName}", 1)).ToArray();
+            var buyerOutputUtxoValues = GetBuyerTxOutputUtxoValues(tokenMintUtxoValues, buyerLovelacesReturned);
+            var profitAddressLovelaces = purchaseRequest.Utxo.Lovelaces() - buyerLovelacesReturned;
+            var profitAddressUtxoValues = new[] { new UtxoValue("lovelace", profitAddressLovelaces) };
 
             //var ttl = _settings.Network == Network.Mainnet
             //    ? TimeUtil.GetMainnetSlotAt(collection.LockedAt)
@@ -60,11 +62,11 @@ namespace NiftyLaunchpad.Lib
             var policyScriptPath = Path.Combine(_settings.BasePath, policyScriptFilename);
 
             var txBuildCommand = new TxBuildCommand(
-                new[] { request.Utxo },
+                new[] { purchaseRequest.Utxo },
                 new[] { 
                     new TxOutput(buyerAddress, buyerOutputUtxoValues), 
-                    new TxOutput(sale.DepositAddress, new[] { new UtxoValue("lovelace", depositAddressLovelaces) }) },
-                tokenMintValues,
+                    new TxOutput(sale.ProceedsAddress, profitAddressUtxoValues, IsFeeDeducted:true) },
+                tokenMintUtxoValues,
                 policyScriptPath,
                 metadataJsonPath,
                 collection.SlotExpiry);
@@ -76,15 +78,15 @@ namespace NiftyLaunchpad.Lib
             return txHash;
         }
 
-        private static UtxoValue[] GetTxOutputUtxoValues(
-            UtxoValue[] tokenMintValues, long minLovelace = 2000000)
+        private static UtxoValue[] GetBuyerTxOutputUtxoValues(
+            UtxoValue[] tokenMintValues, long lovelacesReturned)
         {
             var tokenOutputUtxoValues = new UtxoValue[tokenMintValues.Length + 1];
             for (var i = 0; i < tokenMintValues.Length; i++)
             {
                 tokenOutputUtxoValues[i] = tokenMintValues[i];
             }
-            tokenOutputUtxoValues[tokenMintValues.Length] = new UtxoValue("lovelace", minLovelace);
+            tokenOutputUtxoValues[tokenMintValues.Length] = new UtxoValue("lovelace", lovelacesReturned);
             return tokenOutputUtxoValues;
         }
     }
