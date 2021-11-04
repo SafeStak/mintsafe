@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace NiftyLaunchpad.Lib
 {
-    public class UtxoRetriever 
+    public class UtxoRetriever : IUtxoRetriever
     {
         private readonly NiftyLaunchpadSettings _settings;
 
@@ -31,20 +31,25 @@ namespace NiftyLaunchpad.Lib
                 var lines = rawUtxoTable.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
                 var utxos = new Utxo[lines.Length - 2];
                 var insertionIndex = 0;
-                // TODO: Factor other assets
+                
                 foreach (var utxoLine in lines[2..])
                 {
                     //Console.WriteLine($"Found Line {index}: {utxoLine}");
                     var contentSegments = utxoLine.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    var lovelaceValue = new UtxoValue("lovelace", long.Parse(contentSegments[2]));
+
+                    // Debugging other assets
+                    var segmentIndex = 3;
+                    foreach (var contentSegment in contentSegments[3..])
+                    {
+                        Console.WriteLine($"Segment[{segmentIndex++}]: {contentSegment}");
+                    }
+
                     utxos[insertionIndex++] = new Utxo(
-                        contentSegments[0],
-                        int.Parse(contentSegments[1]),
-                        new[] { new UtxoValue("lovelace", long.Parse(contentSegments[2])) });
-                    //var segmentIndex = 0;
-                    //foreach (var contentSegment in contentSegments)
-                    //{
-                    //    Console.WriteLine($"Segment[{segmentIndex++}]: {contentSegment}");
-                    //}
+                        TxHash: contentSegments[0],
+                        OutputIndex: int.Parse(contentSegments[1]),
+                        Values: new[] { lovelaceValue });
+                    
                 }
                 return utxos;
             }
@@ -53,12 +58,12 @@ namespace NiftyLaunchpad.Lib
                 Console.WriteLine("Cannot run CLI, reverting to fake UTxOs");
                 //Console.Error.WriteLine(ex);
                 await Task.Delay(1000, ct);
-                return new[]
+                return new Utxo[]
                 {
-                    new Utxo(
-                        "127745e23b81a5a5e22a409ce17ae8672b234dda7be1f09fc9e3a11906bd3a11",
-                        0,
-                        new [] { new UtxoValue("lovelace", 1000000000) }),
+                    //new Utxo(
+                    //    "127745e23b81a5a5e22a409ce17ae8672b234dda7be1f09fc9e3a11906bd3a11",
+                    //    0,
+                    //    new [] { new UtxoValue("lovelace", 1000000000) }),
                     //new Utxo(
                     //    "2032080672d43e6cdf8ade97fc1bf839effe1be45434e0e304ea1e538c0e3721",
                     //    2,
