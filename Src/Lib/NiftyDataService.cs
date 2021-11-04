@@ -40,6 +40,8 @@ namespace NiftyLaunchpad.Lib
                 Name: "Preview Launch #1",
                 Description: "Limited 150 item launch",
                 LovelacesPerToken: 500000000,
+                Start: new DateTime(2021, 9, 4, 0, 0, 0, DateTimeKind.Utc),
+                End: new DateTime(2021, 10, 4, 0, 0, 0, DateTimeKind.Utc),
                 SaleAddress: "addr_test1vz0hx28mmdz0ey3pzqe5nxg08urjhzydpvvmcx4v4we5mvg6733n5",
                 ProceedsAddress: "addr_test1vzj4c522pr5n6texvcl24kl9enntr4knl4ucecd7pkt24mglna4pz",
                 TotalReleaseQuantity: 150,
@@ -53,8 +55,8 @@ namespace NiftyLaunchpad.Lib
         private static bool IsSaleOpen(NiftySale sale)
         {
             if (!sale.IsActive
-                || (sale.Start.HasValue && sale.Start < DateTime.UtcNow)
-                || (sale.End.HasValue && sale.End > DateTime.UtcNow))
+                || (sale.Start.HasValue && sale.Start > DateTime.UtcNow)
+                || (sale.End.HasValue && sale.End < DateTime.UtcNow))
                 return false;
 
             return true;

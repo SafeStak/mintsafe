@@ -15,7 +15,7 @@ var settings = new NiftyLaunchpadSettings(
     BlockFrostApiKey: "testneto96qDwlg4GaoKFfmKxPlHQhSkbea80cW",
     //BlockFrostApiKey: "mainnetGk6cqBgfG4nkQtvA1F80hJHfXzYQs8bW",
     BasePath: @"C:\ws\temp\niftylaunchpad\",
-    //BasePath: "/home/knut/testnet-node/kc/mintsafe01/",
+    //BasePath: "/home/knut/testnet-node/kc/mintsafe02/",
     PollingIntervalSeconds: 10);
 var dataService = new NiftyDataService();
 
@@ -24,7 +24,7 @@ var collectionId = Guid.Parse("d5b35d3d-14cc-40ba-94f4-fe3b28bd52ae");
 var collection = await dataService.GetCollectionAggregateAsync(collectionId, cts.Token);
 if (collection.ActiveSales.Length == 0)
 {
-    Console.WriteLine($"{collection.Collection.Name} with {collection.Tokens.Length} tokens has no active sales!");
+    Console.WriteLine($"{collection.Collection.Name} with {collection.Tokens.Length} mintable tokens has no active sales!");
     return;
 }
 
@@ -39,6 +39,7 @@ if (mintableTokens.Count < activeSale.TotalReleaseQuantity)
 Console.WriteLine($"{collection.Collection.Name} has an active sale '{activeSale.Name}' for {activeSale.TotalReleaseQuantity} nifties (out of {mintableTokens.Count} total mintable) at {activeSale.SaleAddress}{Environment.NewLine}{activeSale.LovelacesPerToken} lovelaces per NFT ({activeSale.LovelacesPerToken/1000000} ADA) and {activeSale.MaxAllowedPurchaseQuantity} max allowed");
 
 var blockFrostClient = new BlockfrostClient(GetBlockFrostHttpClient(settings));
+var metadataGenerator = new MetadataGenerator();
 var utxoRetriever = new FakeUtxoRetriever(settings);
 //var utxoRetriever = new UtxoRetriever(settings);
 var txBuilder = new FakeTxBuilder(settings);
@@ -50,11 +51,11 @@ var txIoRetriever = new FakeTxIoRetriever(blockFrostClient);
 var tokenAllocator = new TokenAllocator(settings);
 var tokenDistributor = new TokenDistributor(
     settings,
-    new MetadataGenerator(),
+    metadataGenerator,
     txIoRetriever,
     txBuilder,
     txSubmitter);
-var utxoRefunder = new UtxoRefunder(txIoRetriever, txSubmitter, txBuilder);
+var utxoRefunder = new UtxoRefunder(settings, txIoRetriever, metadataGenerator, txBuilder, txSubmitter);
 var saleAllocatedTokens = new List<Nifty>();
 var utxosLocked = new HashSet<string>();
 var utxosSuccessfullyProcessed = new HashSet<string>();
@@ -78,6 +79,7 @@ try
             }
 
             var shouldRefundUtxo = false;
+            var refundReason = string.Empty;
             try
             {
                 var purchaseRequest = SalePurchaseGenerator.FromUtxo(saleUtxo, activeSale);
@@ -96,31 +98,37 @@ try
             {
                 Console.Error.WriteLine(ex);
                 shouldRefundUtxo = true;
+                refundReason = "saleinactive";
             }
             catch (SalePeriodOutOfRangeException ex)
             {
                 Console.Error.WriteLine(ex);
                 shouldRefundUtxo = true;
+                refundReason = "saleperiodout";
             }
             catch (InsufficientPaymentException ex)
             {
                 Console.Error.WriteLine(ex);
                 shouldRefundUtxo = true;
+                refundReason = "salepaymentinsufficient";
             }
             catch (MaxAllowedPurchaseQuantityExceededException ex)
             {
                 Console.Error.WriteLine(ex);
                 shouldRefundUtxo = true;
+                refundReason = "salemaxallowedexceeded";
             }
             catch (CannotAllocateMoreThanSaleReleaseException ex)
             {
                 Console.Error.WriteLine(ex);
                 shouldRefundUtxo = true;
+                refundReason = "salefullyallocated";
             }
             catch (CannotAllocateMoreThanMintableException ex)
             {
                 Console.Error.WriteLine(ex);
                 shouldRefundUtxo = true;
+                refundReason = "collectionfullyminted";
             }
             catch (BlockfrostResponseException ex)
             {
@@ -140,7 +148,7 @@ try
                 if (shouldRefundUtxo)
                 {
                     var saleAddressSigningKey = Path.Combine(settings.BasePath, $"{activeSale.Id}.sale.skey");
-                    await utxoRefunder.ProcessRefundForUtxo(saleUtxo, saleAddressSigningKey, cts.Token);
+                    await utxoRefunder.ProcessRefundForUtxo(saleUtxo, saleAddressSigningKey, refundReason, cts.Token);
                 }
             }
         }

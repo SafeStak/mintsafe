@@ -8,4 +8,9 @@ public interface IMetadataGenerator
         NiftyCollection collection,
         string outputPath,
         CancellationToken ct = default);
+
+    Task GenerateMessageMetadataJsonFile(
+        string[] message,
+        string outputPath,
+        CancellationToken ct = default);
 }

@@ -9,6 +9,7 @@ namespace NiftyLaunchpad.Lib
 {
     public class MetadataGenerator : IMetadataGenerator
     {
+        private const string MessageStandardKey = "674";
         private const string NftStandardKey = "721";
         private const string NftRoyaltyStandardKey = "777";
 
@@ -82,6 +83,31 @@ namespace NiftyLaunchpad.Lib
             nftStandard.Add(NftStandardKey, policyCnfts);
 
             var json = JsonSerializer.Serialize(nftStandard, SerialiserOptions);
+
+            File.WriteAllText(outputPath, json);
+
+            return Task.CompletedTask;
+        }
+
+        public Task GenerateMessageMetadataJsonFile(
+            string[] message, 
+            string outputPath,
+            CancellationToken ct = default)
+        {
+            var metadataBody = new Dictionary<
+                string, // 674
+                Dictionary<
+                    string, // Msg
+                    string[]>>();
+
+            metadataBody.Add(
+                MessageStandardKey, 
+                new Dictionary<string, string[]>
+                    {
+                        { "msg", message }
+                    });
+
+            var json = JsonSerializer.Serialize(metadataBody, SerialiserOptions);
 
             File.WriteAllText(outputPath, json);
 

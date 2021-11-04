@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 
 namespace NiftyLaunchpad.Lib
 {
@@ -16,15 +15,15 @@ namespace NiftyLaunchpad.Lib
             if (sale.End.HasValue && sale.End < DateTime.UtcNow)
                 throw new SalePeriodOutOfRangeException("Sale has already ended", utxo, sale.Start, sale.End);
 
-            var lovelaceValue = utxo.Values.First(v => v.Unit == "lovelace");
-            if (lovelaceValue.Quantity < sale.LovelacesPerToken)
+            var lovelaceValue = utxo.Lovelaces;
+            if (lovelaceValue < sale.LovelacesPerToken)
                 throw new InsufficientPaymentException($"Insufficient lovelaces for purchase", utxo, sale.LovelacesPerToken);
 
-            var quantity = (int)(lovelaceValue.Quantity / sale.LovelacesPerToken);
+            var quantity = (int)(lovelaceValue / sale.LovelacesPerToken);
             if (quantity > sale.MaxAllowedPurchaseQuantity)
                 throw new MaxAllowedPurchaseQuantityExceededException($"Max allowed purchase quantity exceeded", utxo, sale.MaxAllowedPurchaseQuantity, quantity);
 
-            var change = lovelaceValue.Quantity % sale.LovelacesPerToken;
+            var change = lovelaceValue % sale.LovelacesPerToken;
 
             return new NiftySalePurchaseRequest(
                 Id: Guid.NewGuid(),
