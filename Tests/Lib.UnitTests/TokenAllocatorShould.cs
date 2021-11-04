@@ -1,7 +1,5 @@
 ﻿using FluentAssertions;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -9,15 +7,31 @@ namespace NiftyLaunchpad.Lib.UnitTests
 {
     public class TokenAllocatorShould
     {
-        [Theory]
-        [InlineData(1, 1, 1)]
-        [InlineData(10, 1, 1)]
-        [InlineData(10, 10, 10)]
-        public async Task Allocate_Right_Amount_Of_Tokens_Given_Sufficient_Mintable_Tokens_When_Purchase_Request_Is_Valid(
-            int mintableTokenCount, int requestedQuantity, int expectedAllocatedQuantity)
+        private readonly TokenAllocator _allocator;
+
+        public TokenAllocatorShould()
         {
-            var mintableTokens = Generator.GenerateTokens(mintableTokenCount);
-            var _allocator = new TokenAllocator(Generator.GenerateSettings(), mintableTokens);
+            _allocator = new TokenAllocator(Generator.GenerateSettings());
+        }
+
+        [Theory]
+        [InlineData(1, 0, 1, 1, 1)]
+        [InlineData(500, 0, 2, 500, 2)]
+        [InlineData(127, 373, 2, 500, 2)]
+        [InlineData(5, 495, 5, 500, 5)]
+        [InlineData(10000, 0, 10, 1000, 10)]
+        [InlineData(10000, 900, 10, 1000, 10)]
+        [InlineData(9800, 200, 100, 10000, 100)]
+        public async Task Allocate_Tokens_Correctly_Given_Spare_Mintable_Tokens_And_Sale_Allocations_When_Purchase_Request_Requested_Quantity_Is_Within_Limits(
+            int saleMintableCount, 
+            int saleAllocatedCount, 
+            int requestedQuantity, 
+            int saleReleaseQuantity,
+            int expectedAllocatedQuantity)
+        {
+            var sale = Generator.GetSale(totalReleaseQuantity: saleReleaseQuantity);
+            var mintableTokens = Generator.GenerateTokens(saleMintableCount);
+            var allocatedTokens = Generator.GenerateTokens(saleAllocatedCount);
             var request = new NiftySalePurchaseRequest(
                 Guid.NewGuid(),
                 Guid.NewGuid(),
@@ -25,20 +39,27 @@ namespace NiftyLaunchpad.Lib.UnitTests
                 requestedQuantity,
                 0);
 
-            var allocated = await _allocator.AllocateTokensAsync(request);
+            var allocated = await _allocator.AllocateTokensForPurchaseAsync(
+                request, allocatedTokens, mintableTokens, sale);
 
             allocated.Length.Should().Be(expectedAllocatedQuantity);
         }
 
         [Theory]
-        [InlineData(0, 1)]
-        [InlineData(1, 2)]
-        [InlineData(5, 8)]
-        public void Throws_AllMintableTokensForSaleAllocated_When_No_Mintable_Tokens_Are_Left(
-            int mintableTokenCount, int requestedQuantity)
+        [InlineData(1, 1, 1, 1)]
+        [InlineData(2, 1, 1, 1)]
+        [InlineData(500, 49, 2, 50)]
+        [InlineData(1000, 145, 8, 150)]
+        [InlineData(5000, 9995, 10, 10000)]
+        public async Task Throws_CannotAllocateMoreThanSaleReleaseException_When_Requesting_Exceeds_Sale_Release_Quantity(
+            int saleMintableCount,
+            int saleAllocatedCount,
+            int requestedQuantity,
+            int saleReleaseQuantity)
         {
-            var mintableTokens = Generator.GenerateTokens(mintableTokenCount);
-            var _allocator = new TokenAllocator(Generator.GenerateSettings(), mintableTokens);
+            var sale = Generator.GetSale(totalReleaseQuantity: saleReleaseQuantity);
+            var mintableTokens = Generator.GenerateTokens(saleMintableCount);
+            var allocatedTokens = Generator.GenerateTokens(saleAllocatedCount);
             var request = new NiftySalePurchaseRequest(
                 Guid.NewGuid(),
                 Guid.NewGuid(),
@@ -48,21 +69,26 @@ namespace NiftyLaunchpad.Lib.UnitTests
 
             Func<Task> asyncTask = async () =>
             {
-                var allocated = await _allocator.AllocateTokensAsync(request);
+                var allocated = await _allocator.AllocateTokensForPurchaseAsync(
+                    request, allocatedTokens, mintableTokens, sale);
             };
 
-            asyncTask.Should().ThrowAsync<SaleInactiveException>();
+            await asyncTask.Should().ThrowAsync<CannotAllocateMoreThanSaleReleaseException>();
         }
 
         [Theory]
-        [InlineData(0, 0)]
-        [InlineData(1, -1)]
-        [InlineData(5, -10)]
-        public void Throws_ArgumentException_When_Requesting_Zero_Or_Negative_Token_Quantity(
-            int mintableTokenCount, int requestedQuantity)
+        [InlineData(0, 1, 1, 1)]
+        [InlineData(1, 49, 2, 50)]
+        [InlineData(5, 145, 8, 150)]
+        public async Task Throws_CannotAllocateMoreThanMintableException_When_No_Mintable_Tokens_Are_Left(
+            int saleMintableCount,
+            int saleAllocatedCount,
+            int requestedQuantity,
+            int saleReleaseQuantity)
         {
-            var mintableTokens = Generator.GenerateTokens(mintableTokenCount);
-            var _allocator = new TokenAllocator(Generator.GenerateSettings(), mintableTokens);
+            var sale = Generator.GetSale(totalReleaseQuantity: saleReleaseQuantity);
+            var mintableTokens = Generator.GenerateTokens(saleMintableCount);
+            var allocatedTokens = Generator.GenerateTokens(saleAllocatedCount);
             var request = new NiftySalePurchaseRequest(
                 Guid.NewGuid(),
                 Guid.NewGuid(),
@@ -72,10 +98,41 @@ namespace NiftyLaunchpad.Lib.UnitTests
 
             Func<Task> asyncTask = async () =>
             {
-                var allocated = await _allocator.AllocateTokensAsync(request);
+                var allocated = await _allocator.AllocateTokensForPurchaseAsync(
+                    request, allocatedTokens, mintableTokens, sale);
             };
 
-            asyncTask.Should().ThrowAsync<ArgumentException>();
+            await asyncTask.Should().ThrowAsync<CannotAllocateMoreThanMintableException>();
+        }
+
+        [Theory]
+        [InlineData(0, 0, 0, 1)]
+        [InlineData(1, 49, -1, 50)]
+        [InlineData(10, 140, -8, 150)]
+        [InlineData(9860, 140, -100, 10000)]
+        public async Task Throws_ArgumentException_When_Requesting_Zero_Or_Negative_Token_Quantity(
+            int saleMintableCount,
+            int saleAllocatedCount,
+            int requestedQuantity,
+            int saleReleaseQuantity)
+        {
+            var sale = Generator.GetSale(totalReleaseQuantity: saleReleaseQuantity);
+            var allocatedTokens = Generator.GenerateTokens(saleAllocatedCount);
+            var mintableTokens = Generator.GenerateTokens(saleMintableCount);
+            var request = new NiftySalePurchaseRequest(
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                new Utxo("", 0, new[] { new UtxoValue("lovelace", 1000000) }),
+                requestedQuantity,
+                0);
+
+            Func<Task> asyncTask = async () =>
+            {
+                var allocated = await _allocator.AllocateTokensForPurchaseAsync(
+                    request, allocatedTokens, mintableTokens, sale);
+            };
+
+            await asyncTask.Should().ThrowAsync<ArgumentException>();
         }
     }
 }

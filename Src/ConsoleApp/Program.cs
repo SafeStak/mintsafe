@@ -4,6 +4,7 @@ using NiftyLaunchpad.Lib;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
@@ -13,8 +14,8 @@ var settings = new NiftyLaunchpadSettings(
     Network: Network.Testnet,
     BlockFrostApiKey: "testneto96qDwlg4GaoKFfmKxPlHQhSkbea80cW",
     //BlockFrostApiKey: "mainnetGk6cqBgfG4nkQtvA1F80hJHfXzYQs8bW",
-    //BasePath: @"C:\ws\temp\niftylaunchpad\",
-    BasePath: "/home/knut/testnet-node/kc/mintsafe01/",
+    BasePath: @"C:\ws\temp\niftylaunchpad\",
+    //BasePath: "/home/knut/testnet-node/kc/mintsafe01/",
     PollingIntervalSeconds: 10);
 var dataService = new NiftyDataService();
 
@@ -38,18 +39,23 @@ if (mintableTokens.Count < activeSale.TotalReleaseQuantity)
 Console.WriteLine($"{collection.Collection.Name} has an active sale '{activeSale.Name}' for {activeSale.TotalReleaseQuantity} nifties (out of {mintableTokens.Count} total mintable) at {activeSale.SaleAddress}{Environment.NewLine}{activeSale.LovelacesPerToken} lovelaces per NFT ({activeSale.LovelacesPerToken/1000000} ADA) and {activeSale.MaxAllowedPurchaseQuantity} max allowed");
 
 var blockFrostClient = new BlockfrostClient(GetBlockFrostHttpClient(settings));
-//var utxoRetriever = new FakeUtxoRetriever(settings);
-var utxoRetriever = new UtxoRetriever(settings);
-var tokenAllocator = new TokenAllocator(settings, mintableTokens);
+var utxoRetriever = new FakeUtxoRetriever(settings);
+//var utxoRetriever = new UtxoRetriever(settings);
+var txBuilder = new FakeTxBuilder(settings);
+//var txBuilder = new TxBuilder(settings);
+var txSubmitter = new FakeTxSubmitter(blockFrostClient);
+//var txSubmitter = new TxSubmitter(blockFrostClient);
+var txIoRetriever = new FakeTxIoRetriever(blockFrostClient);
+//var txRetriever = new TxIoRetriever(blockFrostClient);
+var tokenAllocator = new TokenAllocator(settings);
 var tokenDistributor = new TokenDistributor(
     settings,
     new MetadataGenerator(),
-    new TxRetriever(blockFrostClient),
-    new TxBuilder(settings),
-    //new FakeTxBuilder(settings),
-    new TxSubmitter(blockFrostClient));
-    //new FakeTxSubmitter(blockFrostClient));
-var mintedTokens = new List<Nifty>();
+    txIoRetriever,
+    txBuilder,
+    txSubmitter);
+var utxoRefunder = new UtxoRefunder(txIoRetriever, txSubmitter, txBuilder);
+var saleAllocatedTokens = new List<Nifty>();
 var utxosLocked = new HashSet<string>();
 var utxosSuccessfullyProcessed = new HashSet<string>();
 var timer = new PeriodicTimer(TimeSpan.FromSeconds(settings.PollingIntervalSeconds));
@@ -71,41 +77,56 @@ try
                 continue;
             }
 
+            var shouldRefundUtxo = false;
             try
             {
                 var purchaseRequest = SalePurchaseGenerator.FromUtxo(saleUtxo, activeSale);
                 Console.WriteLine($"Successfully built purchase request: {purchaseRequest.NiftyQuantityRequested} NFTs for {saleUtxo.Lovelaces()} and {purchaseRequest.ChangeInLovelace} change");
 
-                var tokens = await tokenAllocator.AllocateTokensAsync(purchaseRequest, mintedTokens, activeSale, cts.Token);
+                var tokens = await tokenAllocator.AllocateTokensForPurchaseAsync(purchaseRequest, saleAllocatedTokens, mintableTokens, activeSale, cts.Token);
                 Console.WriteLine($"Successfully allocated {tokens.Length} tokens");
-                mintedTokens.AddRange(tokens);
+                saleAllocatedTokens.AddRange(tokens);
 
                 var txHash = await tokenDistributor.DistributeNiftiesForSalePurchase(tokens, purchaseRequest, collection.Collection, activeSale, cts.Token);
                 Console.WriteLine($"Successfully minted {tokens.Length} tokens from Tx {txHash}");
 
                 utxosSuccessfullyProcessed.Add(saleUtxo.ToString());
             }
-            catch (SaleReleaseQuantityExceededException ex)
-            {
-                Console.Error.WriteLine(ex);
-            }
             catch (SaleInactiveException ex)
             {
                 Console.Error.WriteLine(ex);
+                shouldRefundUtxo = true;
             }
             catch (SalePeriodOutOfRangeException ex)
             {
                 Console.Error.WriteLine(ex);
+                shouldRefundUtxo = true;
             }
             catch (InsufficientPaymentException ex)
             {
                 Console.Error.WriteLine(ex);
+                shouldRefundUtxo = true;
             }
             catch (MaxAllowedPurchaseQuantityExceededException ex)
             {
                 Console.Error.WriteLine(ex);
+                shouldRefundUtxo = true;
+            }
+            catch (CannotAllocateMoreThanSaleReleaseException ex)
+            {
+                Console.Error.WriteLine(ex);
+                shouldRefundUtxo = true;
+            }
+            catch (CannotAllocateMoreThanMintableException ex)
+            {
+                Console.Error.WriteLine(ex);
+                shouldRefundUtxo = true;
             }
             catch (BlockfrostResponseException ex)
+            {
+                Console.Error.WriteLine(ex);
+            }
+            catch (CardanoCliException ex)
             {
                 Console.Error.WriteLine(ex);
             }
@@ -116,6 +137,11 @@ try
             finally
             {
                 utxosLocked.Add(saleUtxo.ToString());
+                if (shouldRefundUtxo)
+                {
+                    var saleAddressSigningKey = Path.Combine(settings.BasePath, $"{activeSale.Id}.sale.skey");
+                    await utxoRefunder.ProcessRefundForUtxo(saleUtxo, saleAddressSigningKey, cts.Token);
+                }
             }
         }
         Console.WriteLine($"Successful: {utxosSuccessfullyProcessed.Count} UTxOs | Locked: {utxosLocked.Count} UTxOs");

@@ -1,5 +1,4 @@
 ﻿using NiftyLaunchpad.Abstractions;
-using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -9,18 +8,18 @@ namespace NiftyLaunchpad.Lib
 {
     public class TokenDistributor
     {
-        private const int MinLovelaceUtxo = 4000000;
+        private const int MinLovelaceUtxo = 2000000;
 
         private readonly NiftyLaunchpadSettings _settings;
         private readonly IMetadataGenerator _metadataGenerator;
-        private readonly ITxRetriever _txRetriever;
+        private readonly ITxIoRetriever _txRetriever;
         private readonly ITxBuilder _txBuilder;
         private readonly ITxSubmitter _txSubmitter;
 
         public TokenDistributor(
             NiftyLaunchpadSettings settings,
             IMetadataGenerator metadataGenerator,
-            ITxRetriever txRetriever,
+            ITxIoRetriever txRetriever,
             ITxBuilder txBuilder,
             ITxSubmitter txSubmitter)
         {
@@ -41,10 +40,10 @@ namespace NiftyLaunchpad.Lib
             // Generate metadata file
             var metadataJsonFileName = $"metadata-{purchaseRequest.Utxo}.json";
             var metadataJsonPath = Path.Combine(_settings.BasePath, metadataJsonFileName);
-            await _metadataGenerator.GenerateMetadataJsonFile(nfts, collection, metadataJsonPath, ct);
+            await _metadataGenerator.GenerateNftStandardMetadataJsonFile(nfts, collection, metadataJsonPath, ct);
 
             // Derive buyer address after getting source UTxO details from BF
-            var txIo = await _txRetriever.GetBasicTxAsync(purchaseRequest.Utxo.TxHash);
+            var txIo = await _txRetriever.GetTxIoAsync(purchaseRequest.Utxo.TxHash);
             var buyerAddress = txIo.Inputs.First().Address;
 
             // Map UtxoValues for new tokens
@@ -54,24 +53,27 @@ namespace NiftyLaunchpad.Lib
             var profitAddressLovelaces = purchaseRequest.Utxo.Lovelaces() - buyerLovelacesReturned;
             var profitAddressUtxoValues = new[] { new UtxoValue("lovelace", profitAddressLovelaces) };
 
-            //var ttl = _settings.Network == Network.Mainnet
-            //    ? TimeUtil.GetMainnetSlotAt(collection.LockedAt)
-            //    : TimeUtil.GetTestnetSlotAt(collection.LockedAt);
-
-            var policyScriptFilename = $"{collection.PolicyId}.script";
+            var policyScriptFilename = $"{collection.PolicyId}.policy.script";
             var policyScriptPath = Path.Combine(_settings.BasePath, policyScriptFilename);
+            var slotExpiry = GetUtxoSlotExpiry(collection, _settings.Network);
+            var signingKeyFilePaths = new[]
+            {
+                Path.Combine(_settings.BasePath, $"{collection.PolicyId}.policy.skey"),
+                Path.Combine(_settings.BasePath, $"{sale.Id}.sale.skey")
+            };
 
             var txBuildCommand = new TxBuildCommand(
                 new[] { purchaseRequest.Utxo },
                 new[] { 
                     new TxOutput(buyerAddress, buyerOutputUtxoValues), 
-                    new TxOutput(sale.ProceedsAddress, profitAddressUtxoValues, IsFeeDeducted:true) },
+                    new TxOutput(sale.ProceedsAddress, profitAddressUtxoValues, IsFeeDeducted: true) },
                 tokenMintUtxoValues,
                 policyScriptPath,
                 metadataJsonPath,
-                collection.SlotExpiry);
+                slotExpiry,
+                signingKeyFilePaths);
 
-            var txSubmissionBody = await _txBuilder.BuildTxAsync(txBuildCommand, collection.PolicyId, sale.Id.ToString());
+            var txSubmissionBody = await _txBuilder.BuildTxAsync(txBuildCommand, ct);
 
             var txHash = await _txSubmitter.SubmitTxAsync(txSubmissionBody, ct);
 
@@ -88,6 +90,19 @@ namespace NiftyLaunchpad.Lib
             }
             tokenOutputUtxoValues[tokenMintValues.Length] = new UtxoValue("lovelace", lovelacesReturned);
             return tokenOutputUtxoValues;
+        }
+
+        private static long GetUtxoSlotExpiry(
+            NiftyCollection collection, Network network)
+        {
+            if (collection.SlotExpiry >= 0)
+            {
+                return collection.SlotExpiry;
+            }
+
+            return network == Network.Mainnet
+                ? TimeUtil.GetMainnetSlotAt(collection.LockedAt)
+                : TimeUtil.GetTestnetSlotAt(collection.LockedAt);
         }
     }
 }

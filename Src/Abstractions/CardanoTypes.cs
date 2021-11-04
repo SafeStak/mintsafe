@@ -1,12 +1,13 @@
 ﻿using System.Linq;
 
-public record TxBasic(string TxHash, TxIo[] Inputs, TxIo[] Outputs);
+public record TxIoAggregate(string TxHash, TxIo[] Inputs, TxIo[] Outputs);
 public record TxIo(string Address, int OutputIndex, UtxoValue[] Values);
 
 public record Utxo(string TxHash, int OutputIndex, UtxoValue[] Values)
 {
     public override int GetHashCode() => ToString().GetHashCode();
     public override string ToString() => $"{TxHash}__{OutputIndex}";
+    public long Lovelaces => Values.First(v => v.Unit == "lovelace").Quantity;
 }
 
 public record UtxoValue(string Unit, long Quantity);
@@ -17,7 +18,8 @@ public record TxBuildCommand(
     UtxoValue[] Mint, 
     string MintingScriptPath,
     string MetadataJsonPath,
-    long TtlSlot);
+    long TtlSlot,
+    string[] SigningKeyFiles);
 public record TxOutput(string Address, UtxoValue[] Values, bool IsFeeDeducted = false);
 
 public record TxCalculateFeeCommand(
@@ -44,7 +46,6 @@ public static class UtxoExtensions
     {
         return utxo.Values.First(v => v.Unit == "lovelace").Quantity;
     }
-
     public static string ShortForm(this Utxo utxo)
     {
         return utxo.ToString();

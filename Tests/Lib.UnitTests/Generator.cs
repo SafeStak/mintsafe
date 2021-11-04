@@ -50,5 +50,23 @@ namespace NiftyLaunchpad.Lib.UnitTests
                 .ToList();
         }
 
+        public static NiftySale GetSale(
+            int totalReleaseQuantity = 500,
+            int maxAllowedPurchaseQuantity = 10,
+            bool isActive = true,
+            long lovelacesPerToken = 15000000)
+        {
+            return new NiftySale(
+                Id: Guid.NewGuid(),
+                CollectionId: Guid.NewGuid(),
+                IsActive: isActive,
+                Name: "Preview Launch #1",
+                Description: "Limited 150 item launch",
+                LovelacesPerToken: lovelacesPerToken,
+                SaleAddress: "addr_test1vz0hx28mmdz0ey3pzqe5nxg08urjhzydpvvmcx4v4we5mvg6733n5",
+                ProceedsAddress: "addr_test1vzj4c522pr5n6texvcl24kl9enntr4knl4ucecd7pkt24mglna4pz",
+                TotalReleaseQuantity: totalReleaseQuantity,
+                MaxAllowedPurchaseQuantity: maxAllowedPurchaseQuantity);
+        }
     }
 }

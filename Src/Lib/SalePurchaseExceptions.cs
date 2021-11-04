@@ -2,32 +2,47 @@
 
 namespace NiftyLaunchpad.Lib
 {
-    public class SaleReleaseQuantityExceededException : ApplicationException
+    public class CannotAllocateMoreThanSaleReleaseException : ApplicationException
     {
         public long RequestedQuantity { get; }
+        public long SaleReleaseQuantity { get; }
+        public long SaleAllocatedQuantity { get; }
+        public Guid SaleId { get; }
         public Utxo PurchaseAttemptUtxo { get; }
 
-        public SaleReleaseQuantityExceededException(
+        public CannotAllocateMoreThanSaleReleaseException(
             string message, 
             Utxo purchaseAttemptUtxo,
+            Guid saleId,
+            int saleReleaseQuantity,
+            int saleAllocatedQuantity,
             int requestedQuantity) : base(message)
         {
             RequestedQuantity = requestedQuantity;
+            SaleReleaseQuantity = saleReleaseQuantity;
+            SaleAllocatedQuantity = saleAllocatedQuantity;
+            SaleId = saleId;
             PurchaseAttemptUtxo = purchaseAttemptUtxo;
         }
     }
 
-    public class NoMintableTokensLeftException : ApplicationException
+    public class CannotAllocateMoreThanMintableException : ApplicationException
     {
         public long RequestedQuantity { get; }
+        public long MintableQuantity { get; }
+        public Guid SaleId { get; }
         public Utxo PurchaseAttemptUtxo { get; }
 
-        public NoMintableTokensLeftException(
+        public CannotAllocateMoreThanMintableException(
             string message, 
             Utxo purchaseAttemptUtxo,
-            int requestedQuantity) : base(message)
+            Guid saleId,
+            int requestedQuantity,
+            int mintableQuantity) : base(message)
         {
             RequestedQuantity = requestedQuantity;
+            MintableQuantity = mintableQuantity;
+            SaleId = saleId;
             PurchaseAttemptUtxo = purchaseAttemptUtxo;
         }
     }

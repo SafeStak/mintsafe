@@ -56,7 +56,7 @@ namespace NiftyLaunchpad.Lib
             return Task.FromResult(Array.Empty<Utxo>());
         }
 
-        public async Task<TxBasic> GetTransactionAsync(string txHash, CancellationToken ct = default)
+        public async Task<TxIoAggregate> GetTransactionAsync(string txHash, CancellationToken ct = default)
         {
             var relativePath = $"api/v0/txs/{txHash}/utxos";
 
@@ -67,7 +67,7 @@ namespace NiftyLaunchpad.Lib
                 var json = await _httpClient.GetStringAsync(relativePath, ct).ConfigureAwait(false);
                 Console.WriteLine($"Finished getting JSON response from {relativePath} after {sw.ElapsedMilliseconds}ms");
                 var result = JsonSerializer.Deserialize<BlockFrostTransactionUtxoResponse>(json, SerialiserOptions);
-                return new TxBasic(
+                return new TxIoAggregate(
                     result.Hash,
                     result.Inputs.Select(r => new TxIo(r.Address, r.Output_Index, Array.Empty<UtxoValue>())).ToArray(),
                     result.Outputs.Select(r => new TxIo(r.Address, r.Output_Index, Array.Empty<UtxoValue>())).ToArray());

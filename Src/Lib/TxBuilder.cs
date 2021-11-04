@@ -1,6 +1,5 @@
 ﻿using SimpleExec;
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -10,89 +9,120 @@ using System.Threading.Tasks;
 
 namespace NiftyLaunchpad.Lib
 {
+    public class CardanoCliException : ApplicationException
+    {
+        public string Network { get; }
+        public string Args { get; }
+
+        public CardanoCliException(
+            string message, 
+            Exception inner, 
+            string network, 
+            string args = "") : base(message, inner)
+        {
+            Network = network;
+            Args = args;
+        }
+    }
+
     public class TxBuilder : ITxBuilder
     {
         private readonly NiftyLaunchpadSettings _settings;
+        private readonly string _networkMagic;
 
         public TxBuilder(NiftyLaunchpadSettings settings)
         {
             _settings = settings;
+            _networkMagic = _settings.Network == Network.Mainnet
+                ? "--mainnet"
+                : "--testnet-magic 1097911063";
         }
 
         public async Task<byte[]> BuildTxAsync(
-            TxBuildCommand buildCommand, 
-            string policyId, 
-            string saleId, 
+            TxBuildCommand buildCommand,
             CancellationToken ct = default)
         {
+            var buildId = Guid.NewGuid();
             try
             {
-                var buildId = Guid.NewGuid();
-                var networkMagic = GetNetworkParameter();
-
-                var protocolParamsPath = Path.Combine(_settings.BasePath, "protocol.json");
+                var protocolParamsOutputPath = Path.Combine(_settings.BasePath, "protocol.json");
                 await Command.ReadAsync(
-                    "cardano-cli", $"query protocol-parameters {networkMagic} --out-file {protocolParamsPath}",
-                    noEcho: true);
+                    "cardano-cli",
+                    $"query protocol-parameters {_networkMagic} --out-file {protocolParamsOutputPath}",
+                    noEcho: true,
+                    cancellationToken: ct);
 
-                var feeCalculationTxBodyPath = Path.Combine(_settings.BasePath, $"fee-{buildId}.txraw");
-                var feeTxBuildArgs = string.Join(" ",
+                var feeCalculationTxBodyOutputPath = Path.Combine(_settings.BasePath, $"fee-{buildId}.txraw");
+                var feeCalculationTxBuildArgs = string.Join(" ",
                     "transaction", "build-raw",
                     GetTxInArgs(buildCommand),
                     GetTxOutArgs(buildCommand),
-                    "--metadata-json-file", buildCommand.MetadataJsonPath,
+                    GetMetadataArgs(buildCommand),
                     GetMintArgs(buildCommand),
-                    "--minting-script-file", buildCommand.MintingScriptPath,
-                    "--invalid-hereafter", buildCommand.TtlSlot,
+                    GetMintingScriptFileArgs(buildCommand),
+                    GetInvalidHereafterArgs(buildCommand),
                     "--fee", "0",
-                    "--out-file", feeCalculationTxBodyPath
+                    "--out-file", feeCalculationTxBodyOutputPath
                 );
-                Console.WriteLine(feeTxBuildArgs);
-                var feeTxBuildOutput = await Command.ReadAsync("cardano-cli", feeTxBuildArgs, noEcho: true);
-                Console.WriteLine($"Fee Tx built {feeTxBuildArgs}{Environment.NewLine}{feeTxBuildOutput}");
+                var feeTxBuildCliOutput = await Command.ReadAsync(
+                    "cardano-cli",
+                    feeCalculationTxBuildArgs,
+                    noEcho: true,
+                    cancellationToken: ct);
+                Console.WriteLine($"Fee Tx built {feeCalculationTxBuildArgs}{Environment.NewLine}{feeTxBuildCliOutput}");
 
                 var feeCalculationArgs = string.Join(" ",
                     "transaction", "calculate-min-fee",
-                    "--tx-body-file", feeCalculationTxBodyPath,
+                    "--tx-body-file", feeCalculationTxBodyOutputPath,
                     "--tx-in-count", buildCommand.Inputs.Length,
                     "--tx-out-count", buildCommand.Outputs.Length,
-                    "--witness-count", 2,
-                    networkMagic,
-                    "--protocol-params-file", protocolParamsPath
+                    "--witness-count", buildCommand.SigningKeyFiles.Length,
+                    _networkMagic,
+                    "--protocol-params-file", protocolParamsOutputPath
                 );
-                var feeCalculationOutput = await Command.ReadAsync("cardano-cli", feeCalculationArgs, noEcho: true);
-                var feeLovelaceQuantity = long.Parse(feeCalculationOutput.Split(' ')[0]); // Parse "199469 Lovelace"
-                Console.WriteLine($"Fee Calculated {feeCalculationArgs}{Environment.NewLine}{feeCalculationOutput}");
+                var feeCalculationCliOutput = await Command.ReadAsync(
+                    "cardano-cli",
+                    feeCalculationArgs,
+                    noEcho: true,
+                    cancellationToken: ct);
+                var feeLovelaceQuantity = long.Parse(feeCalculationCliOutput.Split(' ')[0]); // Parse "199469 Lovelace"
+                Console.WriteLine($"Fee Calculated {feeCalculationArgs}{Environment.NewLine}{feeCalculationCliOutput}");
 
-                var mintTxBodyPath = Path.Combine(_settings.BasePath, $"mint-{buildId}.txraw");
-                var txBuildArgs = string.Join(" ",
+                var actualTxBodyOutputPath = Path.Combine(_settings.BasePath, $"{buildId}.txraw");
+                var actualTxBuildArgs = string.Join(" ",
                     "transaction", "build-raw",
                     GetTxInArgs(buildCommand),
                     GetTxOutArgs(buildCommand, feeLovelaceQuantity),
-                    "--metadata-json-file", buildCommand.MetadataJsonPath,
+                    GetMetadataArgs(buildCommand),
                     GetMintArgs(buildCommand),
-                    "--minting-script-file", buildCommand.MintingScriptPath,
-                    "--invalid-hereafter", buildCommand.TtlSlot,
+                    GetMintingScriptFileArgs(buildCommand),
+                    GetInvalidHereafterArgs(buildCommand),
                     "--fee", feeLovelaceQuantity,
-                    "--out-file", mintTxBodyPath
+                    "--out-file", actualTxBodyOutputPath
                 );
-                var txBuildOutput = await Command.ReadAsync("cardano-cli", txBuildArgs, noEcho: true);
-                Console.WriteLine($"Mint Tx built {txBuildArgs}{Environment.NewLine}{txBuildOutput}");
+                var actualTxBuildCliOutput = await Command.ReadAsync(
+                    "cardano-cli",
+                    actualTxBuildArgs,
+                    noEcho: true,
+                    cancellationToken: ct);
+                Console.WriteLine($"Actual Tx built {actualTxBuildArgs}{Environment.NewLine}{actualTxBuildCliOutput}");
 
-                var policySigningKeyPath = Path.Combine(_settings.BasePath, $"{policyId}.skey");
-                var saleAddressKeySigningPath = Path.Combine(_settings.BasePath, $"{saleId}.sale.skey");
                 var signedTxOutputPath = Path.Combine(_settings.BasePath, $"{buildId}.txsigned");
                 var txSignatureArgs = string.Join(" ",
                     "transaction", "sign",
-                    "--signing-key-file", policySigningKeyPath,
-                    "--signing-key-file", saleAddressKeySigningPath,
-                    "--tx-body-file", mintTxBodyPath,
-                    networkMagic,
+                    GetSigningKeyFiles(buildCommand),
+                    "--tx-body-file", actualTxBodyOutputPath,
+                    _networkMagic,
                     "--out-file", signedTxOutputPath
                 );
-                var txSignatureOutput = await Command.ReadAsync("cardano-cli", txSignatureArgs, noEcho: true);
-                Console.WriteLine($"Signed Tx built {txSignatureArgs}{Environment.NewLine}{txSignatureOutput}");
+                var txSignatureCliOutput = await Command.ReadAsync(
+                    "cardano-cli",
+                    txSignatureArgs,
+                    noEcho: true,
+                    cancellationToken: ct);
+                Console.WriteLine($"Signed Tx built {txSignatureArgs}{Environment.NewLine}{txSignatureCliOutput}");
 
+                // Extract bytes from cborHex field of JSON in signed tx file
                 var cborJson = File.ReadAllText(signedTxOutputPath);
                 Console.WriteLine(cborJson);
                 var doc = JsonDocument.Parse(cborJson);
@@ -107,23 +137,22 @@ namespace NiftyLaunchpad.Lib
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine(ex);
-
-                throw;
+                throw new CardanoCliException("Unhandled exception in TxBuilder", ex, _settings.Network.ToString());
             }
         }
 
-        private string GetTxInArgs(TxBuildCommand command)
+        private static string GetTxInArgs(TxBuildCommand command)
         {
             var sb = new StringBuilder();
             foreach (var input in command.Inputs)
             {
                 sb.Append($"--tx-in {input.TxHash}#{input.OutputIndex} ");
             }
-            return sb.ToString().TrimEnd();
+            sb.Remove(sb.Length - 1, 1); // trim trailing space 
+            return sb.ToString();
         }
 
-        private string GetTxOutArgs(TxBuildCommand command, long fee = 0)
+        private static string GetTxOutArgs(TxBuildCommand command, long fee = 0)
         {
             var sb = new StringBuilder();
             foreach (var output in command.Outputs)
@@ -136,7 +165,7 @@ namespace NiftyLaunchpad.Lib
                 }
 
                 sb.Append($"--tx-out \"{output.Address}+{lovelacesOut}");
-                
+
                 var nativeTokens = output.Values.Where(o => o.Unit != "lovelace").ToArray();
                 foreach (var value in nativeTokens)
                 {
@@ -144,10 +173,11 @@ namespace NiftyLaunchpad.Lib
                 }
                 sb.Append("\" ");
             }
-            return sb.ToString().TrimEnd();
+            sb.Remove(sb.Length - 1, 1); // trim trailing space 
+            return sb.ToString();
         }
 
-        private string GetMintArgs(TxBuildCommand command)
+        private static string GetMintArgs(TxBuildCommand command)
         {
             if (command.Mint.Length == 0)
                 return string.Empty;
@@ -159,15 +189,46 @@ namespace NiftyLaunchpad.Lib
                 sb.Append($"{value.Quantity} {value.Unit}+");
             }
             sb.Remove(sb.Length - 1, 1); // trim trailing + 
-            sb.Append("\"");
+            sb.Append('"');
             return sb.ToString();
         }
 
-        private string GetNetworkParameter()
+        private static string GetMetadataArgs(TxBuildCommand command)
         {
-            return _settings.Network == Network.Mainnet
-                ? "--mainnet"
-                : "--testnet-magic 1097911063";
+            if (string.IsNullOrWhiteSpace(command.MetadataJsonPath))
+                return string.Empty;
+
+            return $"--metadata-json-file {command.MetadataJsonPath}";
+        }
+
+        private static string GetMintingScriptFileArgs(TxBuildCommand command)
+        {
+            if (string.IsNullOrWhiteSpace(command.MintingScriptPath))
+                return string.Empty;
+
+            return $"--minting-script-file {command.MintingScriptPath}";
+        }
+
+        private static string GetInvalidHereafterArgs(TxBuildCommand command)
+        {
+            if (command.TtlSlot <= 0)
+                return string.Empty;
+
+            return $"--invalid-hereafter {command.TtlSlot}";
+        }
+
+        private static string GetSigningKeyFiles(TxBuildCommand command)
+        {
+            if (command.SigningKeyFiles.Length == 0)
+                return string.Empty;
+
+            var sb = new StringBuilder();
+            foreach (var skeyFile in command.SigningKeyFiles)
+            {
+                sb.Append($"--signing-key-file {skeyFile} ");
+            }
+            sb.Remove(sb.Length - 1, 1); // trim trailing space 
+            return sb.ToString();
         }
 
         private static byte[] HexStringToByteArray(string hex)
@@ -194,131 +255,122 @@ namespace NiftyLaunchpad.Lib
     public class FakeTxBuilder : ITxBuilder
     {
         private readonly NiftyLaunchpadSettings _settings;
+        private readonly string _networkMagic;
 
         public FakeTxBuilder(NiftyLaunchpadSettings settings)
         {
             _settings = settings;
+            _networkMagic = _settings.Network == Network.Mainnet
+                ? "--mainnet"
+                : "--testnet-magic 1097911063";
         }
 
         public async Task<byte[]> BuildTxAsync(
             TxBuildCommand buildCommand,
-            string policyId,
-            string saleId,
             CancellationToken ct = default)
         {
-            try
-            {
-                var buildId = Guid.NewGuid();
-                var networkMagic = GetNetworkParameter();
+            var buildId = Guid.NewGuid();
 
-                await Task.Delay(100);
+            await Task.Delay(100, ct);
 
-                var protocolParamsPath = Path.Combine(_settings.BasePath, "protocol.json");
+            var protocolParamsPath = Path.Combine(_settings.BasePath, "protocol.json");
 
-                var feeCalculationTxBodyPath = Path.Combine(_settings.BasePath, $"fee-{buildId}.txraw");
-                var feeTxBuildArgs = string.Join(" ",
-                    "transaction", "build-raw",  $"{Environment.NewLine}",
-                    GetTxInArgs(buildCommand),  $"{Environment.NewLine}",
-                    GetTxOutArgs(buildCommand),  $"{Environment.NewLine}",
-                    "--metadata-json-file", buildCommand.MetadataJsonPath,  $"{Environment.NewLine}",
-                    GetMintArgs(buildCommand),  $"{Environment.NewLine}",
-                    "--minting-script-file", buildCommand.MintingScriptPath,  $"{Environment.NewLine}",
-                    "--invalid-hereafter", buildCommand.TtlSlot,  $"{Environment.NewLine}",
-                    "--fee", "0",  $"{Environment.NewLine}",
-                    "--out-file", feeCalculationTxBodyPath  
-                );
-                Console.WriteLine($"Building fee calculation tx from:{Environment.NewLine}{feeTxBuildArgs}");
-                Console.WriteLine();
+            var feeCalculationTxBodyPath = Path.Combine(_settings.BasePath, $"fee-{buildId}.txraw");
+            var feeTxBuildArgs = string.Join(" ",
+                "transaction", "build-raw", $"{Environment.NewLine}",
+                GetTxInArgs(buildCommand), $"{Environment.NewLine}",
+                GetTxOutArgs(buildCommand), $"{Environment.NewLine}",
+                GetMetadataArgs(buildCommand), $"{Environment.NewLine}",
+                GetMintArgs(buildCommand), $"{Environment.NewLine}",
+                GetMintingScriptFileArgs(buildCommand), $"{Environment.NewLine}",
+                GetInvalidHereafterArgs(buildCommand), $"{Environment.NewLine}",
+                "--fee", "0", $"{Environment.NewLine}",
+                "--out-file", feeCalculationTxBodyPath
+            );
+            Console.WriteLine($"Building fee calculation tx from:{Environment.NewLine}{feeTxBuildArgs}");
+            Console.WriteLine();
 
-                var feeCalculationArgs = string.Join(" ",
-                    "transaction", "calculate-min-fee",  $"{Environment.NewLine}",
-                    "--tx-body-file", feeCalculationTxBodyPath,  $"{Environment.NewLine}",
-                    "--tx-in-count", buildCommand.Inputs.Length,  $"{Environment.NewLine}",
-                    "--tx-out-count", buildCommand.Outputs.Length,  $"{Environment.NewLine}",
-                    "--witness-count", 2,  $"{Environment.NewLine}",
-                    networkMagic,  $"{Environment.NewLine}",
-                    "--protocol-params-file", protocolParamsPath 
-                );
+            var feeCalculationArgs = string.Join(" ",
+                "transaction", "calculate-min-fee", $"{Environment.NewLine}",
+                "--tx-body-file", feeCalculationTxBodyPath, $"{Environment.NewLine}",
+                "--tx-in-count", buildCommand.Inputs.Length, $"{Environment.NewLine}",
+                "--tx-out-count", buildCommand.Outputs.Length, $"{Environment.NewLine}",
+                "--witness-count", buildCommand.SigningKeyFiles.Length, $"{Environment.NewLine}",
+                _networkMagic, $"{Environment.NewLine}",
+                "--protocol-params-file", protocolParamsPath
+            );
 
-                Console.WriteLine("Calculating fee using fee calculation tx (199469) from:");
-                Console.WriteLine(feeCalculationArgs);
-                Console.WriteLine();
-                var feeLovelaceQuantity = 199469;
+            Console.WriteLine("Calculating fee using fee calculation tx (199469) from:");
+            Console.WriteLine(feeCalculationArgs);
+            Console.WriteLine();
+            var feeLovelaceQuantity = 199469;
 
-                var mintTxBodyPath = Path.Combine(_settings.BasePath, $"mint-{buildId}.txraw");
-                var txBuildArgs = string.Join(" ",
-                    "transaction", "build-raw", $"{Environment.NewLine}",
-                    GetTxInArgs(buildCommand), $"{Environment.NewLine}",
-                    GetTxOutArgs(buildCommand, feeLovelaceQuantity), $"{Environment.NewLine}",
-                    "--metadata-json-file", buildCommand.MetadataJsonPath,$"{Environment.NewLine}",
-                    GetMintArgs(buildCommand),$"{Environment.NewLine}",
-                    "--minting-script-file", buildCommand.MintingScriptPath,$"{Environment.NewLine}",
-                    "--invalid-hereafter", buildCommand.TtlSlot,$"{Environment.NewLine}",
-                    "--fee", feeLovelaceQuantity,$"{Environment.NewLine}",
-                    "--out-file", mintTxBodyPath
-                );
-                Console.WriteLine($"Mint Tx built from command:{Environment.NewLine}{txBuildArgs}");
-                Console.WriteLine();
+            var actualTxBodyPath = Path.Combine(_settings.BasePath, $"mint-{buildId}.txraw");
+            var txBuildArgs = string.Join(" ",
+                "transaction", "build-raw", $"{Environment.NewLine}",
+                GetTxInArgs(buildCommand), $"{Environment.NewLine}",
+                GetTxOutArgs(buildCommand, feeLovelaceQuantity), $"{Environment.NewLine}",
+                GetMetadataArgs(buildCommand), $"{Environment.NewLine}",
+                GetMintArgs(buildCommand), $"{Environment.NewLine}",
+                GetMintingScriptFileArgs(buildCommand), $"{Environment.NewLine}",
+                GetInvalidHereafterArgs(buildCommand), $"{Environment.NewLine}",
+                "--fee", feeLovelaceQuantity, $"{Environment.NewLine}",
+                "--out-file", actualTxBodyPath
+            );
+            Console.WriteLine($"Actual Tx built from command:{Environment.NewLine}{txBuildArgs}");
+            Console.WriteLine();
 
-                var policySigningKeyPath = Path.Combine(_settings.BasePath, $"{policyId}.skey");
-                var saleAddressKeySigningPath = Path.Combine(_settings.BasePath, $"{saleId}.sale.skey");
-                var signedTxOutputPath = Path.Combine(_settings.BasePath, $"{buildId}.txsigned");
-                var txSignatureArgs = string.Join(" ",
-                    "transaction", "sign",$"{Environment.NewLine}",
-                    "--signing-key-file", policySigningKeyPath,$"{Environment.NewLine}",
-                    "--signing-key-file", saleAddressKeySigningPath,$"{Environment.NewLine}",
-                    "--tx-body-file", mintTxBodyPath,$"{Environment.NewLine}",
-                    networkMagic,$"{Environment.NewLine}",
-                    "--out-file", signedTxOutputPath
-                );
-                Console.WriteLine($"Signed Tx from command:{Environment.NewLine}{txSignatureArgs}");
-                Console.WriteLine();
+            var signedTxOutputPath = Path.Combine(_settings.BasePath, $"{buildId}.txsigned");
+            var txSignatureArgs = string.Join(" ",
+                "transaction", "sign", $"{Environment.NewLine}",
+                GetSigningKeyFiles(buildCommand), $"{Environment.NewLine}",
+                "--tx-body-file", actualTxBodyPath, $"{Environment.NewLine}",
+                _networkMagic, $"{Environment.NewLine}",
+                "--out-file", signedTxOutputPath
+            );
+            Console.WriteLine($"Signed Tx from command:{Environment.NewLine}{txSignatureArgs}");
+            Console.WriteLine();
 
-                return Array.Empty<byte>();
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine(ex);
-                throw;
-            }
+            return Array.Empty<byte>();
         }
 
-        private string GetTxInArgs(TxBuildCommand command)
+        private static string GetTxInArgs(TxBuildCommand command)
         {
             var sb = new StringBuilder();
             foreach (var input in command.Inputs)
             {
                 sb.Append($"--tx-in {input.TxHash}#{input.OutputIndex} ");
             }
-            return sb.ToString().TrimEnd();
+            sb.Remove(sb.Length - 1, 1); // trim trailing space 
+            return sb.ToString();
         }
 
-        private string GetTxOutArgs(TxBuildCommand command, long fee = 0)
+        private static string GetTxOutArgs(TxBuildCommand command, long fee = 0)
         {
             var sb = new StringBuilder();
             foreach (var output in command.Outputs)
             {
-                var lovelaceOut = output.Values.First(v => v.Unit == "lovelace");
-                var lovelaces = lovelaceOut.Quantity;
-                var nativeTokens = output.Values.Where(o => o.Unit != "lovelace").ToArray();
-
-                // Special case to deduct fee for deposit address (no native tokens)
-                var isDepositAddress = nativeTokens.Length == 0;
-                if (isDepositAddress)
+                // Determine the txout that will pay for the fee (i.e. the sale proceeds address and not the buyer)
+                var lovelacesOut = output.Values.First(v => v.Unit == "lovelace").Quantity;
+                if (output.IsFeeDeducted)
                 {
-                    lovelaces -= fee;
+                    lovelacesOut -= fee;
                 }
 
-                sb.Append($"--tx-out {output.Address}+{lovelaces}");
+                sb.Append($"--tx-out \"{output.Address}+{lovelacesOut}");
+
+                var nativeTokens = output.Values.Where(o => o.Unit != "lovelace").ToArray();
                 foreach (var value in nativeTokens)
                 {
-                    sb.Append($"+\"{value.Quantity} {value.Unit}\" ");
+                    sb.Append($"+{value.Quantity} {value.Unit}");
                 }
+                sb.Append("\" ");
             }
-            return sb.ToString().TrimEnd();
+            sb.Remove(sb.Length - 1, 1); // trim trailing space 
+            return sb.ToString();
         }
 
-        private string GetMintArgs(TxBuildCommand command)
+        private static string GetMintArgs(TxBuildCommand command)
         {
             if (command.Mint.Length == 0)
                 return string.Empty;
@@ -327,18 +379,50 @@ namespace NiftyLaunchpad.Lib
             sb.Append($"--mint \"");
             foreach (var value in command.Mint)
             {
-                sb.Append($"{value.Quantity} {value.Unit} + ");
+                sb.Append($"{value.Quantity} {value.Unit}+");
             }
-            sb.Remove(sb.Length-3, 3); // trim trailing + and space
-            sb.Append("\"");
+            sb.Remove(sb.Length - 1, 1); // trim trailing + 
+            sb.Append('"');
             return sb.ToString();
         }
 
-        private string GetNetworkParameter()
+        private static string GetMetadataArgs(TxBuildCommand command)
         {
-            return _settings.Network == Network.Mainnet
-                ? "--mainnet"
-                : "--testnet-magic 1097911063";
+            if (string.IsNullOrWhiteSpace(command.MetadataJsonPath))
+                return string.Empty;
+
+            return $"--metadata-json-file {command.MetadataJsonPath}";
         }
+
+        private static string GetMintingScriptFileArgs(TxBuildCommand command)
+        {
+            if (string.IsNullOrWhiteSpace(command.MintingScriptPath))
+                return string.Empty;
+
+            return $"--minting-script-file {command.MintingScriptPath}";
+        }
+
+        private static string GetInvalidHereafterArgs(TxBuildCommand command)
+        {
+            if (command.TtlSlot <= 0)
+                return string.Empty;
+
+            return $"--invalid-hereafter {command.TtlSlot}";
+        }
+
+        private static string GetSigningKeyFiles(TxBuildCommand command)
+        {
+            if (command.SigningKeyFiles.Length == 0)
+                return string.Empty;
+
+            var sb = new StringBuilder();
+            foreach (var skeyFile in command.SigningKeyFiles)
+            {
+                sb.Append($"--signing-key-file {skeyFile} ");
+            }
+            sb.Remove(sb.Length - 1, 1); // trim trailing space 
+            return sb.ToString();
+        }
+
     }
 }

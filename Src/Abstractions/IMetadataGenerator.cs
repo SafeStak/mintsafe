@@ -3,9 +3,9 @@ using System.Threading.Tasks;
 
 public interface IMetadataGenerator
 {
-    Task GenerateMetadataJsonFile(
+    Task GenerateNftStandardMetadataJsonFile(
         Nifty[] nfts,
         NiftyCollection collection,
-        string path,
+        string outputPath,
         CancellationToken ct = default);
 }

@@ -12,7 +12,7 @@ namespace NiftyLaunchpad.Lib
         private const string NftStandardKey = "721";
         private const string NftRoyaltyStandardKey = "777";
 
-        private static readonly JsonSerializerOptions SerialiserOptions = new JsonSerializerOptions
+        private static readonly JsonSerializerOptions SerialiserOptions = new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         };
@@ -21,7 +21,7 @@ namespace NiftyLaunchpad.Lib
         {
             public string Name { get; set; }
             public string MediaType { get; set; }
-            public string Url { get; set; }
+            public string Src { get; set; }
         }
 
         public class CnftStandardAsset
@@ -31,14 +31,21 @@ namespace NiftyLaunchpad.Lib
             public string MediaType { get; set; }
             public string Image { get; set; }
             public string[] Creators { get; set; }
+            public string[] Publishers { get; set; }
             public CnftStandardFile[] Files { get; set; }
             public Dictionary<string, string> Attributes { get; set; }
         }
 
-        public Task GenerateMetadataJsonFile(
+        public class CnftStandardRoyalty
+        {
+            public double Pct { get; set; }
+            public string[] Addr { get; set; }
+        }
+
+        public Task GenerateNftStandardMetadataJsonFile(
             Nifty[] nfts,
             NiftyCollection collection,
-            string path,
+            string outputPath,
             CancellationToken ct = default)
         {
             var nftStandard = new Dictionary<
@@ -48,7 +55,7 @@ namespace NiftyLaunchpad.Lib
                     Dictionary<
                         string, // AssetName
                         CnftStandardAsset>>>();
-            var policy = new Dictionary<
+            var policyCnfts = new Dictionary<
                 string, // PolicyID
                 Dictionary<
                     string, // AssetName
@@ -64,18 +71,19 @@ namespace NiftyLaunchpad.Lib
                     Image = nft.Image,
                     MediaType = nft.MediaType,
                     Creators = nft.Artists,
+                    Publishers = collection.Publishers,
                     Files = nft.Files.Select(
-                        f => new CnftStandardFile { Name = f.Name, MediaType = f.MediaType, Url = f.Url }).ToArray(),
+                        f => new CnftStandardFile { Name = f.Name, MediaType = f.MediaType, Src = f.Url }).ToArray(),
                     Attributes = nft.Attributes
                 };
                 nftDictionary.Add(nft.AssetName, nftAsset);
             }
-            policy.Add(collection.PolicyId, nftDictionary);
-            nftStandard.Add(NftStandardKey, policy);
+            policyCnfts.Add(collection.PolicyId, nftDictionary);
+            nftStandard.Add(NftStandardKey, policyCnfts);
 
             var json = JsonSerializer.Serialize(nftStandard, SerialiserOptions);
 
-            File.WriteAllText(path, json);
+            File.WriteAllText(outputPath, json);
 
             return Task.CompletedTask;
         }

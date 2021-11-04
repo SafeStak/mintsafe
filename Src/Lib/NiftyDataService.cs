@@ -20,10 +20,10 @@ namespace NiftyLaunchpad.Lib
             var collection = new NiftyCollection(
                 Id: fakeCollectionId,
                 PolicyId: "e9b6f907ea790ca51957eb513430eb0ec155f8df654d48e961d7ea3e",
-                Name: "cryptochads",
+                Name: "cryptoquokkas",
                 Description: "Creations from TOP_SECRET_PROJECT",
                 IsActive: true,
-                Publishers: new[] { "cryptochads.io", "mintsafe.io" },
+                Publishers: new[] { "cryptoquokkas.io", "mintsafe.io" },
                 BrandImage: "ipfs://cid",
                 CreatedAt: new DateTime(2021, 9, 4, 0, 0, 0, DateTimeKind.Utc),
                 LockedAt: new DateTime(2021, 12, 25, 0, 0, 0, DateTimeKind.Utc),
@@ -39,11 +39,11 @@ namespace NiftyLaunchpad.Lib
                 IsActive: true,
                 Name: "Preview Launch #1",
                 Description: "Limited 150 item launch",
-                LovelacesPerToken: 75000000,
+                LovelacesPerToken: 500000000,
                 SaleAddress: "addr_test1vz0hx28mmdz0ey3pzqe5nxg08urjhzydpvvmcx4v4we5mvg6733n5",
                 ProceedsAddress: "addr_test1vzj4c522pr5n6texvcl24kl9enntr4knl4ucecd7pkt24mglna4pz",
-                TotalReleaseQuantity: 1,
-                MaxAllowedPurchaseQuantity: 150);
+                TotalReleaseQuantity: 150,
+                MaxAllowedPurchaseQuantity: 3);
             
             var activeSales = collection.IsActive && IsSaleOpen(sale) ? new[] { sale } : Array.Empty<NiftySale>();
 
@@ -64,9 +64,9 @@ namespace NiftyLaunchpad.Lib
             int mintableTokenCount, 
             string collectionId = null, 
             bool isMintable = true,
-            string baseName = "cryptochads",
-            string creatorsCsv = "cryptochads.io,mintsafe.io",
-            string urlBase = "https://cryptochads.io/ms/",
+            string baseName = "cryptoquokkas",
+            string creatorsCsv = "quokkalad.ada",
+            string urlBase = "ipfs://QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco",
             string mediaType = "image/png",
             string createdAtIso8601 = "2021-01-01T19:30:00Z",
             double royaltyPortion = 0,
@@ -104,8 +104,8 @@ namespace NiftyLaunchpad.Lib
                     $"{urlBase}{i}.png",
                     mediaType,
                     new[] {
-                        new NiftyFile(Guid.NewGuid(), "full_res_png", "image/png", $"{urlBase}{i}.png"),
-                        new NiftyFile(Guid.NewGuid(), "specs_pdf", "application/pdf", $"{urlBase}{i}.pdf")
+                        new NiftyFile(Guid.NewGuid(), "full_res_png", "image/png", $"{urlBase}{i}"),
+                        new NiftyFile(Guid.NewGuid(), "specs_pdf", "application/pdf", $"{urlBase}{i+1}")
                     },
                     dateTimeParsed.AddDays(i),
                     new Royalty(royaltyPortion, royaltyAddress),

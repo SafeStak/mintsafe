@@ -26,7 +26,7 @@ namespace NiftyLaunchpad.Lib.UnitTests
             var tokens = Generator.GenerateTokens(nftCount).ToArray();
             var fileName = $"metadata{nftCount}.json";
 
-            await _metadataGenerator.GenerateMetadataJsonFile(
+            await _metadataGenerator.GenerateNftStandardMetadataJsonFile(
                 tokens, collection, fileName);
 
             var json = File.ReadAllText(fileName);
