@@ -1,4 +1,8 @@
-﻿using System.Threading;
+﻿using SimpleExec;
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NiftyLaunchpad.Lib
@@ -17,6 +21,51 @@ namespace NiftyLaunchpad.Lib
             var txHash = await _blockFrostClient.SubmitTransactionAsync(txSignedBinary, ct);
 
             return txHash;
+        }
+    }
+
+    public class CardanoCliTxSubmitter : ITxSubmitter
+    {
+        private readonly NiftyLaunchpadSettings _settings;
+
+        public CardanoCliTxSubmitter(NiftyLaunchpadSettings settings)
+        {
+            _settings = settings;
+        }
+
+        public async Task<string> SubmitTxAsync(byte[] txSignedBinary, CancellationToken ct = default)
+        {
+            var stopwatch = Stopwatch.StartNew();
+
+            // Build the JSON containing cborHex that the CLI expects
+            var txSubmissionId = Guid.NewGuid();
+            var txSignedJsonPath = Path.Combine(_settings.BasePath, $"{txSubmissionId}.txsigned");
+            var txSignedJson = $"{{ \"type\": \"\", \"description\": \"\", \"cborHex\": \"{Convert.ToHexString(txSignedBinary)}\"}}";
+            File.WriteAllText(txSignedJsonPath, txSignedJson);
+            
+            var rawUtxoTable = await Command.ReadAsync(
+                "cardano-cli", string.Join(" ",
+                    "transaction", "submit",
+                    GetNetworkParameter(),
+                    "--tx-file", txSignedJsonPath
+                ), noEcho: true, cancellationToken: ct);
+            Console.WriteLine($"UTxOs retrieved after {stopwatch.ElapsedMilliseconds}ms:{Environment.NewLine}{rawUtxoTable}");
+
+            // Derive the txhash
+            var txHash = await Command.ReadAsync(
+                "cardano-cli", string.Join(" ",
+                    "transaction", "txid",
+                    "--tx-file", txSignedJsonPath
+                ), noEcho: true, cancellationToken: ct);
+
+            return txHash;
+        }
+
+        private string GetNetworkParameter()
+        {
+            return _settings.Network == Network.Mainnet
+                ? "--mainnet"
+                : "--testnet-magic 1097911063";
         }
     }
 

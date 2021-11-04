@@ -129,6 +129,7 @@ namespace NiftyLaunchpad.Lib
                 var cborHex = doc.RootElement.GetProperty("cborHex").GetString();
                 if (string.IsNullOrWhiteSpace(cborHex))
                 {
+                    // TODO: typed exception
                     throw new ApplicationException("cborHex field from generated signature is null");
                 }
                 var signedTxCborBytes = HexStringToByteArray(cborHex);

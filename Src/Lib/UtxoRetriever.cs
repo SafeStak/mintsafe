@@ -25,7 +25,7 @@ namespace NiftyLaunchpad.Lib
                         "query", "utxo",
                         GetNetworkParameter(),
                         "--address", address
-                    ), noEcho: true);
+                    ), noEcho: true, cancellationToken: ct);
                 Console.WriteLine($"UTxOs retrieved after {stopwatch.ElapsedMilliseconds}ms:{Environment.NewLine}{rawUtxoTable}");
 
                 var lines = rawUtxoTable.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
