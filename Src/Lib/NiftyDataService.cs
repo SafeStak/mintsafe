@@ -10,7 +10,7 @@ namespace NiftyLaunchpad.Lib
     public class NiftyDataService
     {
         public const string FakeCollectionId = "d5b35d3d-14cc-40ba-94f4-fe3b28bd52ae";
-        public const string FakeSaleId = "69da836f-9e0b-4ec4-98e8-094efaeac38b";
+        public const string FakeSaleId = "d91b937f-00fc-4094-957c-629fe3e2e776";
 
         public Task<CollectionAggregate> GetCollectionAggregateAsync(
             Guid collectionId, CancellationToken ct = default) 
@@ -19,7 +19,7 @@ namespace NiftyLaunchpad.Lib
             var fakeCollectionId = Guid.Parse(FakeCollectionId);
             var collection = new NiftyCollection(
                 Id: fakeCollectionId,
-                PolicyId: "e9b6f907ea790ca51957eb513430eb0ec155f8df654d48e961d7ea3e",
+                PolicyId: "a0af7759ce5662ca897a936ede99ca47ef5a3bfc74d104ee268ccc6c",
                 Name: "cryptoquokkas",
                 Description: "Creations from TOP_SECRET_PROJECT",
                 IsActive: true,
@@ -39,11 +39,11 @@ namespace NiftyLaunchpad.Lib
                 IsActive: true,
                 Name: "Preview Launch #1",
                 Description: "Limited 150 item launch",
-                LovelacesPerToken: 500000000,
+                LovelacesPerToken: 15000000,
                 Start: new DateTime(2021, 9, 4, 0, 0, 0, DateTimeKind.Utc),
-                End: new DateTime(2021, 10, 4, 0, 0, 0, DateTimeKind.Utc),
-                SaleAddress: "addr_test1vz0hx28mmdz0ey3pzqe5nxg08urjhzydpvvmcx4v4we5mvg6733n5",
-                ProceedsAddress: "addr_test1vzj4c522pr5n6texvcl24kl9enntr4knl4ucecd7pkt24mglna4pz",
+                End: new DateTime(2021, 11, 5, 0, 0, 0, DateTimeKind.Utc),
+                SaleAddress: "addr_test1vzfxanc8hxjt33khh36u4ac593c2llv4n4e4ew6c5y64p0gmag2uh",
+                ProceedsAddress: "addr_test1vzfdtkpwalx23xg979phx8efeju36f9at4pdsvvkd4cu02gmrfyvh",
                 TotalReleaseQuantity: 150,
                 MaxAllowedPurchaseQuantity: 3);
             
@@ -68,7 +68,7 @@ namespace NiftyLaunchpad.Lib
             bool isMintable = true,
             string baseName = "cryptoquokkas",
             string creatorsCsv = "quokkalad.ada",
-            string urlBase = "ipfs://QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco",
+            string urlBase = "ipfs://QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6",
             string mediaType = "image/png",
             string createdAtIso8601 = "2021-01-01T19:30:00Z",
             double royaltyPortion = 0,
@@ -103,7 +103,7 @@ namespace NiftyLaunchpad.Lib
                     $"{baseName} {i}",
                     $"{baseName} {i} Description",
                     creatorsCsv.Split(','),
-                    $"{urlBase}{i}.png",
+                    $"{urlBase}{i+2}",
                     mediaType,
                     new[] {
                         new NiftyFile(Guid.NewGuid(), "full_res_png", "image/png", $"{urlBase}{i}"),

@@ -39,11 +39,13 @@ namespace NiftyLaunchpad.Lib
                     var lovelaceValue = new UtxoValue("lovelace", long.Parse(contentSegments[2]));
 
                     // Debugging other assets
-                    var segmentIndex = 3;
-                    foreach (var contentSegment in contentSegments[3..])
+                    var segmentIndex = 5;
+                    foreach (var contentSegment in contentSegments[5..])
                     {
                         Console.WriteLine($"Segment[{segmentIndex++}]: {contentSegment}");
                     }
+                    var bits = string.Join(string.Empty, contentSegments[5..]);
+                    Console.WriteLine($"Other values: {bits}");
 
                     utxos[insertionIndex++] = new Utxo(
                         TxHash: contentSegments[0],

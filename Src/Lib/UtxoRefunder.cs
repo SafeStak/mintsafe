@@ -9,6 +9,7 @@ namespace NiftyLaunchpad.Lib
 {
     public class UtxoRefunder
     {
+        private const long MinLovelace = 2000000;
         private readonly NiftyLaunchpadSettings _settings;
         private readonly ITxIoRetriever _txRetriever;
         private readonly IMetadataGenerator _metadataGenerator;
@@ -32,6 +33,12 @@ namespace NiftyLaunchpad.Lib
         public async Task<string> ProcessRefundForUtxo(
             Utxo utxo, string signingKeyFilePath, string reason, CancellationToken ct = default)
         {
+            if (utxo.Lovelaces < MinLovelace)
+            {
+                Console.WriteLine($"Cannot refund {utxo.Lovelaces} because of minimum Utxo lovelace value requirement ({MinLovelace})");
+                return string.Empty;
+            }
+            
             var txIo = await _txRetriever.GetTxIoAsync(utxo.TxHash, ct);
             var buyerAddress = txIo.Inputs.First().Address;
 
@@ -56,6 +63,8 @@ namespace NiftyLaunchpad.Lib
                 new[] { signingKeyFilePath });
             var submissionPayload = await _txBuilder.BuildTxAsync(txRefundCommand, ct);
             var txHash = await _txSubmitter.SubmitTxAsync(submissionPayload, ct);
+
+            Console.WriteLine($"TxID:{txHash} Successfully refunded {utxo.Lovelaces} to {buyerAddress}");
 
             return txHash;
         }

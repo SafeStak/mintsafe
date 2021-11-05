@@ -15,7 +15,7 @@ var settings = new NiftyLaunchpadSettings(
     BlockFrostApiKey: "testneto96qDwlg4GaoKFfmKxPlHQhSkbea80cW",
     //BlockFrostApiKey: "mainnetGk6cqBgfG4nkQtvA1F80hJHfXzYQs8bW",
     BasePath: @"C:\ws\temp\niftylaunchpad\",
-    //BasePath: "/home/knut/testnet-node/kc/mintsafe02/",
+    //BasePath: "/home/knut/testnet-node/kc/mintsafe03/",
     PollingIntervalSeconds: 10);
 var dataService = new NiftyDataService();
 
@@ -45,9 +45,9 @@ var utxoRetriever = new FakeUtxoRetriever(settings);
 var txBuilder = new FakeTxBuilder(settings);
 //var txBuilder = new TxBuilder(settings);
 var txSubmitter = new FakeTxSubmitter(blockFrostClient);
-//var txSubmitter = new TxSubmitter(blockFrostClient);
+//var txSubmitter = new CardanoCliTxSubmitter(settings);
 var txIoRetriever = new FakeTxIoRetriever(blockFrostClient);
-//var txRetriever = new TxIoRetriever(blockFrostClient);
+//var txIoRetriever = new TxIoRetriever(blockFrostClient);
 var tokenAllocator = new TokenAllocator(settings);
 var tokenDistributor = new TokenDistributor(
     settings,
@@ -59,6 +59,7 @@ var utxoRefunder = new UtxoRefunder(settings, txIoRetriever, metadataGenerator, 
 var saleAllocatedTokens = new List<Nifty>();
 var utxosLocked = new HashSet<string>();
 var utxosSuccessfullyProcessed = new HashSet<string>();
+var utxosSuccessfullyRefunded = new HashSet<string>();
 var timer = new PeriodicTimer(TimeSpan.FromSeconds(settings.PollingIntervalSeconds));
 var stopwatch = Stopwatch.StartNew();
 
@@ -148,11 +149,15 @@ try
                 if (shouldRefundUtxo)
                 {
                     var saleAddressSigningKey = Path.Combine(settings.BasePath, $"{activeSale.Id}.sale.skey");
-                    await utxoRefunder.ProcessRefundForUtxo(saleUtxo, saleAddressSigningKey, refundReason, cts.Token);
+                    var refundTxHash = await utxoRefunder.ProcessRefundForUtxo(saleUtxo, saleAddressSigningKey, refundReason, cts.Token);
+                    if (!string.IsNullOrEmpty(refundTxHash))
+                    {
+                        utxosSuccessfullyRefunded.Add(saleUtxo.ToString());
+                    }
                 }
             }
         }
-        Console.WriteLine($"Successful: {utxosSuccessfullyProcessed.Count} UTxOs | Locked: {utxosLocked.Count} UTxOs");
+        Console.WriteLine($"Successful: {utxosSuccessfullyProcessed.Count} UTxOs | Refunded: {utxosSuccessfullyRefunded.Count} | Locked: {utxosLocked.Count} UTxOs");
     } while (await timer.WaitForNextTickAsync(cts.Token));
 }
 catch (OperationCanceledException)

@@ -40,7 +40,7 @@ namespace NiftyLaunchpad.Lib
             // Build the JSON containing cborHex that the CLI expects
             var txSubmissionId = Guid.NewGuid();
             var txSignedJsonPath = Path.Combine(_settings.BasePath, $"{txSubmissionId}.txsigned");
-            var txSignedJson = $"{{ \"type\": \"\", \"description\": \"\", \"cborHex\": \"{Convert.ToHexString(txSignedBinary)}\"}}";
+            var txSignedJson = $"{{ \"type\": \"Tx MaryEra\", \"description\": \"\", \"cborHex\": \"{Convert.ToHexString(txSignedBinary)}\"}}";
             File.WriteAllText(txSignedJsonPath, txSignedJson);
             
             var rawUtxoTable = await Command.ReadAsync(

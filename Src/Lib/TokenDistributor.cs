@@ -38,7 +38,7 @@ namespace NiftyLaunchpad.Lib
             CancellationToken ct = default)
         {
             // Generate metadata file
-            var metadataJsonFileName = $"metadata-{purchaseRequest.Utxo}.json";
+            var metadataJsonFileName = $"metadata-mint-{purchaseRequest.Utxo}.json";
             var metadataJsonPath = Path.Combine(_settings.BasePath, metadataJsonFileName);
             await _metadataGenerator.GenerateNftStandardMetadataJsonFile(nfts, collection, metadataJsonPath, ct);
 
