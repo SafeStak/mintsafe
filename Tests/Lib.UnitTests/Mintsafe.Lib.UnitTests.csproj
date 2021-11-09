@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Src\Lib\NiftyLaunchpad.Lib.csproj" />
+    <ProjectReference Include="..\..\Src\Lib\Mintsafe.Lib.csproj" />
   </ItemGroup>
 
 </Project>

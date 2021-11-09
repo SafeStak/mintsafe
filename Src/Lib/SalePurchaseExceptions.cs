@@ -1,6 +1,7 @@
-﻿using System;
+﻿using Mintsafe.Abstractions;
+using System;
 
-namespace NiftyLaunchpad.Lib
+namespace Mintsafe.Lib
 {
     public class CannotAllocateMoreThanSaleReleaseException : ApplicationException
     {

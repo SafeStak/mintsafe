@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace NiftyLaunchpad.Lib
+namespace Mintsafe.Lib
 {
     public static class TimeUtil
     {

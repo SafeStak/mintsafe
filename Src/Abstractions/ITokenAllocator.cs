@@ -2,12 +2,15 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-public interface ITokenAllocator
+namespace Mintsafe.Abstractions
 {
-    Task<Nifty[]> AllocateTokensForPurchaseAsync(
-        NiftySalePurchaseRequest request,
-        IList<Nifty> saleAllocatedNfts,
-        IList<Nifty> saleMintableNfts,
-        NiftySale sale,
-        CancellationToken ct = default);
+    public interface ITokenAllocator
+    {
+        Task<Nifty[]> AllocateTokensForPurchaseAsync(
+            PurchaseAttempt request,
+            IList<Nifty> saleAllocatedNfts,
+            IList<Nifty> saleMintableNfts,
+            Sale sale,
+            CancellationToken ct = default);
+    }
 }

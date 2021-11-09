@@ -10,7 +10,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/Src/ConsoleApp/bin/Debug/net6.0/NiftyLaunchpad.ConsoleApp.dll",
+            "program": "${workspaceFolder}/Src/ConsoleApp/bin/Debug/net6.0/Mintsafe.ConsoleApp.dll",
             "args": [],
             "cwd": "${workspaceFolder}/Src/ConsoleApp",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console

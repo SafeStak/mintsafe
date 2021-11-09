@@ -1,11 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.Extensions.Logging;
+using Mintsafe.Abstractions;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NiftyLaunchpad.Lib
+namespace Mintsafe.Lib
 {
     public class MetadataGenerator : IMetadataGenerator
     {
@@ -17,6 +19,9 @@ namespace NiftyLaunchpad.Lib
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         };
+
+        private readonly ILogger<MetadataGenerator> _logger;
+        private readonly MintsafeSaleWorkerSettings _settings;
 
         public class CnftStandardFile
         {
@@ -41,6 +46,14 @@ namespace NiftyLaunchpad.Lib
         {
             public double Pct { get; set; }
             public string[] Addr { get; set; }
+        }
+
+        public MetadataGenerator(
+            ILogger<MetadataGenerator> logger,
+            MintsafeSaleWorkerSettings settings)
+        {
+            _logger = logger;
+            _settings = settings;
         }
 
         public Task GenerateNftStandardMetadataJsonFile(
@@ -71,7 +84,7 @@ namespace NiftyLaunchpad.Lib
                     Description = nft.Description,
                     Image = nft.Image,
                     MediaType = nft.MediaType,
-                    Creators = nft.Artists,
+                    Creators = nft.Creators,
                     Publishers = collection.Publishers,
                     Files = nft.Files.Select(
                         f => new CnftStandardFile { Name = f.Name, MediaType = f.MediaType, Src = f.Url }).ToArray(),

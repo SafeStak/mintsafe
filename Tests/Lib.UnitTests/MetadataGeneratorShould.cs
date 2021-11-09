@@ -1,12 +1,14 @@
 ﻿using FluentAssertions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Xunit;
-using static NiftyLaunchpad.Lib.MetadataGenerator;
+using static Mintsafe.Lib.MetadataGenerator;
 
-namespace NiftyLaunchpad.Lib.UnitTests
+namespace Mintsafe.Lib.UnitTests
 {
     public class MetadataGeneratorShould
     {
@@ -14,7 +16,9 @@ namespace NiftyLaunchpad.Lib.UnitTests
 
         public MetadataGeneratorShould()
         {
-            _metadataGenerator = new MetadataGenerator();
+            _metadataGenerator = new MetadataGenerator(
+                NullLogger<MetadataGenerator>.Instance, 
+                Generator.GenerateSettings());
         }
 
         [Theory]

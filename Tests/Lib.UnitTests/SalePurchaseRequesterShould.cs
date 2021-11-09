@@ -1,8 +1,9 @@
 ﻿using FluentAssertions;
+using Mintsafe.Abstractions;
 using System;
 using Xunit;
 
-namespace NiftyLaunchpad.Lib.UnitTests
+namespace Mintsafe.Lib.UnitTests
 {
     public class SalePurchaseRequesterShould
     {
@@ -168,7 +169,7 @@ namespace NiftyLaunchpad.Lib.UnitTests
             action.Should().Throw<SalePeriodOutOfRangeException>();
         }
 
-        public NiftySale GenerateSalePeriod(
+        public Sale GenerateSalePeriod(
             bool isActive = true,
             string saleId = null,
             long costPerTokenLovelace = 10000000, 
@@ -176,7 +177,7 @@ namespace NiftyLaunchpad.Lib.UnitTests
             DateTime? start = null,
             DateTime? end = null)
         {
-            return new NiftySale(
+            return new Sale(
                 Id: saleId == null ? Guid.Parse("69da836f-9e0b-4ec4-98e8-094efaeac38b") : Guid.Parse(saleId),
                 CollectionId: Guid.Parse("e271ae1a-8831-4afd-8cb7-67a55c2bd6cd"),
                 Name: "Preview Launch #1",

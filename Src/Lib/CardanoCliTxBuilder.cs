@@ -1,4 +1,6 @@
-﻿using SimpleExec;
+﻿using Microsoft.Extensions.Logging;
+using Mintsafe.Abstractions;
+using SimpleExec;
 using System;
 using System.IO;
 using System.Linq;
@@ -7,7 +9,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NiftyLaunchpad.Lib
+namespace Mintsafe.Lib
 {
     public class CardanoCliException : ApplicationException
     {
@@ -25,13 +27,17 @@ namespace NiftyLaunchpad.Lib
         }
     }
 
-    public class TxBuilder : ITxBuilder
+    public class CardanoCliTxBuilder : ITxBuilder
     {
-        private readonly NiftyLaunchpadSettings _settings;
+        private readonly ILogger<CardanoCliTxBuilder> _logger;
+        private readonly MintsafeSaleWorkerSettings _settings;
         private readonly string _networkMagic;
 
-        public TxBuilder(NiftyLaunchpadSettings settings)
+        public CardanoCliTxBuilder(
+            ILogger<CardanoCliTxBuilder> logger,
+            MintsafeSaleWorkerSettings settings)
         {
+            _logger = logger;
             _settings = settings;
             _networkMagic = _settings.Network == Network.Mainnet
                 ? "--mainnet"
@@ -69,7 +75,7 @@ namespace NiftyLaunchpad.Lib
                     feeCalculationTxBuildArgs,
                     noEcho: true,
                     cancellationToken: ct);
-                Console.WriteLine($"Fee Tx built {feeCalculationTxBuildArgs}{Environment.NewLine}{feeTxBuildCliOutput}");
+                _logger.LogInformation($"Fee Tx built {feeCalculationTxBuildArgs}{Environment.NewLine}{feeTxBuildCliOutput}");
 
                 var feeCalculationArgs = string.Join(" ",
                     "transaction", "calculate-min-fee",
@@ -86,7 +92,7 @@ namespace NiftyLaunchpad.Lib
                     noEcho: true,
                     cancellationToken: ct);
                 var feeLovelaceQuantity = long.Parse(feeCalculationCliOutput.Split(' ')[0]); // Parse "199469 Lovelace"
-                Console.WriteLine($"Fee Calculated {feeCalculationArgs}{Environment.NewLine}{feeCalculationCliOutput}");
+                _logger.LogInformation($"Fee Calculated {feeCalculationArgs}{Environment.NewLine}{feeCalculationCliOutput}");
 
                 var actualTxBodyOutputPath = Path.Combine(_settings.BasePath, $"{buildId}.txraw");
                 var actualTxBuildArgs = string.Join(" ",
@@ -105,7 +111,7 @@ namespace NiftyLaunchpad.Lib
                     actualTxBuildArgs,
                     noEcho: true,
                     cancellationToken: ct);
-                Console.WriteLine($"Actual Tx built {actualTxBuildArgs}{Environment.NewLine}{actualTxBuildCliOutput}");
+                _logger.LogInformation($"Actual Tx built {actualTxBuildArgs}{Environment.NewLine}{actualTxBuildCliOutput}");
 
                 var signedTxOutputPath = Path.Combine(_settings.BasePath, $"{buildId}.txsigned");
                 var txSignatureArgs = string.Join(" ",
@@ -120,11 +126,11 @@ namespace NiftyLaunchpad.Lib
                     txSignatureArgs,
                     noEcho: true,
                     cancellationToken: ct);
-                Console.WriteLine($"Signed Tx built {txSignatureArgs}{Environment.NewLine}{txSignatureCliOutput}");
+                _logger.LogInformation($"Signed Tx built {txSignatureArgs}{Environment.NewLine}{txSignatureCliOutput}");
 
                 // Extract bytes from cborHex field of JSON in signed tx file
                 var cborJson = File.ReadAllText(signedTxOutputPath);
-                Console.WriteLine(cborJson);
+                _logger.LogInformation(cborJson);
                 var doc = JsonDocument.Parse(cborJson);
                 var cborHex = doc.RootElement.GetProperty("cborHex").GetString();
                 if (string.IsNullOrWhiteSpace(cborHex))
@@ -255,11 +261,14 @@ namespace NiftyLaunchpad.Lib
 
     public class FakeTxBuilder : ITxBuilder
     {
-        private readonly NiftyLaunchpadSettings _settings;
+        private readonly ILogger<FakeTxBuilder> _logger;
+        private readonly MintsafeSaleWorkerSettings _settings;
         private readonly string _networkMagic;
 
-        public FakeTxBuilder(NiftyLaunchpadSettings settings)
+        public FakeTxBuilder(
+            ILogger<FakeTxBuilder> logger, MintsafeSaleWorkerSettings settings)
         {
+            _logger = logger;
             _settings = settings;
             _networkMagic = _settings.Network == Network.Mainnet
                 ? "--mainnet"
@@ -288,8 +297,7 @@ namespace NiftyLaunchpad.Lib
                 "--fee", "0", $"{Environment.NewLine}",
                 "--out-file", feeCalculationTxBodyPath
             );
-            Console.WriteLine($"Building fee calculation tx from:{Environment.NewLine}{feeTxBuildArgs}");
-            Console.WriteLine();
+            _logger.LogInformation($"Building fee calculation tx from:{Environment.NewLine}{feeTxBuildArgs}");
 
             var feeCalculationArgs = string.Join(" ",
                 "transaction", "calculate-min-fee", $"{Environment.NewLine}",
@@ -301,9 +309,8 @@ namespace NiftyLaunchpad.Lib
                 "--protocol-params-file", protocolParamsPath
             );
 
-            Console.WriteLine("Calculating fee using fee calculation tx (199469) from:");
-            Console.WriteLine(feeCalculationArgs);
-            Console.WriteLine();
+            _logger.LogInformation("Calculating fee using fee calculation tx (199469) from:");
+            _logger.LogInformation(feeCalculationArgs);
             var feeLovelaceQuantity = 199469;
 
             var actualTxBodyPath = Path.Combine(_settings.BasePath, $"mint-{buildId}.txraw");
@@ -318,8 +325,7 @@ namespace NiftyLaunchpad.Lib
                 "--fee", feeLovelaceQuantity, $"{Environment.NewLine}",
                 "--out-file", actualTxBodyPath
             );
-            Console.WriteLine($"Actual Tx built from command:{Environment.NewLine}{txBuildArgs}");
-            Console.WriteLine();
+            _logger.LogInformation($"Actual Tx built from command:{Environment.NewLine}{txBuildArgs}");
 
             var signedTxOutputPath = Path.Combine(_settings.BasePath, $"{buildId}.txsigned");
             var txSignatureArgs = string.Join(" ",
@@ -329,8 +335,7 @@ namespace NiftyLaunchpad.Lib
                 _networkMagic, $"{Environment.NewLine}",
                 "--out-file", signedTxOutputPath
             );
-            Console.WriteLine($"Signed Tx from command:{Environment.NewLine}{txSignatureArgs}");
-            Console.WriteLine();
+            _logger.LogInformation($"Signed Tx from command:{Environment.NewLine}{txSignatureArgs}");
 
             return Array.Empty<byte>();
         }

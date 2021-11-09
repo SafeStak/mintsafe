@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/Src/ConsoleApp/NiftyLaunchpad.ConsoleApp.csproj",
+                "${workspaceFolder}/Src/ConsoleApp/Mintsafe.ConsoleApp.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -19,7 +19,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/Src/ConsoleApp/NiftyLaunchpad.ConsoleApp.csproj",
+                "${workspaceFolder}/Src/ConsoleApp/Mintsafe.ConsoleApp.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -32,7 +32,7 @@
             "args": [
                 "watch",
                 "run",
-                "${workspaceFolder}/Src/ConsoleApp/NiftyLaunchpad.ConsoleApp.csproj",
+                "${workspaceFolder}/Src/ConsoleApp/Mintsafe.ConsoleApp.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],

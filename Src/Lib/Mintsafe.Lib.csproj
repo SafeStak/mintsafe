@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Abstractions\NiftyLaunchpad.Abstractions.csproj" />
+    <ProjectReference Include="..\Abstractions\Mintsafe.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>

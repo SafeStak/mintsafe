@@ -9,7 +9,7 @@
     }
   },
   "profiles": {
-    "NiftyLaunchpad.WebApi": {
+    "Mintsafe.WebApi": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,

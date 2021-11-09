@@ -1,10 +1,11 @@
-﻿using System;
+﻿using Mintsafe.Abstractions;
+using System;
 
-namespace NiftyLaunchpad.Lib
+namespace Mintsafe.Lib
 {
     public static class SalePurchaseGenerator
     {
-        public static NiftySalePurchaseRequest FromUtxo(Utxo utxo, NiftySale sale)
+        public static PurchaseAttempt FromUtxo(Utxo utxo, Sale sale)
         {
             if (!sale.IsActive)
                 throw new SaleInactiveException("Sale is inactive", utxo);
@@ -25,7 +26,7 @@ namespace NiftyLaunchpad.Lib
 
             var change = lovelaceValue % sale.LovelacesPerToken;
 
-            return new NiftySalePurchaseRequest(
+            return new PurchaseAttempt(
                 Id: Guid.NewGuid(),
                 SaleId: sale.Id,
                 Utxo: utxo,

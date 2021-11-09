@@ -1,7 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 
-namespace NiftyLaunchpad.Abstractions
+namespace Mintsafe.Abstractions
 {
     public interface ITxIoRetriever
     {

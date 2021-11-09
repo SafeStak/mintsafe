@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\Lib\NiftyLaunchpad.Lib.csproj" />
+    <ProjectReference Include="..\Lib\Mintsafe.Lib.csproj" />
   </ItemGroup>
 
   <ItemGroup>

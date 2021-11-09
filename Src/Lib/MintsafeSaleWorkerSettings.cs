@@ -1,4 +1,4 @@
-﻿public record NiftyLaunchpadSettings(
+﻿public record MintsafeSaleWorkerSettings(
     Network Network, 
     int PollingIntervalSeconds,
     string BasePath,

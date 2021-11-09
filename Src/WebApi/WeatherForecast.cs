@@ -1,6 +1,6 @@
 using System;
 
-namespace NiftyLaunchpad.WebApi
+namespace Mintsafe.WebApi
 {
 
     public class WeatherForecast

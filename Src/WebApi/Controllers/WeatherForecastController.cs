@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace NiftyLaunchpad.WebApi.Controllers
+namespace Mintsafe.WebApi.Controllers
 {
     [ApiController]
     [Route("[controller]")]

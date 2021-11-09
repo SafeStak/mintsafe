@@ -1,26 +1,32 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using Mintsafe.Abstractions;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NiftyLaunchpad.Lib
+namespace Mintsafe.Lib
 {
     public class TokenAllocator : ITokenAllocator
     {
-        private readonly NiftyLaunchpadSettings _settings;
+        private readonly ILogger<TokenAllocator> _logger;
+        private readonly MintsafeSaleWorkerSettings _settings;
         private readonly Random _random;
 
-        public TokenAllocator(NiftyLaunchpadSettings settings)
+        public TokenAllocator(
+            ILogger<TokenAllocator> logger,
+            MintsafeSaleWorkerSettings settings)
         {
+            _logger = logger;
             _settings = settings;
             _random = new Random();
         }
 
         public Task<Nifty[]> AllocateTokensForPurchaseAsync(
-            NiftySalePurchaseRequest request,
+            PurchaseAttempt request,
             IList<Nifty> saleAllocatedNfts,
             IList<Nifty> saleMintableNfts,
-            NiftySale sale,
+            Sale sale,
             CancellationToken ct = default)
         {
             if (request.NiftyQuantityRequested <= 0)

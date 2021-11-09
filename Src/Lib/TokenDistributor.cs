@@ -1,28 +1,32 @@
-﻿using NiftyLaunchpad.Abstractions;
+﻿using Microsoft.Extensions.Logging;
+using Mintsafe.Abstractions;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NiftyLaunchpad.Lib
+namespace Mintsafe.Lib
 {
-    public class TokenDistributor
+    public class TokenDistributor : ITokenDistributor
     {
         private const int MinLovelaceUtxo = 2000000;
 
-        private readonly NiftyLaunchpadSettings _settings;
+        private readonly ILogger<TokenDistributor> _logger;
+        private readonly MintsafeSaleWorkerSettings _settings;
         private readonly IMetadataGenerator _metadataGenerator;
         private readonly ITxIoRetriever _txRetriever;
         private readonly ITxBuilder _txBuilder;
         private readonly ITxSubmitter _txSubmitter;
 
         public TokenDistributor(
-            NiftyLaunchpadSettings settings,
+            ILogger<TokenDistributor> logger,
+            MintsafeSaleWorkerSettings settings,
             IMetadataGenerator metadataGenerator,
             ITxIoRetriever txRetriever,
             ITxBuilder txBuilder,
             ITxSubmitter txSubmitter)
         {
+            _logger = logger;
             _settings = settings;
             _metadataGenerator = metadataGenerator;
             _txRetriever = txRetriever;
@@ -31,10 +35,10 @@ namespace NiftyLaunchpad.Lib
         }
 
         public async Task<string> DistributeNiftiesForSalePurchase(
-            Nifty[] nfts, 
-            NiftySalePurchaseRequest purchaseRequest, 
+            Nifty[] nfts,
+            PurchaseAttempt purchaseRequest,
             NiftyCollection collection,
-            NiftySale sale,
+            Sale sale,
             CancellationToken ct = default)
         {
             // Generate metadata file
@@ -43,7 +47,7 @@ namespace NiftyLaunchpad.Lib
             await _metadataGenerator.GenerateNftStandardMetadataJsonFile(nfts, collection, metadataJsonPath, ct);
 
             // Derive buyer address after getting source UTxO details from BF
-            var txIo = await _txRetriever.GetTxIoAsync(purchaseRequest.Utxo.TxHash);
+            var txIo = await _txRetriever.GetTxIoAsync(purchaseRequest.Utxo.TxHash, ct);
             var buyerAddress = txIo.Inputs.First().Address;
 
             // Map UtxoValues for new tokens
@@ -64,8 +68,8 @@ namespace NiftyLaunchpad.Lib
 
             var txBuildCommand = new TxBuildCommand(
                 new[] { purchaseRequest.Utxo },
-                new[] { 
-                    new TxOutput(buyerAddress, buyerOutputUtxoValues), 
+                new[] {
+                    new TxOutput(buyerAddress, buyerOutputUtxoValues),
                     new TxOutput(sale.ProceedsAddress, profitAddressUtxoValues, IsFeeDeducted: true) },
                 tokenMintUtxoValues,
                 policyScriptPath,

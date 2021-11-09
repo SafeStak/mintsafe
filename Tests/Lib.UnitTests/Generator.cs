@@ -1,14 +1,15 @@
-﻿using System;
+﻿using Mintsafe.Abstractions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace NiftyLaunchpad.Lib.UnitTests
+namespace Mintsafe.Lib.UnitTests
 {
     public static class Generator
     {
-        public static NiftyLaunchpadSettings GenerateSettings()
+        public static MintsafeSaleWorkerSettings GenerateSettings()
         {
-            return new NiftyLaunchpadSettings(
+            return new MintsafeSaleWorkerSettings(
                 Network.Testnet, 5, "~/nlp/", "testnetabc");
         }
 
@@ -19,13 +20,13 @@ namespace NiftyLaunchpad.Lib.UnitTests
             return new NiftyCollection(
                 Id: id == null ? Guid.NewGuid() : Guid.Parse(id),
                 PolicyId: policyId ?? "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
-                Name: "BRIKMAESTRO",
-                Description: "Creations from the BRIKAVERSE",
+                Name: "GREATARTIST",
+                Description: "Top secret artist",
                 IsActive: true,
-                Publishers: new[] { "BRIKMAESTRO", "NiftyLaunchpad.net" },
+                Publishers: new[] { "topsecret", "mintsafe.io" },
                 BrandImage: "ipfs://cid",
-                CreatedAt: new DateTime(2022, 9, 4, 0, 0, 0, DateTimeKind.Utc),
-                LockedAt: new DateTime(2022, 11, 30, 0, 0, 0, DateTimeKind.Utc),
+                CreatedAt: new DateTime(2021, 9, 4, 0, 0, 0, DateTimeKind.Utc),
+                LockedAt: new DateTime(2022, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                 SlotExpiry: 44674366);
         }
 
@@ -39,7 +40,7 @@ namespace NiftyLaunchpad.Lib.UnitTests
                     $"Token{i}",
                     $"Token {i}",
                     $"Token {i} Description",
-                    new[] { "NiftyLaunchpad.net" },
+                    new[] { "mintsafe.io" },
                     $"ipfs://{i}",
                     "image/png",
                     Array.Empty<NiftyFile>(),
@@ -50,18 +51,18 @@ namespace NiftyLaunchpad.Lib.UnitTests
                 .ToList();
         }
 
-        public static NiftySale GetSale(
+        public static Sale GetSale(
             int totalReleaseQuantity = 500,
             int maxAllowedPurchaseQuantity = 10,
             bool isActive = true,
             long lovelacesPerToken = 15000000)
         {
-            return new NiftySale(
+            return new Sale(
                 Id: Guid.NewGuid(),
                 CollectionId: Guid.NewGuid(),
                 IsActive: isActive,
                 Name: "Preview Launch #1",
-                Description: "Limited 150 item launch",
+                Description: "Limited 100 item launch",
                 LovelacesPerToken: lovelacesPerToken,
                 SaleAddress: "addr_test1vz0hx28mmdz0ey3pzqe5nxg08urjhzydpvvmcx4v4we5mvg6733n5",
                 ProceedsAddress: "addr_test1vzj4c522pr5n6texvcl24kl9enntr4knl4ucecd7pkt24mglna4pz",

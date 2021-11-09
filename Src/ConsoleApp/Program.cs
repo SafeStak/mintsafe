@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using NiftyLaunchpad.ConsoleApp;
-using NiftyLaunchpad.Lib;
+using Mintsafe.Abstractions;
+using Mintsafe.ConsoleApp;
+using Mintsafe.Lib;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,14 +11,14 @@ using System.Net.Http;
 using System.Threading;
 
 var cts = ConsoleUtil.SetupUserInputCancellationTokenSource();
-var settings = new NiftyLaunchpadSettings(
+var settings = new MintsafeSaleWorkerSettings(
     Network: Network.Testnet,
     BlockFrostApiKey: "testneto96qDwlg4GaoKFfmKxPlHQhSkbea80cW",
     //BlockFrostApiKey: "mainnetGk6cqBgfG4nkQtvA1F80hJHfXzYQs8bW",
     BasePath: @"C:\ws\temp\niftylaunchpad\",
     //BasePath: "/home/knut/testnet-node/kc/mintsafe03/",
     PollingIntervalSeconds: 10);
-var dataService = new NiftyDataService();
+var dataService = new LocalNiftyDataService();
 
 // Get { Collection * Sale[] * Token[] }
 var collectionId = Guid.Parse("d5b35d3d-14cc-40ba-94f4-fe3b28bd52ae");
@@ -165,7 +166,7 @@ catch (OperationCanceledException)
     Console.WriteLine(" User cancelled.. exiting");
 }
 
-static HttpClient GetBlockFrostHttpClient(NiftyLaunchpadSettings settings)
+static HttpClient GetBlockFrostHttpClient(MintsafeSaleWorkerSettings settings)
 {
     // Easiest way to get an IHttpClientFactory is via Microsoft.Extensions.DependencyInjection.ServiceProvider
     var serviceProvider = new ServiceCollection().AddHttpClient().BuildServiceProvider();

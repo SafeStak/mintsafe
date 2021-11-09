@@ -1,14 +1,16 @@
-﻿using NiftyLaunchpad.Abstractions;
+﻿using Mintsafe.Abstractions;
+using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NiftyLaunchpad.Lib
+namespace Mintsafe.Lib
 {
-    public class TxIoRetriever : ITxIoRetriever
+    public class BlockfrostTxIoRetriever : ITxIoRetriever
     {
         private readonly BlockfrostClient _blockFrostClient;
 
-        public TxIoRetriever(BlockfrostClient blockFrostClient)
+        public BlockfrostTxIoRetriever(BlockfrostClient blockFrostClient)
         {
             _blockFrostClient = blockFrostClient;
         }
@@ -17,19 +19,15 @@ namespace NiftyLaunchpad.Lib
         {
             var bfResult = await _blockFrostClient.GetTransactionAsync(txHash, ct).ConfigureAwait(false);
 
-            return bfResult;
+            return new TxIoAggregate(
+                    bfResult.Hash,
+                    bfResult.Inputs.Select(r => new TxIo(r.Address, r.Output_Index, Array.Empty<UtxoValue>())).ToArray(),
+                    bfResult.Outputs.Select(r => new TxIo(r.Address, r.Output_Index, Array.Empty<UtxoValue>())).ToArray());
         }
     }
 
     public class FakeTxIoRetriever : ITxIoRetriever
     {
-        private readonly BlockfrostClient _blockFrostClient;
-
-        public FakeTxIoRetriever(BlockfrostClient blockFrostClient)
-        {
-            _blockFrostClient = blockFrostClient;
-        }
-
         public async Task<TxIoAggregate> GetTxIoAsync(string txHash, CancellationToken ct = default)
         {
             await Task.Delay(100, ct);

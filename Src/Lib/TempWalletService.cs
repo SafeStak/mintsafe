@@ -1,28 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Microsoft.Extensions.Logging;
+using Mintsafe.Abstractions;
+using System;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NiftyLaunchpad.Lib
+namespace Mintsafe.Lib
 {
-    public class TempPaymentService
+    public class TempWalletService
     {
-        private readonly NiftyLaunchpadSettings _settings;
+        private readonly ILogger<TempWalletService> _logger;
+        private readonly MintsafeSaleWorkerSettings _settings;
         private readonly IUtxoRetriever _utxoRetriever;
         private readonly IMetadataGenerator _metadataGenerator;
         private readonly ITxSubmitter _txSubmitter;
         private readonly ITxBuilder _txBuilder;
 
-        public TempPaymentService(
-            NiftyLaunchpadSettings settings,
+        public TempWalletService(
+            ILogger<TempWalletService> logger,
+            MintsafeSaleWorkerSettings settings,
             IUtxoRetriever utxoRetriever,
             IMetadataGenerator metadataGenerator,
             ITxBuilder txBuilder,
             ITxSubmitter txSubmitter)
         {
+            _logger = logger;
             _settings = settings;
             _utxoRetriever = utxoRetriever;
             _metadataGenerator = metadataGenerator;

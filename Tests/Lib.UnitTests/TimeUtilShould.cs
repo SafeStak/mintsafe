@@ -3,7 +3,7 @@ using System;
 using System.Globalization;
 using Xunit;
 
-namespace NiftyLaunchpad.Lib.UnitTests
+namespace Mintsafe.Lib.UnitTests
 {
     public class TimeUtilShould
     {

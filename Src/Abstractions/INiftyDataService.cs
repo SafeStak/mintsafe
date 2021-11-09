@@ -2,8 +2,11 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-public interface INiftyDataService
+namespace Mintsafe.Abstractions
 {
-    public Task<CollectionAggregate> GetCollectionAggregateAsync(
-        Guid collectionId, CancellationToken ct = default);
+    public interface INiftyDataService
+    {
+        public Task<CollectionAggregate> GetCollectionAggregateAsync(
+            Guid collectionId, CancellationToken ct = default);
+    }
 }

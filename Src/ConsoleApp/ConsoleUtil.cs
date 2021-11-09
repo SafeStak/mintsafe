@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 
-namespace NiftyLaunchpad.ConsoleApp
+namespace Mintsafe.ConsoleApp
 {
     public static class ConsoleUtil
     {

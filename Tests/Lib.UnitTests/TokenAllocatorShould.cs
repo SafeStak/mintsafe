@@ -1,9 +1,11 @@
 ﻿using FluentAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
+using Mintsafe.Abstractions;
 using System;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace NiftyLaunchpad.Lib.UnitTests
+namespace Mintsafe.Lib.UnitTests
 {
     public class TokenAllocatorShould
     {
@@ -11,7 +13,9 @@ namespace NiftyLaunchpad.Lib.UnitTests
 
         public TokenAllocatorShould()
         {
-            _allocator = new TokenAllocator(Generator.GenerateSettings());
+            _allocator = new TokenAllocator(
+                NullLogger<TokenAllocator>.Instance,
+                Generator.GenerateSettings());
         }
 
         [Theory]
@@ -32,7 +36,7 @@ namespace NiftyLaunchpad.Lib.UnitTests
             var sale = Generator.GetSale(totalReleaseQuantity: saleReleaseQuantity);
             var mintableTokens = Generator.GenerateTokens(saleMintableCount);
             var allocatedTokens = Generator.GenerateTokens(saleAllocatedCount);
-            var request = new NiftySalePurchaseRequest(
+            var request = new PurchaseAttempt(
                 Guid.NewGuid(),
                 Guid.NewGuid(),
                 new Utxo("", 0, new[] { new UtxoValue("lovelace", 1000000) }),
@@ -60,7 +64,7 @@ namespace NiftyLaunchpad.Lib.UnitTests
             var sale = Generator.GetSale(totalReleaseQuantity: saleReleaseQuantity);
             var mintableTokens = Generator.GenerateTokens(saleMintableCount);
             var allocatedTokens = Generator.GenerateTokens(saleAllocatedCount);
-            var request = new NiftySalePurchaseRequest(
+            var request = new PurchaseAttempt(
                 Guid.NewGuid(),
                 Guid.NewGuid(),
                 new Utxo("", 0, new[] { new UtxoValue("lovelace", 1000000) }),
@@ -89,7 +93,7 @@ namespace NiftyLaunchpad.Lib.UnitTests
             var sale = Generator.GetSale(totalReleaseQuantity: saleReleaseQuantity);
             var mintableTokens = Generator.GenerateTokens(saleMintableCount);
             var allocatedTokens = Generator.GenerateTokens(saleAllocatedCount);
-            var request = new NiftySalePurchaseRequest(
+            var request = new PurchaseAttempt(
                 Guid.NewGuid(),
                 Guid.NewGuid(),
                 new Utxo("", 0, new[] { new UtxoValue("lovelace", 1000000) }),
@@ -119,7 +123,7 @@ namespace NiftyLaunchpad.Lib.UnitTests
             var sale = Generator.GetSale(totalReleaseQuantity: saleReleaseQuantity);
             var allocatedTokens = Generator.GenerateTokens(saleAllocatedCount);
             var mintableTokens = Generator.GenerateTokens(saleMintableCount);
-            var request = new NiftySalePurchaseRequest(
+            var request = new PurchaseAttempt(
                 Guid.NewGuid(),
                 Guid.NewGuid(),
                 new Utxo("", 0, new[] { new UtxoValue("lovelace", 1000000) }),

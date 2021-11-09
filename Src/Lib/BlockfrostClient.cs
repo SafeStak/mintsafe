@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using Mintsafe.Abstractions;
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
@@ -7,45 +9,27 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NiftyLaunchpad.Lib
+namespace Mintsafe.Lib
 {
-    public class BlockfrostResponseException : ApplicationException
+    public class BlockfrostClient : IBlockfrostClient
     {
-        public BlockfrostResponseException(string message) : base(message) { }
-        public BlockfrostResponseException(string message, Exception innerException) : base(message, innerException) { }
-    }
-
-    public class BlockFrostValue
-    {
-        public string Unit { get; set; }
-        public string Quantity { get; set; }
-    }
-
-    public class BlockFrostTransactionIo
-    {
-        public string Address { get; set; }
-        public int Output_Index { get; set; }
-        public BlockFrostValue[] Amount { get; set; }
-    }
-
-    public class BlockFrostTransactionUtxoResponse
-    {
-        public string Hash { get; set; }
-        public BlockFrostTransactionIo[] Inputs { get; set; }
-        public BlockFrostTransactionIo[] Outputs { get; set; }
-    }
-
-    public class BlockfrostClient
-    {
+        private readonly ILogger<BlockfrostClient> _logger;
+        private readonly MintsafeSaleWorkerSettings _settings;
         private readonly HttpClient _httpClient;
 
-        private static readonly JsonSerializerOptions SerialiserOptions = new JsonSerializerOptions
+        private static readonly MediaTypeHeaderValue CborMediaType = new("application/cbor");
+        private static readonly JsonSerializerOptions SerialiserOptions = new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         };
 
-        public BlockfrostClient(HttpClient httpClient)
+        public BlockfrostClient(
+            ILogger<BlockfrostClient> logger,
+            MintsafeSaleWorkerSettings settings,
+            HttpClient httpClient)
         {
+            _logger = logger;
+            _settings = settings;
             _httpClient = httpClient;
         }
 
@@ -56,26 +40,30 @@ namespace NiftyLaunchpad.Lib
             return Task.FromResult(Array.Empty<Utxo>());
         }
 
-        public async Task<TxIoAggregate> GetTransactionAsync(string txHash, CancellationToken ct = default)
+        public async Task<BlockFrostTransactionUtxoResponse> GetTransactionAsync(string txHash, CancellationToken ct = default)
         {
             var relativePath = $"api/v0/txs/{txHash}/utxos";
 
+            var responseCode = 0;
             var sw = Stopwatch.StartNew();
-            var responsePrettyJsonBytes = Array.Empty<byte>();
             try
             {
-                var json = await _httpClient.GetStringAsync(relativePath, ct).ConfigureAwait(false);
-                Console.WriteLine($"Finished getting JSON response from {relativePath} after {sw.ElapsedMilliseconds}ms");
-                var result = JsonSerializer.Deserialize<BlockFrostTransactionUtxoResponse>(json, SerialiserOptions);
-                return new TxIoAggregate(
-                    result.Hash,
-                    result.Inputs.Select(r => new TxIo(r.Address, r.Output_Index, Array.Empty<UtxoValue>())).ToArray(),
-                    result.Outputs.Select(r => new TxIo(r.Address, r.Output_Index, Array.Empty<UtxoValue>())).ToArray());
+                var response = await _httpClient.GetAsync(relativePath, ct).ConfigureAwait(false);
+                responseCode = (int)response.StatusCode;
+                if (!response.IsSuccessStatusCode)
+                {
+                    var responseBody = await response.Content.ReadAsStringAsync(ct);
+                    throw new BlockfrostResponseException($"Unsuccessful Blockfrost response:{responseBody}", (int)response.StatusCode);
+                }
+
+                var json = await response.Content.ReadAsStringAsync(ct);
+                _logger.LogDebug($"GetTransactionAsync {relativePath} reponse: {json}");
+
+                return JsonSerializer.Deserialize<BlockFrostTransactionUtxoResponse>(json, SerialiserOptions);
             }
-            catch (Exception ex)
+            finally
             {
-                Console.WriteLine($"Exception getting response for {relativePath} after {sw.ElapsedMilliseconds}ms {ex}");
-                throw;
+                _logger.LogInformation($"Finished getting response ({responseCode}) from {relativePath} after {sw.ElapsedMilliseconds}ms");
             }
         }
 
@@ -83,60 +71,29 @@ namespace NiftyLaunchpad.Lib
         {
             const string relativePath = "api/v0/tx/submit";
 
+            var responseCode = 0;
             var sw = Stopwatch.StartNew();
             try
             {
                 var content = new ByteArrayContent(txSignedBinary);
-                content.Headers.ContentType = new MediaTypeHeaderValue("application/cbor");
+                content.Headers.ContentType = CborMediaType;
 
-                var response = await _httpClient.PostAsync(relativePath, content);
-                if (response.IsSuccessStatusCode)
+                var response = await _httpClient.PostAsync(relativePath, content, ct);
+                responseCode = (int)response.StatusCode;
+                if (!response.IsSuccessStatusCode)
                 {
-                    var txHash = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine($"Finished getting response from {relativePath} after {sw.ElapsedMilliseconds}ms\n{txHash}");
-                    return txHash;
+                    var responseBody = await response.Content.ReadAsStringAsync(ct);
+                    throw new BlockfrostResponseException($"Unsuccessful Blockfrost response:{responseBody}", (int)response.StatusCode);
                 }
 
-                var responseBody = await response.Content.ReadAsStringAsync();
-                throw new BlockfrostResponseException($"{response.StatusCode}:{responseBody}");
-                // await Task.Delay(100);
-                // return "51e9b6577ad260c273aee5a3786d6b39cce44fc3c49bf44f395499d34b3814f5";
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Exception getting response for {relativePath} after {sw.ElapsedMilliseconds}ms {ex}");
-                throw;
-            }
-        }
-
-        private async Task<HttpResponseMessage> GetAsync(
-            string queryString, CancellationToken ct = default)
-        {
-            var stopwatch = Stopwatch.StartNew();
-
-            var request = new HttpRequestMessage(HttpMethod.Get, queryString);
-            HttpResponseMessage response;
-            var isSuccessful = false;
-
-            try
-            {
-                response = await _httpClient.SendAsync(request, ct);
-                if (response.Content == null || !response.IsSuccessStatusCode)
-                {
-                    throw new BlockfrostResponseException("Failed to retrieve response from Blockfrost.");
-                }
-                isSuccessful = true;
-            }
-            catch (Exception ex)
-            {
-                throw new BlockfrostResponseException("Failed to retrieve response from Blockfrost.", ex);
+                var txHash = await response.Content.ReadAsStringAsync(ct);
+                _logger.LogDebug($"SubmitTransactionAsync {relativePath} reponse: {txHash}");
+                return txHash;
             }
             finally
             {
-                // track dep
+                _logger.LogInformation($"Finished getting response ({responseCode}) from {relativePath} after {sw.ElapsedMilliseconds}ms");
             }
-
-            return response;
         }
     }
 }

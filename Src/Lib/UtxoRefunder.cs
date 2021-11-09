@@ -1,28 +1,33 @@
-﻿using NiftyLaunchpad.Abstractions;
+﻿using Microsoft.Extensions.Logging;
+using Mintsafe.Abstractions;
 using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NiftyLaunchpad.Lib
+namespace Mintsafe.Lib
 {
-    public class UtxoRefunder
+    public class UtxoRefunder : IUtxoRefunder
     {
-        private const long MinLovelace = 2000000;
-        private readonly NiftyLaunchpadSettings _settings;
+        private const long MinLovelace = 1250000;
+
+        private readonly ILogger<UtxoRefunder> _logger;
+        private readonly MintsafeSaleWorkerSettings _settings;
         private readonly ITxIoRetriever _txRetriever;
         private readonly IMetadataGenerator _metadataGenerator;
         private readonly ITxSubmitter _txSubmitter;
         private readonly ITxBuilder _txBuilder;
 
         public UtxoRefunder(
-            NiftyLaunchpadSettings settings,
+            ILogger<UtxoRefunder> logger,
+            MintsafeSaleWorkerSettings settings,
             ITxIoRetriever txRetriever,
             IMetadataGenerator metadataGenerator,
             ITxBuilder txBuilder,
             ITxSubmitter txSubmitter)
         {
+            _logger = logger;
             _settings = settings;
             _txRetriever = txRetriever;
             _metadataGenerator = metadataGenerator;
@@ -35,10 +40,10 @@ namespace NiftyLaunchpad.Lib
         {
             if (utxo.Lovelaces < MinLovelace)
             {
-                Console.WriteLine($"Cannot refund {utxo.Lovelaces} because of minimum Utxo lovelace value requirement ({MinLovelace})");
+                _logger.LogWarning($"Cannot refund {utxo.Lovelaces} because of minimum Utxo lovelace value requirement ({MinLovelace})");
                 return string.Empty;
             }
-            
+
             var txIo = await _txRetriever.GetTxIoAsync(utxo.TxHash, ct);
             var buyerAddress = txIo.Inputs.First().Address;
 
@@ -64,7 +69,7 @@ namespace NiftyLaunchpad.Lib
             var submissionPayload = await _txBuilder.BuildTxAsync(txRefundCommand, ct);
             var txHash = await _txSubmitter.SubmitTxAsync(submissionPayload, ct);
 
-            Console.WriteLine($"TxID:{txHash} Successfully refunded {utxo.Lovelaces} to {buyerAddress}");
+            _logger.LogInformation($"TxID:{txHash} Successfully refunded {utxo.Lovelaces} to {buyerAddress}");
 
             return txHash;
         }

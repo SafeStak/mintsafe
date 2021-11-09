@@ -1,19 +1,20 @@
-﻿using System;
+﻿using Mintsafe.Abstractions;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NiftyLaunchpad.Lib
+namespace Mintsafe.Lib
 {
-    public class NiftyDataService
+    public class LocalNiftyDataService : INiftyDataService
     {
         public const string FakeCollectionId = "d5b35d3d-14cc-40ba-94f4-fe3b28bd52ae";
         public const string FakeSaleId = "d91b937f-00fc-4094-957c-629fe3e2e776";
 
         public Task<CollectionAggregate> GetCollectionAggregateAsync(
-            Guid collectionId, CancellationToken ct = default) 
+            Guid collectionId, CancellationToken ct = default)
         {
             // Retrieve {Collection * ActiveSales * MintableTokens} from db
             var fakeCollectionId = Guid.Parse(FakeCollectionId);
@@ -26,14 +27,14 @@ namespace NiftyLaunchpad.Lib
                 Publishers: new[] { "cryptoquokkas.io", "mintsafe.io" },
                 BrandImage: "ipfs://cid",
                 CreatedAt: new DateTime(2021, 9, 4, 0, 0, 0, DateTimeKind.Utc),
-                LockedAt: new DateTime(2021, 12, 25, 0, 0, 0, DateTimeKind.Utc),
+                LockedAt: new DateTime(2022, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                 SlotExpiry: 46021186); // testnet christmas 
 
             var tokens = GenerateTokens(
                 1000,
                 FakeCollectionId);
 
-            var sale = new NiftySale(
+            var sale = new Sale(
                 Id: Guid.Parse(FakeSaleId),
                 CollectionId: fakeCollectionId,
                 IsActive: true,
@@ -41,18 +42,18 @@ namespace NiftyLaunchpad.Lib
                 Description: "Limited 150 item launch",
                 LovelacesPerToken: 15000000,
                 Start: new DateTime(2021, 9, 4, 0, 0, 0, DateTimeKind.Utc),
-                End: new DateTime(2021, 11, 5, 0, 0, 0, DateTimeKind.Utc),
+                End: new DateTime(2021, 12, 5, 0, 0, 0, DateTimeKind.Utc),
                 SaleAddress: "addr_test1vzfxanc8hxjt33khh36u4ac593c2llv4n4e4ew6c5y64p0gmag2uh",
                 ProceedsAddress: "addr_test1vzfdtkpwalx23xg979phx8efeju36f9at4pdsvvkd4cu02gmrfyvh",
                 TotalReleaseQuantity: 150,
                 MaxAllowedPurchaseQuantity: 3);
-            
-            var activeSales = collection.IsActive && IsSaleOpen(sale) ? new[] { sale } : Array.Empty<NiftySale>();
+
+            var activeSales = collection.IsActive && IsSaleOpen(sale) ? new[] { sale } : Array.Empty<Sale>();
 
             return Task.FromResult(new CollectionAggregate(collection, tokens, ActiveSales: activeSales));
         }
 
-        private static bool IsSaleOpen(NiftySale sale)
+        private static bool IsSaleOpen(Sale sale)
         {
             if (!sale.IsActive
                 || (sale.Start.HasValue && sale.Start > DateTime.UtcNow)
@@ -62,9 +63,9 @@ namespace NiftyLaunchpad.Lib
             return true;
         }
 
-        public static Nifty[] GenerateTokens(
-            int mintableTokenCount, 
-            string collectionId = null, 
+        private static Nifty[] GenerateTokens(
+            int mintableTokenCount,
+            string collectionId = null,
             bool isMintable = true,
             string baseName = "cryptoquokkas",
             string creatorsCsv = "quokkalad.ada",
@@ -103,7 +104,7 @@ namespace NiftyLaunchpad.Lib
                     $"{baseName} {i}",
                     $"{baseName} {i} Description",
                     creatorsCsv.Split(','),
-                    $"{urlBase}{i+2}",
+                    $"{urlBase}{i + 2}",
                     mediaType,
                     new[] {
                         new NiftyFile(Guid.NewGuid(), "full_res_png", "image/png", $"{urlBase}{i}"),
