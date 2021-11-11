@@ -2,6 +2,7 @@
 using Mintsafe.Abstractions;
 using SimpleExec;
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -142,9 +143,13 @@ namespace Mintsafe.Lib
 
                 return signedTxCborBytes;
             }
+            catch (Win32Exception ex)
+            {
+                throw new CardanoCliException("cardano-cli does not exist", ex, _settings.Network.ToString());
+            }
             catch (Exception ex)
             {
-                throw new CardanoCliException("Unhandled exception in TxBuilder", ex, _settings.Network.ToString());
+                throw new CardanoCliException($"Unhandled exception in {nameof(CardanoCliTxBuilder)}", ex, _settings.Network.ToString());
             }
         }
 

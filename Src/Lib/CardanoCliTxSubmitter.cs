@@ -2,6 +2,7 @@
 using Mintsafe.Abstractions;
 using SimpleExec;
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -54,9 +55,13 @@ namespace Mintsafe.Lib
 
                 return txHash;
             }
+            catch (Win32Exception ex)
+            {
+                throw new CardanoCliException("cardano-cli does not exist", ex, _settings.Network.ToString());
+            }
             catch (Exception ex)
             {
-                throw new CardanoCliException("cardano-cli exception", ex, _settings.Network.ToString());
+                throw new CardanoCliException("cardano-cli unhandled exception", ex, _settings.Network.ToString());
             }
             finally
             {

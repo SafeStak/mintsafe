@@ -78,7 +78,7 @@ namespace Mintsafe.SaleWorker
                 {
                     if (utxosLocked.Contains(saleUtxo.ToString()))
                     {
-                        _logger.LogInformation($"Utxo {saleUtxo.TxHash}[{saleUtxo.OutputIndex}]({saleUtxo.Lovelaces()}) skipped (already locked)");
+                        _logger.LogInformation($"Utxo {saleUtxo.TxHash}[{saleUtxo.OutputIndex}]({saleUtxo.Lovelaces}) skipped (already locked)");
                         continue;
                     }
 
@@ -87,7 +87,7 @@ namespace Mintsafe.SaleWorker
                     try
                     {
                         var purchaseRequest = SalePurchaseGenerator.FromUtxo(saleUtxo, activeSale);
-                        _logger.LogInformation($"Successfully built purchase request: {purchaseRequest.NiftyQuantityRequested} NFTs for {saleUtxo.Lovelaces()} and {purchaseRequest.ChangeInLovelace} change");
+                        _logger.LogInformation($"Successfully built purchase request: {purchaseRequest.NiftyQuantityRequested} NFTs for {saleUtxo.Lovelaces} and {purchaseRequest.ChangeInLovelace} change");
 
                         var tokens = await _tokenAllocator.AllocateTokensForPurchaseAsync(
                             purchaseRequest, saleAllocatedTokens, mintableTokens, activeSale, ct);

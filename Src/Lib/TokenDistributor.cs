@@ -52,10 +52,10 @@ namespace Mintsafe.Lib
 
             // Map UtxoValues for new tokens
             long buyerLovelacesReturned = MinLovelaceUtxo + purchaseRequest.ChangeInLovelace;
-            var tokenMintUtxoValues = nfts.Select(n => new UtxoValue($"{collection.PolicyId}.{n.AssetName}", 1)).ToArray();
+            var tokenMintUtxoValues = nfts.Select(n => new Value($"{collection.PolicyId}.{n.AssetName}", 1)).ToArray();
             var buyerOutputUtxoValues = GetBuyerTxOutputUtxoValues(tokenMintUtxoValues, buyerLovelacesReturned);
-            var profitAddressLovelaces = purchaseRequest.Utxo.Lovelaces() - buyerLovelacesReturned;
-            var profitAddressUtxoValues = new[] { new UtxoValue("lovelace", profitAddressLovelaces) };
+            var profitAddressLovelaces = purchaseRequest.Utxo.Lovelaces - buyerLovelacesReturned;
+            var profitAddressUtxoValues = new[] { new Value("lovelace", profitAddressLovelaces) };
 
             var policyScriptFilename = $"{collection.PolicyId}.policy.script";
             var policyScriptPath = Path.Combine(_settings.BasePath, policyScriptFilename);
@@ -84,15 +84,15 @@ namespace Mintsafe.Lib
             return txHash;
         }
 
-        private static UtxoValue[] GetBuyerTxOutputUtxoValues(
-            UtxoValue[] tokenMintValues, long lovelacesReturned)
+        private static Value[] GetBuyerTxOutputUtxoValues(
+            Value[] tokenMintValues, long lovelacesReturned)
         {
-            var tokenOutputUtxoValues = new UtxoValue[tokenMintValues.Length + 1];
+            var tokenOutputUtxoValues = new Value[tokenMintValues.Length + 1];
             for (var i = 0; i < tokenMintValues.Length; i++)
             {
                 tokenOutputUtxoValues[i] = tokenMintValues[i];
             }
-            tokenOutputUtxoValues[tokenMintValues.Length] = new UtxoValue("lovelace", lovelacesReturned);
+            tokenOutputUtxoValues[tokenMintValues.Length] = new Value("lovelace", lovelacesReturned);
             return tokenOutputUtxoValues;
         }
 

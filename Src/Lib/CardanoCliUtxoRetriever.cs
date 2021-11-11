@@ -2,6 +2,7 @@
 using Mintsafe.Abstractions;
 using SimpleExec;
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,9 +39,13 @@ namespace Mintsafe.Lib
                         "--address", address
                     ), noEcho: true, cancellationToken: ct);
             }
+            catch (Win32Exception ex)
+            {
+                throw new CardanoCliException("cardano-cli does not exist", ex, _settings.Network.ToString());
+            }
             catch (Exception ex)
             {
-                throw new CardanoCliException("cardano-cli exception", ex, _settings.Network.ToString());
+                throw new CardanoCliException("cardano-cli unhandled exception", ex, _settings.Network.ToString());
             }
             finally
             {
@@ -56,7 +61,7 @@ namespace Mintsafe.Lib
                 // Every utxo line is formatted like
                 // {TxHash} {TxOutputIndex} {LovelaceValue} lovelaces [+ {CustomTokenValue} {PolicyId}.{AssetName}] + TxDatumHashNone
                 var contentSegments = utxoLine.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                var lovelaceValue = new UtxoValue("lovelace", long.Parse(contentSegments[2]));
+                var lovelaceValue = new Value("lovelace", long.Parse(contentSegments[2]));
 
                 // Debugging other assets
                 var segmentIndex = 5;
@@ -86,7 +91,7 @@ namespace Mintsafe.Lib
                 new Utxo(
                     "127745e23b81a5a5e22a409ce17ae8672b234dda7be1f09fc9e3a11906bd3a11",
                     0,
-                    new[] { new UtxoValue("lovelace", 15000000) }),
+                    new[] { new Value("lovelace", 15000000) }),
             };
         }
     }

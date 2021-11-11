@@ -39,7 +39,7 @@ namespace Mintsafe.Lib.UnitTests
             var request = new PurchaseAttempt(
                 Guid.NewGuid(),
                 Guid.NewGuid(),
-                new Utxo("", 0, new[] { new UtxoValue("lovelace", 1000000) }),
+                new Utxo("", 0, new[] { new Value("lovelace", 1000000) }),
                 requestedQuantity,
                 0);
 
@@ -67,7 +67,7 @@ namespace Mintsafe.Lib.UnitTests
             var request = new PurchaseAttempt(
                 Guid.NewGuid(),
                 Guid.NewGuid(),
-                new Utxo("", 0, new[] { new UtxoValue("lovelace", 1000000) }),
+                new Utxo("", 0, new[] { new Value("lovelace", 1000000) }),
                 requestedQuantity,
                 0);
 
@@ -96,7 +96,7 @@ namespace Mintsafe.Lib.UnitTests
             var request = new PurchaseAttempt(
                 Guid.NewGuid(),
                 Guid.NewGuid(),
-                new Utxo("", 0, new[] { new UtxoValue("lovelace", 1000000) }),
+                new Utxo("", 0, new[] { new Value("lovelace", 1000000) }),
                 requestedQuantity,
                 0);
 
@@ -126,7 +126,7 @@ namespace Mintsafe.Lib.UnitTests
             var request = new PurchaseAttempt(
                 Guid.NewGuid(),
                 Guid.NewGuid(),
-                new Utxo("", 0, new[] { new UtxoValue("lovelace", 1000000) }),
+                new Utxo("", 0, new[] { new Value("lovelace", 1000000) }),
                 requestedQuantity,
                 0);
 

@@ -20,7 +20,7 @@ namespace Mintsafe.Lib.UnitTests
                     new Utxo(
                         "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                         0,
-                        new[] { new UtxoValue("lovelace", utxoValueLovelace) }),
+                        new[] { new Value("lovelace", utxoValueLovelace) }),
                     sale);
 
             salePurchase.NiftyQuantityRequested.Should().Be(expectedQuantity);
@@ -39,7 +39,7 @@ namespace Mintsafe.Lib.UnitTests
                     new Utxo(
                         "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                         0,
-                        new[] { new UtxoValue("lovelace", utxoValueLovelace) }),
+                        new[] { new Value("lovelace", utxoValueLovelace) }),
                     sale);
 
             salePurchase.ChangeInLovelace.Should().Be(expectedChange);
@@ -60,7 +60,7 @@ namespace Mintsafe.Lib.UnitTests
                     new Utxo(
                         txHash,
                         0,
-                        new[] { new UtxoValue("lovelace", 10000000) }),
+                        new[] { new Value("lovelace", 10000000) }),
                     sale);
 
             salePurchase.Utxo.TxHash.Should().Be(txHash); // TODO: more field assertions
@@ -81,7 +81,7 @@ namespace Mintsafe.Lib.UnitTests
                     new Utxo(
                         "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865", 
                         0, 
-                        new[] { new UtxoValue("lovelace", utxoValueLovelace) }), 
+                        new[] { new Value("lovelace", utxoValueLovelace) }), 
                     sale);
             };
 
@@ -99,7 +99,7 @@ namespace Mintsafe.Lib.UnitTests
                     new Utxo(
                         "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                         0,
-                        new[] { new UtxoValue("lovelace", 100000000) }),
+                        new[] { new Value("lovelace", 100000000) }),
                     sale);
             };
 
@@ -120,7 +120,7 @@ namespace Mintsafe.Lib.UnitTests
                     new Utxo(
                         "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                         0,
-                        new[] { new UtxoValue("lovelace", utxoValueLovelace) }),
+                        new[] { new Value("lovelace", utxoValueLovelace) }),
                     sale);
             };
 
@@ -141,7 +141,7 @@ namespace Mintsafe.Lib.UnitTests
                     new Utxo(
                         "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                         0,
-                        new[] { new UtxoValue("lovelace", 100000000) }),
+                        new[] { new Value("lovelace", 100000000) }),
                     sale);
             };
 
@@ -162,7 +162,7 @@ namespace Mintsafe.Lib.UnitTests
                     new Utxo(
                         "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                         0,
-                        new[] { new UtxoValue("lovelace", 100000000) }),
+                        new[] { new Value("lovelace", 100000000) }),
                     sale);
             };
 
