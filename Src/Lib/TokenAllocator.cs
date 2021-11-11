@@ -2,6 +2,7 @@
 using Mintsafe.Abstractions;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -53,6 +54,7 @@ namespace Mintsafe.Lib
                     request.NiftyQuantityRequested);
             }
 
+            var sw = Stopwatch.StartNew();
             var purchaseAllocated = new List<Nifty>(request.NiftyQuantityRequested);
             while (purchaseAllocated.Count < request.NiftyQuantityRequested)
             {
@@ -62,6 +64,7 @@ namespace Mintsafe.Lib
                 saleAllocatedNfts.Add(tokenAllocated);
                 saleMintableNfts.RemoveAt(randomIndex);
             }
+            _logger.LogInformation($"{nameof(AllocateTokensForPurchaseAsync)} completed with {purchaseAllocated.Count} tokens after {sw.ElapsedMilliseconds}ms");
 
             return Task.FromResult(purchaseAllocated.ToArray());
         }

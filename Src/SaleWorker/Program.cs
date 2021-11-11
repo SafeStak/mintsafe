@@ -22,7 +22,8 @@ IHost host = Host.CreateDefaultBuilder(args)
                 //BlockFrostApiKey: "mainnetGk6cqBgfG4nkQtvA1F80hJHfXzYQs8bW",
                 BasePath: @"C:\ws\temp\niftylaunchpad\",
                 //BasePath: "/home/knut/testnet-node/kc/mintsafe03/",
-                PollingIntervalSeconds: 10);
+                PollingIntervalSeconds: 10,
+                CollectionId: Guid.Parse("d5b35d3d-14cc-40ba-94f4-fe3b28bd52ae"));
         services.AddSingleton(settings);
 
         services.AddHttpClient<BlockfrostClient>(nameof(BlockfrostClient), (s, client) =>
@@ -32,7 +33,8 @@ IHost host = Host.CreateDefaultBuilder(args)
                 ? new Uri("https://cardano-mainnet.blockfrost.io")
                 : new Uri("https://cardano-testnet.blockfrost.io");
         });
-        
+
+        services.AddSingleton<ISaleUtxoHandler, SaleUtxoHandler>();
         services.AddSingleton<ITokenAllocator, TokenAllocator>();
         services.AddSingleton<IMetadataGenerator, MetadataGenerator>();
         services.AddSingleton<ITokenDistributor, TokenDistributor>();

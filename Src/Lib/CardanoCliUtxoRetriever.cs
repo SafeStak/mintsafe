@@ -4,6 +4,7 @@ using SimpleExec;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -61,7 +62,7 @@ namespace Mintsafe.Lib
                 // Every utxo line is formatted like
                 // {TxHash} {TxOutputIndex} {LovelaceValue} lovelaces [+ {CustomTokenValue} {PolicyId}.{AssetName}] + TxDatumHashNone
                 var contentSegments = utxoLine.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                var lovelaceValue = new Value("lovelace", long.Parse(contentSegments[2]));
+                var lovelaceValue = new Value(Assets.LovelaceUnit, long.Parse(contentSegments[2]));
 
                 // Debugging other assets
                 var segmentIndex = 5;
@@ -87,12 +88,23 @@ namespace Mintsafe.Lib
         public async Task<Utxo[]> GetUtxosAtAddressAsync(string address, CancellationToken ct = default)
         {
             await Task.Delay(1000, ct);
-            return new[] {
-                new Utxo(
+            return GenerateUtxos(3, 
+                15000000,
+                10000000,
+                30000000);
+        }
+
+        private static Utxo[] GenerateUtxos(int count, params long[] values)
+        {
+            if (values.Length != count)
+                throw new ArgumentException($"{nameof(values)} must be the same length as count", nameof(values));
+
+            return Enumerable.Range(0, count)
+                .Select(i => new Utxo(
                     "127745e23b81a5a5e22a409ce17ae8672b234dda7be1f09fc9e3a11906bd3a11",
-                    0,
-                    new[] { new Value("lovelace", 15000000) }),
-            };
+                    i,
+                    new[] { new Value(Assets.LovelaceUnit, values[i]) }))
+                .ToArray();
         }
     }
 }

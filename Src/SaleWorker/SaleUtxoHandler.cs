@@ -8,7 +8,13 @@ using System.Threading.Tasks;
 
 namespace Mintsafe.SaleWorker
 {
-    public class SaleUtxoHandler
+    public interface ISaleUtxoHandler
+    {
+        Task HandleAsync(
+            Utxo saleUtxo, NiftyCollection collection, Sale activeSale, SaleContext saleContext, CancellationToken ct);
+    }
+
+    public class SaleUtxoHandler : ISaleUtxoHandler
     {
         private readonly ILogger<SaleUtxoHandler> _logger;
         private readonly MintsafeSaleWorkerSettings _settings;
@@ -30,9 +36,9 @@ namespace Mintsafe.SaleWorker
             _utxoRefunder = utxoRefunder;
         }
 
-        public async Task Handle(
-            Utxo saleUtxo, 
-            NiftyCollection collection, 
+        public async Task HandleAsync(
+            Utxo saleUtxo,
+            NiftyCollection collection,
             Sale activeSale,
             SaleContext saleContext,
             CancellationToken ct)

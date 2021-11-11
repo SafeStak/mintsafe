@@ -170,7 +170,7 @@ namespace Mintsafe.Lib
             foreach (var output in command.Outputs)
             {
                 // Determine the txout that will pay for the fee (i.e. the sale proceeds address and not the buyer)
-                var lovelacesOut = output.Values.First(v => v.Unit == "lovelace").Quantity;
+                var lovelacesOut = output.Values.First(v => v.Unit == Assets.LovelaceUnit).Quantity;
                 if (output.IsFeeDeducted)
                 {
                     lovelacesOut -= fee;
@@ -178,7 +178,7 @@ namespace Mintsafe.Lib
 
                 sb.Append($"--tx-out \"{output.Address}+{lovelacesOut}");
 
-                var nativeTokens = output.Values.Where(o => o.Unit != "lovelace").ToArray();
+                var nativeTokens = output.Values.Where(o => o.Unit != Assets.LovelaceUnit).ToArray();
                 foreach (var value in nativeTokens)
                 {
                     sb.Append($"+{value.Quantity} {value.Unit}");
@@ -362,7 +362,7 @@ namespace Mintsafe.Lib
             foreach (var output in command.Outputs)
             {
                 // Determine the txout that will pay for the fee (i.e. the sale proceeds address and not the buyer)
-                var lovelacesOut = output.Values.First(v => v.Unit == "lovelace").Quantity;
+                var lovelacesOut = output.Values.First(v => v.Unit == Assets.LovelaceUnit).Quantity;
                 if (output.IsFeeDeducted)
                 {
                     lovelacesOut -= fee;
@@ -370,7 +370,7 @@ namespace Mintsafe.Lib
 
                 sb.Append($"--tx-out \"{output.Address}+{lovelacesOut}");
 
-                var nativeTokens = output.Values.Where(o => o.Unit != "lovelace").ToArray();
+                var nativeTokens = output.Values.Where(o => o.Unit != Assets.LovelaceUnit).ToArray();
                 foreach (var value in nativeTokens)
                 {
                     sb.Append($"+{value.Quantity} {value.Unit}");

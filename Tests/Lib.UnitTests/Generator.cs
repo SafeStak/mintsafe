@@ -10,7 +10,11 @@ namespace Mintsafe.Lib.UnitTests
         public static MintsafeSaleWorkerSettings GenerateSettings()
         {
             return new MintsafeSaleWorkerSettings(
-                Network.Testnet, 5, "~/nlp/", "testnetabc");
+                Network.Testnet, 
+                PollingIntervalSeconds: 5, 
+                BasePath: "~/nlp/", 
+                BlockFrostApiKey: "testnetabc", 
+                CollectionId: Guid.Parse("d5b35d3d-14cc-40ba-94f4-fe3b28bd52ae"));
         }
 
         public static NiftyCollection GenerateCollection(
@@ -49,6 +53,19 @@ namespace Mintsafe.Lib.UnitTests
                     "1.0",
                     new Dictionary<string, string>()))
                 .ToList();
+        }
+
+        public static Utxo[] GenerateUtxos(int count, params long[] values)
+        {
+            if (values.Length != count)
+                throw new ArgumentException($"{nameof(values)} must be the same length as count", nameof(values));
+
+            return Enumerable.Range(0, count)
+                .Select(i => new Utxo(
+                    "127745e23b81a5a5e22a409ce17ae8672b234dda7be1f09fc9e3a11906bd3a11",
+                    i,
+                    new[] { new Value(Assets.LovelaceUnit, values[i]) }))
+                .ToArray();
         }
 
         public static Sale GetSale(

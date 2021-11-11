@@ -34,8 +34,8 @@ namespace Mintsafe.Lib
 
             return new TxIoAggregate(
                 txHash,
-                Inputs: new[] { new TxIo("addr_test1vrfxxeuzqfuknfz4hu0ym4fe4l3axvqd7t5agd6pfzml59q30qc4x", 0, new[] { new Value("lovelace", 10200000) }) },
-                Outputs: new[] { new TxIo("addr_test1vrfxxeuzqfuknfz4hu0ym4fe4l3axvqd7t5agd6pfzml59q30qc4x", 0, new[] { new Value("lovelace", 10000000) }) });
+                Inputs: new[] { new TxIo("addr_test1vrfxxeuzqfuknfz4hu0ym4fe4l3axvqd7t5agd6pfzml59q30qc4x", 0, new[] { new Value(Assets.LovelaceUnit, 10200000) }) },
+                Outputs: new[] { new TxIo("addr_test1vrfxxeuzqfuknfz4hu0ym4fe4l3axvqd7t5agd6pfzml59q30qc4x", 0, new[] { new Value(Assets.LovelaceUnit, 10000000) }) });
         }
     }
 }
