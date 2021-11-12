@@ -11,22 +11,26 @@ namespace Mintsafe.SaleWorker
     public interface ISaleUtxoHandler
     {
         Task HandleAsync(
-            Utxo saleUtxo, NiftyCollection collection, Sale activeSale, SaleContext saleContext, CancellationToken ct);
+            Utxo saleUtxo, 
+            NiftyCollection collection, 
+            Sale activeSale, 
+            SaleContext saleContext, 
+            CancellationToken ct);
     }
 
     public class SaleUtxoHandler : ISaleUtxoHandler
     {
         private readonly ILogger<SaleUtxoHandler> _logger;
         private readonly MintsafeSaleWorkerSettings _settings;
-        private readonly ITokenAllocator _tokenAllocator;
-        private readonly ITokenDistributor _tokenDistributor;
+        private readonly INiftyAllocator _tokenAllocator;
+        private readonly INiftyDistributor _tokenDistributor;
         private readonly IUtxoRefunder _utxoRefunder;
 
         public SaleUtxoHandler(
             ILogger<SaleUtxoHandler> logger,
             MintsafeSaleWorkerSettings settings,
-            ITokenAllocator tokenAllocator,
-            ITokenDistributor tokenDistributor,
+            INiftyAllocator tokenAllocator,
+            INiftyDistributor tokenDistributor,
             IUtxoRefunder utxoRefunder)
         {
             _logger = logger;
@@ -112,6 +116,7 @@ namespace Mintsafe.SaleWorker
                 saleContext.LockedUtxos.Add(saleUtxo.ToString());
                 if (shouldRefundUtxo)
                 {
+                    // TODO: better way to do refunds? Use Channels?
                     var saleAddressSigningKey = Path.Combine(_settings.BasePath, $"{activeSale.Id}.sale.skey");
                     var refundTxHash = await _utxoRefunder.ProcessRefundForUtxo(saleUtxo, saleAddressSigningKey, refundReason, ct);
                     if (!string.IsNullOrEmpty(refundTxHash))

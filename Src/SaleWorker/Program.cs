@@ -35,9 +35,9 @@ IHost host = Host.CreateDefaultBuilder(args)
         });
 
         services.AddSingleton<ISaleUtxoHandler, SaleUtxoHandler>();
-        services.AddSingleton<ITokenAllocator, TokenAllocator>();
+        services.AddSingleton<INiftyAllocator, NiftyAllocator>();
         services.AddSingleton<IMetadataGenerator, MetadataGenerator>();
-        services.AddSingleton<ITokenDistributor, TokenDistributor>();
+        services.AddSingleton<INiftyDistributor, NiftyDistributor>();
         services.AddSingleton<IUtxoRefunder, UtxoRefunder>();
 
         // Fakes

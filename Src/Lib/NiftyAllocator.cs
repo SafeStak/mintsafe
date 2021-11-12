@@ -8,14 +8,14 @@ using System.Threading.Tasks;
 
 namespace Mintsafe.Lib
 {
-    public class TokenAllocator : ITokenAllocator
+    public class NiftyAllocator : INiftyAllocator
     {
-        private readonly ILogger<TokenAllocator> _logger;
+        private readonly ILogger<NiftyAllocator> _logger;
         private readonly MintsafeSaleWorkerSettings _settings;
         private readonly Random _random;
 
-        public TokenAllocator(
-            ILogger<TokenAllocator> logger,
+        public NiftyAllocator(
+            ILogger<NiftyAllocator> logger,
             MintsafeSaleWorkerSettings settings)
         {
             _logger = logger;

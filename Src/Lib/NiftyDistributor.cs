@@ -8,19 +8,19 @@ using System.Threading.Tasks;
 
 namespace Mintsafe.Lib
 {
-    public class TokenDistributor : ITokenDistributor
+    public class NiftyDistributor : INiftyDistributor
     {
         private const int MinLovelaceUtxo = 2000000;
 
-        private readonly ILogger<TokenDistributor> _logger;
+        private readonly ILogger<NiftyDistributor> _logger;
         private readonly MintsafeSaleWorkerSettings _settings;
         private readonly IMetadataGenerator _metadataGenerator;
         private readonly ITxIoRetriever _txRetriever;
         private readonly ITxBuilder _txBuilder;
         private readonly ITxSubmitter _txSubmitter;
 
-        public TokenDistributor(
-            ILogger<TokenDistributor> logger,
+        public NiftyDistributor(
+            ILogger<NiftyDistributor> logger,
             MintsafeSaleWorkerSettings settings,
             IMetadataGenerator metadataGenerator,
             ITxIoRetriever txRetriever,
@@ -49,7 +49,7 @@ namespace Mintsafe.Lib
             await _metadataGenerator.GenerateNftStandardMetadataJsonFile(nfts, collection, metadataJsonPath, ct);
             _logger.LogInformation($"{nameof(_metadataGenerator.GenerateNftStandardMetadataJsonFile)} generated at {metadataJsonPath} after {sw.ElapsedMilliseconds}ms");
 
-            // Derive buyer address after getting source UTxO details from BF
+            // Derive buyer address after getting source UTxO details from Blockfrost
             sw.Restart();
             var txIo = await _txRetriever.GetTxIoAsync(purchaseRequest.Utxo.TxHash, ct);
             var buyerAddress = txIo.Inputs.First().Address;
@@ -59,8 +59,8 @@ namespace Mintsafe.Lib
             long buyerLovelacesReturned = MinLovelaceUtxo + purchaseRequest.ChangeInLovelace;
             var tokenMintUtxoValues = nfts.Select(n => new Value($"{collection.PolicyId}.{n.AssetName}", 1)).ToArray();
             var buyerOutputUtxoValues = GetBuyerTxOutputUtxoValues(tokenMintUtxoValues, buyerLovelacesReturned);
-            var profitAddressLovelaces = purchaseRequest.Utxo.Lovelaces - buyerLovelacesReturned;
-            var profitAddressUtxoValues = new[] { new Value(Assets.LovelaceUnit, profitAddressLovelaces) };
+            var proceedsAddressLovelaces = purchaseRequest.Utxo.Lovelaces - buyerLovelacesReturned;
+            var proceedsAddressUtxoValues = new[] { new Value(Assets.LovelaceUnit, proceedsAddressLovelaces) };
 
             var policyScriptFilename = $"{collection.PolicyId}.policy.script";
             var policyScriptPath = Path.Combine(_settings.BasePath, policyScriptFilename);
@@ -75,7 +75,7 @@ namespace Mintsafe.Lib
                 new[] { purchaseRequest.Utxo },
                 new[] {
                     new TxOutput(buyerAddress, buyerOutputUtxoValues),
-                    new TxOutput(sale.ProceedsAddress, profitAddressUtxoValues, IsFeeDeducted: true) },
+                    new TxOutput(sale.ProceedsAddress, proceedsAddressUtxoValues, IsFeeDeducted: true) },
                 tokenMintUtxoValues,
                 policyScriptPath,
                 metadataJsonPath,

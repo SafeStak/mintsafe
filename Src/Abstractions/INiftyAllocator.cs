@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Mintsafe.Abstractions
 {
-    public interface ITokenAllocator
+    public interface INiftyAllocator
     {
         Task<Nifty[]> AllocateTokensForPurchaseAsync(
             PurchaseAttempt request,

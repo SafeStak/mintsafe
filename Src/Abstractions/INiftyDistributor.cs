@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Mintsafe.Abstractions
 {
-    public interface ITokenDistributor
+    public interface INiftyDistributor
     {
         Task<string> DistributeNiftiesForSalePurchase(
             Nifty[] nfts, 

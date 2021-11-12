@@ -68,11 +68,12 @@ namespace Mintsafe.Lib.UnitTests
                 .ToArray();
         }
 
-        public static Sale GetSale(
+        public static Sale GenerateSale(
             int totalReleaseQuantity = 500,
             int maxAllowedPurchaseQuantity = 10,
             bool isActive = true,
-            long lovelacesPerToken = 15000000)
+            long lovelacesPerToken = 15000000,
+            string proceedsAddress = "addr_test1vzj4c522pr5n6texvcl24kl9enntr4knl4ucecd7pkt24mglna4pz")
         {
             return new Sale(
                 Id: Guid.NewGuid(),
@@ -82,9 +83,22 @@ namespace Mintsafe.Lib.UnitTests
                 Description: "Limited 100 item launch",
                 LovelacesPerToken: lovelacesPerToken,
                 SaleAddress: "addr_test1vz0hx28mmdz0ey3pzqe5nxg08urjhzydpvvmcx4v4we5mvg6733n5",
-                ProceedsAddress: "addr_test1vzj4c522pr5n6texvcl24kl9enntr4knl4ucecd7pkt24mglna4pz",
+                ProceedsAddress: proceedsAddress,
                 TotalReleaseQuantity: totalReleaseQuantity,
                 MaxAllowedPurchaseQuantity: maxAllowedPurchaseQuantity);
+        }
+
+        public static TxIoAggregate GenerateTxIoAggregate(
+            string txHash = "01daae688d236601109d9fc1bc11d7380a7617e6835eddca6527738963a87279",
+            string inputAddress = "addr_test1vrfxxeuzqfuknfz4hu0ym4fe4l3axvqd7t5agd6pfzml59q30qc4x",
+            long inputLovelaceQuantity = 10200000,
+            string outputAddress = "addr_test1vre6wmde3qz7h7eerk98lgtkuzjd5nfqj4wy0fwntymr20qee2cxk",
+            long outputLovelaceQuantity = 10000000)
+        {
+            return new TxIoAggregate(
+                txHash,
+                Inputs: new[] { new TxIo(inputAddress, 0, new[] { new Value(Assets.LovelaceUnit, inputLovelaceQuantity) }) },
+                Outputs: new[] { new TxIo(outputAddress, 0, new[] { new Value(Assets.LovelaceUnit, outputLovelaceQuantity) }) });
         }
     }
 }
