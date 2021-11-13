@@ -14,7 +14,7 @@ namespace Mintsafe.Lib.UnitTests
         public void Correctly_Calculate_Quantity(
             long utxoValueLovelace, long costPerTokenLovelace, int expectedQuantity)
         {
-            var sale = GenerateSalePeriod(costPerTokenLovelace: costPerTokenLovelace);
+            var sale = Generator.GenerateSale(lovelacesPerToken: costPerTokenLovelace);
 
             var salePurchase = SalePurchaseGenerator.FromUtxo(
                     new Utxo(
@@ -33,7 +33,7 @@ namespace Mintsafe.Lib.UnitTests
         public void Correctly_Calculate_Change(
             long utxoValueLovelace, long costPerTokenLovelace, int expectedChange)
         {
-            var sale = GenerateSalePeriod(costPerTokenLovelace: costPerTokenLovelace);
+            var sale = Generator.GenerateSale(lovelacesPerToken: costPerTokenLovelace);
 
             var salePurchase = SalePurchaseGenerator.FromUtxo(
                     new Utxo(
@@ -51,8 +51,9 @@ namespace Mintsafe.Lib.UnitTests
         public void Correctly_Maps_Values_When_Sale_Is_Active_And_Within_Start_End_Dates(
             int secondsAfterStart, int secondsBeforeEnd, string txHash, string saleId)
         {
-            var sale = GenerateSalePeriod(
+            var sale = Generator.GenerateSale(
                 saleId: saleId, 
+                lovelacesPerToken: 10000000,
                 start: DateTime.UtcNow.AddSeconds(-secondsAfterStart), 
                 end: DateTime.UtcNow.AddSeconds(secondsBeforeEnd));
 
@@ -73,7 +74,7 @@ namespace Mintsafe.Lib.UnitTests
         public void Throws_InsufficientPaymentException_When_Utxo_Value_Is_Less_Than_LovelacesPerToken(
             long utxoValueLovelace, long costPerTokenLovelace)
         {
-            var sale = GenerateSalePeriod(costPerTokenLovelace: costPerTokenLovelace);
+            var sale = Generator.GenerateSale(lovelacesPerToken: costPerTokenLovelace);
 
             Action action = () =>
             {
@@ -91,7 +92,7 @@ namespace Mintsafe.Lib.UnitTests
         [Fact]
         public void Throws_SaleInactiveException_When_Sale_Is_Inactive()
         {
-            var sale = GenerateSalePeriod(isActive: false);
+            var sale = Generator.GenerateSale(isActive: false);
 
             Action action = () =>
             {
@@ -112,7 +113,7 @@ namespace Mintsafe.Lib.UnitTests
         public void Throws_MaxAllowedPurchaseQuantityExceededException_When_Quantity_Exceeds_Max_Allowed(
             long utxoValueLovelace, long costPerTokenLovelace, int maxAllowedPurchaseQuantity)
         {
-            var sale = GenerateSalePeriod(costPerTokenLovelace: costPerTokenLovelace, maxAllowedPurchaseQuantity: maxAllowedPurchaseQuantity);
+            var sale = Generator.GenerateSale(lovelacesPerToken: costPerTokenLovelace, maxAllowedPurchaseQuantity: maxAllowedPurchaseQuantity);
 
             Action action = () =>
             {
@@ -133,7 +134,7 @@ namespace Mintsafe.Lib.UnitTests
         public void Throws_SalePeriodOutOfRangeException_When_Sale_Has_Not_Started(
             int secondsInTheFuture)
         {
-            var sale = GenerateSalePeriod(start: DateTime.UtcNow.AddSeconds(secondsInTheFuture));
+            var sale = Generator.GenerateSale(start: DateTime.UtcNow.AddSeconds(secondsInTheFuture));
 
             Action action = () =>
             {
@@ -154,7 +155,7 @@ namespace Mintsafe.Lib.UnitTests
         public void Throws_SalePeriodOutOfRangeException_When_Sale_Has_Already_Ended(
             int secondsInThePast)
         {
-            var sale = GenerateSalePeriod(end: DateTime.UtcNow.AddSeconds(-secondsInThePast));
+            var sale = Generator.GenerateSale(end: DateTime.UtcNow.AddSeconds(-secondsInThePast));
 
             Action action = () =>
             {
@@ -167,29 +168,6 @@ namespace Mintsafe.Lib.UnitTests
             };
 
             action.Should().Throw<SalePeriodOutOfRangeException>();
-        }
-
-        public Sale GenerateSalePeriod(
-            bool isActive = true,
-            string saleId = null,
-            long costPerTokenLovelace = 10000000, 
-            int maxAllowedPurchaseQuantity = 5, 
-            DateTime? start = null,
-            DateTime? end = null)
-        {
-            return new Sale(
-                Id: saleId == null ? Guid.Parse("69da836f-9e0b-4ec4-98e8-094efaeac38b") : Guid.Parse(saleId),
-                CollectionId: Guid.Parse("e271ae1a-8831-4afd-8cb7-67a55c2bd6cd"),
-                Name: "Preview Launch #1",
-                Description: "Limited 500 item launch",
-                LovelacesPerToken: costPerTokenLovelace,
-                SaleAddress: "addr_test1vre6wmde3qz7h7eerk98lgtkuzjd5nfqj4wy0fwntymr20qee2cxk",
-                ProceedsAddress: "addr_test1vpfkk396juz65kv3lrq6qjnneyqw4hlu949y8jy8ug465pqrxc3mg",
-                IsActive: isActive,
-                Start: start,
-                End: end,
-                TotalReleaseQuantity: 500,
-                MaxAllowedPurchaseQuantity: maxAllowedPurchaseQuantity);
         }
     }
 }

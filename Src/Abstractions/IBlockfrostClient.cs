@@ -12,22 +12,22 @@ namespace Mintsafe.Abstractions
     }
     public class BlockFrostValue
     {
-        public string Unit { get; init; }
-        public string Quantity { get; init; }
+        public string? Unit { get; init; }
+        public string? Quantity { get; init; }
     }
 
     public class BlockFrostTransactionIo
     {
-        public string Address { get; init; }
+        public string? Address { get; init; }
         public int Output_Index { get; init; }
-        public BlockFrostValue[] Amount { get; init; }
+        public BlockFrostValue[]? Amount { get; init; }
     }
 
     public class BlockFrostTransactionUtxoResponse
     {
-        public string Hash { get; init; }
-        public BlockFrostTransactionIo[] Inputs { get; init; }
-        public BlockFrostTransactionIo[] Outputs { get; init; }
+        public string? Hash { get; init; }
+        public BlockFrostTransactionIo[]? Inputs { get; init; }
+        public BlockFrostTransactionIo[]? Outputs { get; init; }
     }
 
     public class BlockfrostResponseException : ApplicationException

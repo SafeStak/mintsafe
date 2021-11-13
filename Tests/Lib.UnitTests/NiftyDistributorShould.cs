@@ -35,8 +35,11 @@ namespace Mintsafe.Lib.UnitTests
                 _mockTxSubmitter.Object);
         }
 
-        [Fact]
-        public async Task Distribute_Nifties_For_SalePurchase_Given_Active_Sale_When_Purchase_Is_Valid()
+        [Theory]
+        [InlineData(1)]
+        [InlineData(10)]
+        public async Task Distribute_Nifties_For_SalePurchase_Given_Active_Sale_When_Purchase_Is_Valid(
+            int niftyCount)
         {
             var buildTxOutputBytes = new byte[] { 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20 };
             _mockTxIoRetriever
@@ -50,12 +53,19 @@ namespace Mintsafe.Lib.UnitTests
                 .ReturnsAsync("01daae688d236601109d9fc1bc11d7380a7617e6835eddca6527738963a87279");
 
             var txHash = await _distributor.DistributeNiftiesForSalePurchase(
-                nfts: Generator.GenerateTokens(3).ToArray(),
+                nfts: Generator.GenerateTokens(niftyCount).ToArray(),
                 purchaseRequest: new PurchaseAttempt(Guid.NewGuid(), Guid.NewGuid(), Generator.GenerateUtxos(1, 10000000).First(), 3, 0),
                 collection: Generator.GenerateCollection(),
                 sale: Generator.GenerateSale());
 
             txHash.Should().Be("01daae688d236601109d9fc1bc11d7380a7617e6835eddca6527738963a87279");
+            _mockTxBuilder
+                .Verify(
+                    t => t.BuildTxAsync(
+                        It.Is<TxBuildCommand>(b => b.Mint.Length == niftyCount),
+                        It.IsAny<CancellationToken>()),
+                    Times.Once,
+                    "Output should have buyer address and correct values");
         }
 
         [Theory]

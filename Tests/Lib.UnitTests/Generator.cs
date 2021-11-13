@@ -18,8 +18,8 @@ namespace Mintsafe.Lib.UnitTests
         }
 
         public static NiftyCollection GenerateCollection(
-            string id = null,
-            string policyId = null)
+            string? id = null,
+            string? policyId = null)
         {
             return new NiftyCollection(
                 Id: id == null ? Guid.NewGuid() : Guid.Parse(id),
@@ -69,14 +69,17 @@ namespace Mintsafe.Lib.UnitTests
         }
 
         public static Sale GenerateSale(
+            string? saleId = null,
             int totalReleaseQuantity = 500,
             int maxAllowedPurchaseQuantity = 10,
             bool isActive = true,
             long lovelacesPerToken = 15000000,
-            string proceedsAddress = "addr_test1vzj4c522pr5n6texvcl24kl9enntr4knl4ucecd7pkt24mglna4pz")
+            string proceedsAddress = "addr_test1vzj4c522pr5n6texvcl24kl9enntr4knl4ucecd7pkt24mglna4pz",
+            DateTime? start = null,
+            DateTime? end = null)
         {
             return new Sale(
-                Id: Guid.NewGuid(),
+                Id: saleId == null ? Guid.Parse("69da836f-9e0b-4ec4-98e8-094efaeac38b") : Guid.Parse(saleId),
                 CollectionId: Guid.NewGuid(),
                 IsActive: isActive,
                 Name: "Preview Launch #1",
@@ -85,7 +88,9 @@ namespace Mintsafe.Lib.UnitTests
                 SaleAddress: "addr_test1vz0hx28mmdz0ey3pzqe5nxg08urjhzydpvvmcx4v4we5mvg6733n5",
                 ProceedsAddress: proceedsAddress,
                 TotalReleaseQuantity: totalReleaseQuantity,
-                MaxAllowedPurchaseQuantity: maxAllowedPurchaseQuantity);
+                MaxAllowedPurchaseQuantity: maxAllowedPurchaseQuantity,
+                Start: start,
+                End: end);
         }
 
         public static TxIoAggregate GenerateTxIoAggregate(

@@ -65,7 +65,7 @@ namespace Mintsafe.Lib
 
         private static Nifty[] GenerateTokens(
             int mintableTokenCount,
-            string collectionId = null,
+            string? collectionId = null,
             bool isMintable = true,
             string baseName = "cryptoquokkas",
             string creatorsCsv = "quokkalad.ada",

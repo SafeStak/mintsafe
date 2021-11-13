@@ -18,6 +18,11 @@ namespace Mintsafe.Lib
         public async Task<TxIoAggregate> GetTxIoAsync(string txHash, CancellationToken ct = default)
         {
             var bfResult = await _blockFrostClient.GetTransactionAsync(txHash, ct).ConfigureAwait(false);
+            // Null checks in case Blockfrost gives dodgy responses
+            if (bfResult.Hash == null || bfResult.Inputs == null || bfResult.Outputs == null 
+                || bfResult.Inputs.Any(io => string.IsNullOrWhiteSpace(io.Address))
+                || bfResult.Outputs.Any(io => string.IsNullOrWhiteSpace(io.Address)))
+                throw new BlockfrostResponseException("BlockFrost response contain null fields", 200);
 
             return new TxIoAggregate(
                     bfResult.Hash,

@@ -58,7 +58,11 @@ namespace Mintsafe.Lib
                 var json = await response.Content.ReadAsStringAsync(ct);
                 _logger.LogDebug($"GetTransactionAsync {relativePath} reponse: {json}");
 
-                return JsonSerializer.Deserialize<BlockFrostTransactionUtxoResponse>(json, SerialiserOptions);
+                var bfResponse = JsonSerializer.Deserialize<BlockFrostTransactionUtxoResponse>(json, SerialiserOptions);
+                if (bfResponse == null)
+                    throw new BlockfrostResponseException($"BlockFrost response is null or cannot be deserialised {json}", responseCode);
+
+                return bfResponse;
             }
             finally
             {

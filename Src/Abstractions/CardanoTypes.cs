@@ -17,7 +17,7 @@ namespace Mintsafe.Abstractions
         public long Lovelaces => Values.First(v => v.Unit == Assets.LovelaceUnit).Quantity;
     }
 
-    public record Value(string Unit, long Quantity);
+    public record struct Value(string Unit, long Quantity);
 
     public record TxBuildCommand(
         Utxo[] Inputs,
