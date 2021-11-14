@@ -2,6 +2,7 @@
 using Mintsafe.Abstractions;
 using SimpleExec;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
@@ -56,30 +57,34 @@ namespace Mintsafe.Lib
             var lines = rawUtxoResponse.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
             var utxos = new Utxo[lines.Length - 2];
             var insertionIndex = 0;
-            foreach (var utxoLine in lines[2..])
+            foreach (var utxoLine in lines[2..]) // skip the headers
             {
-                //_logger.LogInformation($"Found Line {index}: {utxoLine}");
-                // Every utxo line is formatted like
-                // {TxHash} {TxOutputIndex} {LovelaceValue} lovelaces [+ {CustomTokenValue} {PolicyId}.{AssetName}] + TxDatumHashNone
                 var contentSegments = utxoLine.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                var lovelaceValue = new Value(Assets.LovelaceUnit, long.Parse(contentSegments[2]));
-
-                // Debugging other assets
-                var segmentIndex = 5;
-                foreach (var contentSegment in contentSegments[5..])
-                {
-                    _logger.LogInformation($"Segment[{segmentIndex++}]: {contentSegment}");
-                }
-                var bits = string.Join(string.Empty, contentSegments[5..]);
-                _logger.LogInformation($"Other values: {bits}");
+                var values = ParseValues(contentSegments).ToArray();
 
                 utxos[insertionIndex++] = new Utxo(
                     TxHash: contentSegments[0],
                     OutputIndex: int.Parse(contentSegments[1]),
-                    Values: new[] { lovelaceValue });
+                    Values: values);
 
             }
             return utxos;
+        }
+
+        private static IEnumerable<Value> ParseValues(string[] utxoLineSegments)
+        {
+            // Always must contain an ADA/lovelace UTXO value
+            var lovelaceValue = new Value(Assets.LovelaceUnit, long.Parse(utxoLineSegments[2]));
+            yield return lovelaceValue;
+
+            var currentSegmentIndex = 4; // 4 comes frrom skipping past [0]{txHash} [1]{txOutputIndex} [2]{txOutputLovelaceValue} [3]lovelace
+            while (utxoLineSegments[currentSegmentIndex] == "+" && utxoLineSegments[currentSegmentIndex+1] != "TxOutDatumHashNone")
+            {
+                var quantity = long.Parse(utxoLineSegments[currentSegmentIndex+1]);
+                var unit = utxoLineSegments[currentSegmentIndex+2];
+                yield return new Value(unit, quantity);
+                currentSegmentIndex += 3; // skip "+ {quantity} {unit}"
+            }
         }
     }
 
