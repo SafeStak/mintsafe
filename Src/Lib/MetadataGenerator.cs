@@ -25,27 +25,27 @@ namespace Mintsafe.Lib
 
         public class CnftStandardFile
         {
-            public string Name { get; set; }
-            public string MediaType { get; set; }
-            public string Src { get; set; }
+            public string? Name { get; set; }
+            public string? MediaType { get; set; }
+            public string? Src { get; set; }
         }
 
         public class CnftStandardAsset
         {
-            public string Name { get; set; }
-            public string Description { get; set; }
-            public string MediaType { get; set; }
-            public string Image { get; set; }
-            public string[] Creators { get; set; }
-            public string[] Publishers { get; set; }
-            public CnftStandardFile[] Files { get; set; }
-            public Dictionary<string, string> Attributes { get; set; }
+            public string? Name { get; set; }
+            public string? Description { get; set; }
+            public string? MediaType { get; set; }
+            public string? Image { get; set; }
+            public string[]? Creators { get; set; }
+            public string[]? Publishers { get; set; }
+            public CnftStandardFile[]? Files { get; set; }
+            public Dictionary<string, string>? Attributes { get; set; }
         }
 
         public class CnftStandardRoyalty
         {
             public double Pct { get; set; }
-            public string[] Addr { get; set; }
+            public string[]? Addr { get; set; }
         }
 
         public MetadataGenerator(

@@ -7,8 +7,8 @@ namespace Mintsafe.SaleWorker
     (
         List<Nifty> MintableTokens,
         List<Nifty> AllocatedTokens,
-        HashSet<string> LockedUtxos,
-        HashSet<string> SuccessfulUtxos,
-        HashSet<string> RefundedUtxos
+        HashSet<Utxo> LockedUtxos,
+        HashSet<Utxo> SuccessfulUtxos,
+        HashSet<Utxo> RefundedUtxos
     );
 }

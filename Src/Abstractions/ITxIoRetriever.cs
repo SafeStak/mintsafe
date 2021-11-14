@@ -5,6 +5,6 @@ namespace Mintsafe.Abstractions
 {
     public interface ITxIoRetriever
     {
-        Task<TxIoAggregate> GetTxIoAsync(string txHash, CancellationToken ct = default);
+        Task<TxInfo> GetTxIoAsync(string txHash, CancellationToken ct = default);
     }
 }

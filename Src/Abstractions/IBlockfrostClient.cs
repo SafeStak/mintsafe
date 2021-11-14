@@ -33,16 +33,16 @@ namespace Mintsafe.Abstractions
     public class BlockfrostResponseException : ApplicationException
     {
         public int StatusCode { get; }
+        public string? ResponseContent { get; }
 
-        public BlockfrostResponseException(string message, int statusCode) : base(message)
+        public BlockfrostResponseException(
+            string message, 
+            int statusCode, 
+            string? responseContent = null,
+            Exception? innerException = null) : base(message, innerException)
         {
             StatusCode = statusCode;
-        }
-
-        public BlockfrostResponseException(string message, int statusCode, Exception innerException)
-            : base(message, innerException)
-        {
-            StatusCode = statusCode;
+            ResponseContent = responseContent;
         }
     }
 }

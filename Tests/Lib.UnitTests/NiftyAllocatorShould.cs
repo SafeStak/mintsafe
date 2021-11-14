@@ -15,7 +15,7 @@ namespace Mintsafe.Lib.UnitTests
         {
             _allocator = new NiftyAllocator(
                 NullLogger<NiftyAllocator>.Instance,
-                Generator.GenerateSettings());
+                FakeGenerator.GenerateSettings());
         }
 
         [Theory]
@@ -33,9 +33,9 @@ namespace Mintsafe.Lib.UnitTests
             int saleReleaseQuantity,
             int expectedAllocatedQuantity)
         {
-            var sale = Generator.GenerateSale(totalReleaseQuantity: saleReleaseQuantity);
-            var mintableTokens = Generator.GenerateTokens(saleMintableCount);
-            var allocatedTokens = Generator.GenerateTokens(saleAllocatedCount);
+            var sale = FakeGenerator.GenerateSale(totalReleaseQuantity: saleReleaseQuantity);
+            var mintableTokens = FakeGenerator.GenerateTokens(saleMintableCount);
+            var allocatedTokens = FakeGenerator.GenerateTokens(saleAllocatedCount);
             var request = new PurchaseAttempt(
                 Guid.NewGuid(),
                 Guid.NewGuid(),
@@ -61,9 +61,9 @@ namespace Mintsafe.Lib.UnitTests
             int requestedQuantity,
             int saleReleaseQuantity)
         {
-            var sale = Generator.GenerateSale(totalReleaseQuantity: saleReleaseQuantity);
-            var mintableTokens = Generator.GenerateTokens(saleMintableCount);
-            var allocatedTokens = Generator.GenerateTokens(saleAllocatedCount);
+            var sale = FakeGenerator.GenerateSale(totalReleaseQuantity: saleReleaseQuantity);
+            var mintableTokens = FakeGenerator.GenerateTokens(saleMintableCount);
+            var allocatedTokens = FakeGenerator.GenerateTokens(saleAllocatedCount);
             var request = new PurchaseAttempt(
                 Guid.NewGuid(),
                 Guid.NewGuid(),
@@ -90,9 +90,9 @@ namespace Mintsafe.Lib.UnitTests
             int requestedQuantity,
             int saleReleaseQuantity)
         {
-            var sale = Generator.GenerateSale(totalReleaseQuantity: saleReleaseQuantity);
-            var mintableTokens = Generator.GenerateTokens(saleMintableCount);
-            var allocatedTokens = Generator.GenerateTokens(saleAllocatedCount);
+            var sale = FakeGenerator.GenerateSale(totalReleaseQuantity: saleReleaseQuantity);
+            var mintableTokens = FakeGenerator.GenerateTokens(saleMintableCount);
+            var allocatedTokens = FakeGenerator.GenerateTokens(saleAllocatedCount);
             var request = new PurchaseAttempt(
                 Guid.NewGuid(),
                 Guid.NewGuid(),
@@ -120,9 +120,9 @@ namespace Mintsafe.Lib.UnitTests
             int requestedQuantity,
             int saleReleaseQuantity)
         {
-            var sale = Generator.GenerateSale(totalReleaseQuantity: saleReleaseQuantity);
-            var allocatedTokens = Generator.GenerateTokens(saleAllocatedCount);
-            var mintableTokens = Generator.GenerateTokens(saleMintableCount);
+            var sale = FakeGenerator.GenerateSale(totalReleaseQuantity: saleReleaseQuantity);
+            var allocatedTokens = FakeGenerator.GenerateTokens(saleAllocatedCount);
+            var mintableTokens = FakeGenerator.GenerateTokens(saleMintableCount);
             var request = new PurchaseAttempt(
                 Guid.NewGuid(),
                 Guid.NewGuid(),

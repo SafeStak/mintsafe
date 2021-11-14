@@ -74,8 +74,8 @@ namespace Mintsafe.Lib
             var txBuildCommand = new TxBuildCommand(
                 new[] { purchaseRequest.Utxo },
                 new[] {
-                    new TxOutput(buyerAddress, buyerOutputUtxoValues),
-                    new TxOutput(sale.ProceedsAddress, proceedsAddressUtxoValues, IsFeeDeducted: true) },
+                    new TxBuildOutput(buyerAddress, buyerOutputUtxoValues),
+                    new TxBuildOutput(sale.ProceedsAddress, proceedsAddressUtxoValues, IsFeeDeducted: true) },
                 tokenMintUtxoValues,
                 policyScriptPath,
                 metadataJsonPath,

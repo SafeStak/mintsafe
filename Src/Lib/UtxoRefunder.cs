@@ -60,7 +60,7 @@ namespace Mintsafe.Lib
 
             var txRefundCommand = new TxBuildCommand(
                 new[] { utxo },
-                new[] { new TxOutput(buyerAddress, utxo.Values, IsFeeDeducted: true) },
+                new[] { new TxBuildOutput(buyerAddress, utxo.Values, IsFeeDeducted: true) },
                 Array.Empty<Value>(),
                 string.Empty,
                 metadataJsonPath,

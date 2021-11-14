@@ -4,18 +4,23 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Mintsafe.Lib
 {
+    /// <summary>
+    /// A TOTALLY UNSAFE wallet API used for quicker testnet validation.
+    /// The signing keys behind the source address are passed in raw hex format
+    /// </summary>
     public interface IYoloWalletService
     {
         Task<string> SendAllAsync(
             string sourceAddress,
             string destinationAddress,
             string[] message,
-            string signingKeyCborHex,
+            string sourceAddressSigningkeyCborHex,
             CancellationToken ct = default);
 
         Task<string> SendValuesAsync(
@@ -23,7 +28,7 @@ namespace Mintsafe.Lib
             string destinationAddress,
             Value[] values,
             string[] message,
-            string signingKeyCborHex,
+            string sourceAddressSigningkeyCborHex,
             CancellationToken ct = default);
     }
 
@@ -56,7 +61,7 @@ namespace Mintsafe.Lib
             string sourceAddress,
             string destinationAddress,
             string[] message,
-            string signingKeyFilePath,
+            string sourceAddressSigningkeyCborHex,
             CancellationToken ct = default)
         {
             var paymentId = Guid.NewGuid();
@@ -77,23 +82,34 @@ namespace Mintsafe.Lib
             await _metadataGenerator.GenerateMessageMetadataJsonFile(message, metadataJsonPath, ct);
             _logger.LogInformation($"{nameof(_metadataGenerator.GenerateMessageMetadataJsonFile)} generated at {metadataJsonPath} after {sw.ElapsedMilliseconds}ms");
 
+            // Generate signing key
+            var skeyFileName = $"{paymentId}.skey";
+            var skeyPath = Path.Combine(_settings.BasePath, skeyFileName);
+            var cliKeyObject = new { 
+                type = "PaymentSigningKeyShelley_ed25519",
+                description = "Payment Signing Key",
+                cborHex = sourceAddressSigningkeyCborHex
+            };
+            File.WriteAllText(skeyPath, JsonSerializer.Serialize(cliKeyObject));
+            _logger.LogInformation($"Generated yolo signing key at {skeyPath} for {sourceAddress} after {sw.ElapsedMilliseconds}ms");
+
             var sendAllConsolidatedUtxosCommand = new TxBuildCommand(
                 utxosAtSourceAddress,
                 new[] {
-                    new TxOutput(destinationAddress, combinedUtxoValues, IsFeeDeducted: true) },
+                    new TxBuildOutput(destinationAddress, combinedUtxoValues, IsFeeDeducted: true) },
                 Mint: Array.Empty<Value>(),
                 MintingScriptPath: string.Empty,
                 MetadataJsonPath: metadataJsonPath,
                 TtlSlot: 0,
-                new[] { signingKeyFilePath });
+                new[] { skeyPath });
 
             sw.Restart();
             var submissionPayload = await _txBuilder.BuildTxAsync(sendAllConsolidatedUtxosCommand, ct);
-            _logger.LogInformation($"{nameof(_txBuilder.BuildTxAsync)} completed after {sw.ElapsedMilliseconds}ms");
+            _logger.LogInformation($"{_txBuilder.GetType()}{nameof(_txBuilder.BuildTxAsync)} completed after {sw.ElapsedMilliseconds}ms");
 
             sw.Restart();
             var txHash = await _txSubmitter.SubmitTxAsync(submissionPayload, ct);
-            _logger.LogInformation($"{nameof(_txSubmitter.SubmitTxAsync)} completed after {sw.ElapsedMilliseconds}ms");
+            _logger.LogInformation($"{_txSubmitter.GetType()}{nameof(_txSubmitter.SubmitTxAsync)} completed after {sw.ElapsedMilliseconds}ms");
 
             return txHash;
         }
@@ -103,7 +119,7 @@ namespace Mintsafe.Lib
             string destinationAddress,
             Value[] values,
             string[] message,
-            string signingKeyFilePath,
+            string sourceAddressSigningkeyCborHex,
             CancellationToken ct = default)
         {
             var paymentId = Guid.NewGuid();
@@ -112,7 +128,7 @@ namespace Mintsafe.Lib
             var utxosAtSourceAddress = await _utxoRetriever.GetUtxosAtAddressAsync(sourceAddress, ct);
             _logger.LogInformation($"{nameof(_utxoRetriever.GetUtxosAtAddressAsync)} completed with {utxosAtSourceAddress.Length} after {sw.ElapsedMilliseconds}ms");
 
-            // Validate
+            // Validate source address has the values
             var combinedAssetValues = utxosAtSourceAddress.SelectMany(u => u.Values)
                 .GroupBy(uv => uv.Unit)
                 .Select(uvg => new Value(Unit: uvg.Key, Quantity: uvg.Sum(u => u.Quantity)))
@@ -133,27 +149,39 @@ namespace Mintsafe.Lib
             await _metadataGenerator.GenerateMessageMetadataJsonFile(message, metadataJsonPath, ct);
             _logger.LogInformation($"{nameof(_metadataGenerator.GenerateMessageMetadataJsonFile)} generated at {metadataJsonPath} after {sw.ElapsedMilliseconds}ms");
 
+            sw.Restart();
+            var skeyFileName = $"{paymentId}.skey";
+            var skeyPath = Path.Combine(_settings.BasePath, skeyFileName);
+            var cliKeyObject = new
+            {
+                type = "PaymentSigningKeyShelley_ed25519",
+                description = "Payment Signing Key",
+                cborHex = sourceAddressSigningkeyCborHex
+            };
+            File.WriteAllText(skeyPath, JsonSerializer.Serialize(cliKeyObject));
+            _logger.LogInformation($"Generated yolo signing key at {skeyPath} for {sourceAddress} after {sw.ElapsedMilliseconds}ms");
+
             // Determine change and build Tx
             var changeValues = SubtractValues(combinedAssetValues, values);
             var txBuildCommand = new TxBuildCommand(
                 utxosAtSourceAddress,
                 new[] {
-                    new TxOutput(destinationAddress, values),
-                    new TxOutput(sourceAddress, changeValues, IsFeeDeducted: true),
+                    new TxBuildOutput(destinationAddress, values),
+                    new TxBuildOutput(sourceAddress, changeValues, IsFeeDeducted: true),
                 },
                 Mint: Array.Empty<Value>(),
                 MintingScriptPath: string.Empty,
                 MetadataJsonPath: metadataJsonPath,
                 TtlSlot: 0,
-                new[] { signingKeyFilePath });
+                new[] { skeyPath });
 
             sw.Restart();
             var submissionPayload = await _txBuilder.BuildTxAsync(txBuildCommand, ct);
-            _logger.LogInformation($"{nameof(_txBuilder.BuildTxAsync)} completed after {sw.ElapsedMilliseconds}ms");
+            _logger.LogInformation($"{_txBuilder.GetType()}{nameof(_txBuilder.BuildTxAsync)} completed after {sw.ElapsedMilliseconds}ms");
 
             sw.Restart();
             var txHash = await _txSubmitter.SubmitTxAsync(submissionPayload, ct);
-            _logger.LogInformation($"{nameof(_txSubmitter.SubmitTxAsync)} completed after {sw.ElapsedMilliseconds}ms");
+            _logger.LogInformation($"{_txSubmitter.GetType()}{nameof(_txSubmitter.SubmitTxAsync)} completed after {sw.ElapsedMilliseconds}ms");
 
             return txHash;
         }

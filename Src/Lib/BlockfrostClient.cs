@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -51,16 +52,17 @@ namespace Mintsafe.Lib
                 responseCode = (int)response.StatusCode;
                 if (!response.IsSuccessStatusCode)
                 {
-                    var responseBody = await response.Content.ReadAsStringAsync(ct);
+                    var responseBody = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
                     throw new BlockfrostResponseException($"Unsuccessful Blockfrost response:{responseBody}", (int)response.StatusCode);
                 }
 
-                var json = await response.Content.ReadAsStringAsync(ct);
-                _logger.LogDebug($"GetTransactionAsync {relativePath} reponse: {json}");
-
-                var bfResponse = JsonSerializer.Deserialize<BlockFrostTransactionUtxoResponse>(json, SerialiserOptions);
+                _logger.LogDebug($"{nameof(BlockfrostClient)}.{nameof(GetTransactionAsync)} from {relativePath} reponse: {responseCode}");
+                var bfResponse = await response.Content.ReadFromJsonAsync<BlockFrostTransactionUtxoResponse>(SerialiserOptions, ct).ConfigureAwait(false);
                 if (bfResponse == null)
+                {
+                    var json = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
                     throw new BlockfrostResponseException($"BlockFrost response is null or cannot be deserialised {json}", responseCode);
+                }
 
                 return bfResponse;
             }
@@ -81,16 +83,16 @@ namespace Mintsafe.Lib
                 var content = new ByteArrayContent(txSignedBinary);
                 content.Headers.ContentType = CborMediaType;
 
-                var response = await _httpClient.PostAsync(relativePath, content, ct);
+                var response = await _httpClient.PostAsync(relativePath, content, ct).ConfigureAwait(false);
                 responseCode = (int)response.StatusCode;
                 if (!response.IsSuccessStatusCode)
                 {
-                    var responseBody = await response.Content.ReadAsStringAsync(ct);
+                    var responseBody = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
                     throw new BlockfrostResponseException($"Unsuccessful Blockfrost response:{responseBody}", (int)response.StatusCode);
                 }
 
-                var txHash = await response.Content.ReadAsStringAsync(ct);
-                _logger.LogDebug($"SubmitTransactionAsync {relativePath} reponse: {txHash}");
+                var txHash = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+                _logger.LogDebug($"{nameof(BlockfrostClient)}.{nameof(SubmitTransactionAsync)} {relativePath} reponse: {txHash}");
                 return txHash;
             }
             finally

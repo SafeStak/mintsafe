@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Mintsafe.Lib.UnitTests
 {
-    public static class Generator
+    public static class FakeGenerator
     {
         public static MintsafeSaleWorkerSettings GenerateSettings()
         {
@@ -93,14 +93,14 @@ namespace Mintsafe.Lib.UnitTests
                 End: end);
         }
 
-        public static TxIoAggregate GenerateTxIoAggregate(
+        public static TxInfo GenerateTxIoAggregate(
             string txHash = "01daae688d236601109d9fc1bc11d7380a7617e6835eddca6527738963a87279",
             string inputAddress = "addr_test1vrfxxeuzqfuknfz4hu0ym4fe4l3axvqd7t5agd6pfzml59q30qc4x",
             long inputLovelaceQuantity = 10200000,
             string outputAddress = "addr_test1vre6wmde3qz7h7eerk98lgtkuzjd5nfqj4wy0fwntymr20qee2cxk",
             long outputLovelaceQuantity = 10000000)
         {
-            return new TxIoAggregate(
+            return new TxInfo(
                 txHash,
                 Inputs: new[] { new TxIo(inputAddress, 0, new[] { new Value(Assets.LovelaceUnit, inputLovelaceQuantity) }) },
                 Outputs: new[] { new TxIo(outputAddress, 0, new[] { new Value(Assets.LovelaceUnit, outputLovelaceQuantity) }) });

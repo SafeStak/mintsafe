@@ -14,7 +14,7 @@ namespace Mintsafe.Lib.UnitTests
         public void Correctly_Calculate_Quantity(
             long utxoValueLovelace, long costPerTokenLovelace, int expectedQuantity)
         {
-            var sale = Generator.GenerateSale(lovelacesPerToken: costPerTokenLovelace);
+            var sale = FakeGenerator.GenerateSale(lovelacesPerToken: costPerTokenLovelace);
 
             var salePurchase = SalePurchaseGenerator.FromUtxo(
                     new Utxo(
@@ -33,7 +33,7 @@ namespace Mintsafe.Lib.UnitTests
         public void Correctly_Calculate_Change(
             long utxoValueLovelace, long costPerTokenLovelace, int expectedChange)
         {
-            var sale = Generator.GenerateSale(lovelacesPerToken: costPerTokenLovelace);
+            var sale = FakeGenerator.GenerateSale(lovelacesPerToken: costPerTokenLovelace);
 
             var salePurchase = SalePurchaseGenerator.FromUtxo(
                     new Utxo(
@@ -51,7 +51,7 @@ namespace Mintsafe.Lib.UnitTests
         public void Correctly_Maps_Values_When_Sale_Is_Active_And_Within_Start_End_Dates(
             int secondsAfterStart, int secondsBeforeEnd, string txHash, string saleId)
         {
-            var sale = Generator.GenerateSale(
+            var sale = FakeGenerator.GenerateSale(
                 saleId: saleId, 
                 lovelacesPerToken: 10000000,
                 start: DateTime.UtcNow.AddSeconds(-secondsAfterStart), 
@@ -74,7 +74,7 @@ namespace Mintsafe.Lib.UnitTests
         public void Throws_InsufficientPaymentException_When_Utxo_Value_Is_Less_Than_LovelacesPerToken(
             long utxoValueLovelace, long costPerTokenLovelace)
         {
-            var sale = Generator.GenerateSale(lovelacesPerToken: costPerTokenLovelace);
+            var sale = FakeGenerator.GenerateSale(lovelacesPerToken: costPerTokenLovelace);
 
             Action action = () =>
             {
@@ -92,7 +92,7 @@ namespace Mintsafe.Lib.UnitTests
         [Fact]
         public void Throws_SaleInactiveException_When_Sale_Is_Inactive()
         {
-            var sale = Generator.GenerateSale(isActive: false);
+            var sale = FakeGenerator.GenerateSale(isActive: false);
 
             Action action = () =>
             {
@@ -113,7 +113,7 @@ namespace Mintsafe.Lib.UnitTests
         public void Throws_MaxAllowedPurchaseQuantityExceededException_When_Quantity_Exceeds_Max_Allowed(
             long utxoValueLovelace, long costPerTokenLovelace, int maxAllowedPurchaseQuantity)
         {
-            var sale = Generator.GenerateSale(lovelacesPerToken: costPerTokenLovelace, maxAllowedPurchaseQuantity: maxAllowedPurchaseQuantity);
+            var sale = FakeGenerator.GenerateSale(lovelacesPerToken: costPerTokenLovelace, maxAllowedPurchaseQuantity: maxAllowedPurchaseQuantity);
 
             Action action = () =>
             {
@@ -134,7 +134,7 @@ namespace Mintsafe.Lib.UnitTests
         public void Throws_SalePeriodOutOfRangeException_When_Sale_Has_Not_Started(
             int secondsInTheFuture)
         {
-            var sale = Generator.GenerateSale(start: DateTime.UtcNow.AddSeconds(secondsInTheFuture));
+            var sale = FakeGenerator.GenerateSale(start: DateTime.UtcNow.AddSeconds(secondsInTheFuture));
 
             Action action = () =>
             {
@@ -155,7 +155,7 @@ namespace Mintsafe.Lib.UnitTests
         public void Throws_SalePeriodOutOfRangeException_When_Sale_Has_Already_Ended(
             int secondsInThePast)
         {
-            var sale = Generator.GenerateSale(end: DateTime.UtcNow.AddSeconds(-secondsInThePast));
+            var sale = FakeGenerator.GenerateSale(end: DateTime.UtcNow.AddSeconds(-secondsInThePast));
 
             Action action = () =>
             {

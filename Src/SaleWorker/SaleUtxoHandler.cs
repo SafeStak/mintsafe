@@ -61,7 +61,7 @@ namespace Mintsafe.SaleWorker
                 var txHash = await _tokenDistributor.DistributeNiftiesForSalePurchase(tokens, purchaseRequest, collection, activeSale, ct);
                 _logger.LogInformation($"Successfully minted {tokens.Length} tokens from Tx {txHash}");
 
-                saleContext.SuccessfulUtxos.Add(saleUtxo.ToString());
+                saleContext.SuccessfulUtxos.Add(saleUtxo);
             }
             catch (SaleInactiveException ex)
             {
@@ -113,7 +113,7 @@ namespace Mintsafe.SaleWorker
             }
             finally
             {
-                saleContext.LockedUtxos.Add(saleUtxo.ToString());
+                saleContext.LockedUtxos.Add(saleUtxo);
                 if (shouldRefundUtxo)
                 {
                     // TODO: better way to do refunds? Use Channels?
@@ -121,7 +121,7 @@ namespace Mintsafe.SaleWorker
                     var refundTxHash = await _utxoRefunder.ProcessRefundForUtxo(saleUtxo, saleAddressSigningKey, refundReason, ct);
                     if (!string.IsNullOrEmpty(refundTxHash))
                     {
-                        saleContext.RefundedUtxos.Add(saleUtxo.ToString());
+                        saleContext.RefundedUtxos.Add(saleUtxo);
                     }
                 }
             }

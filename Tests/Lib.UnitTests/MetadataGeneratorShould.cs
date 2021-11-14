@@ -17,7 +17,7 @@ namespace Mintsafe.Lib.UnitTests
         {
             _metadataGenerator = new MetadataGenerator(
                 NullLogger<MetadataGenerator>.Instance, 
-                Generator.GenerateSettings());
+                FakeGenerator.GenerateSettings());
         }
 
         [Theory]
@@ -25,8 +25,8 @@ namespace Mintsafe.Lib.UnitTests
         [InlineData(2)]
         public async Task Generate_The_Right_Json_With_Correct_Token_Metadata(int nftCount)
         {
-            var collection = Generator.GenerateCollection();
-            var tokens = Generator.GenerateTokens(nftCount).ToArray();
+            var collection = FakeGenerator.GenerateCollection();
+            var tokens = FakeGenerator.GenerateTokens(nftCount).ToArray();
             var fileName = $"metadata{nftCount}.json";
 
             await _metadataGenerator.GenerateNftStandardMetadataJsonFile(
@@ -40,7 +40,11 @@ namespace Mintsafe.Lib.UnitTests
                     Dictionary<
                         string, // AssetName
                         CnftStandardAsset>>>>(json);
+            
+            deserialised.Should().NotBeNull();
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
             deserialised["721"][collection.PolicyId].Keys.Count.Should().Be(nftCount);
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
         }
 
         

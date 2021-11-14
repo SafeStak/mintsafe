@@ -49,8 +49,9 @@ namespace Mintsafe.SaleWorker
             }
             _logger.LogInformation($"{collection.Collection.Name} has an active sale '{activeSale.Name}' for {activeSale.TotalReleaseQuantity} nifties (out of {mintableTokens.Count} total mintable) at {activeSale.SaleAddress}{Environment.NewLine}{activeSale.LovelacesPerToken} lovelaces per NFT ({activeSale.LovelacesPerToken / 1000000} ADA) and {activeSale.MaxAllowedPurchaseQuantity} max allowed");
 
-            // TODO: Move away from single-threaded mutable context that isn't crash tolerant
-            var saleContext = new SaleContext(mintableTokens, new List<Nifty>(), new HashSet<string>(), new HashSet<string>(), new HashSet<string>());
+            // TODO: Move away from single-threaded mutable saleContext that isn't crash tolerant
+            // In other words, we need to persist the state after every allocation and read it when the worker runs
+            var saleContext = new SaleContext(mintableTokens, new List<Nifty>(), new HashSet<Utxo>(), new HashSet<Utxo>(), new HashSet<Utxo>());
             var timer = new PeriodicTimer(TimeSpan.FromSeconds(_settings.PollingIntervalSeconds));
             do
             {
@@ -59,7 +60,7 @@ namespace Mintsafe.SaleWorker
                 _logger.LogInformation($"Found {saleUtxos.Length} UTxOs at {activeSale.SaleAddress}");
                 foreach (var saleUtxo in saleUtxos)
                 {
-                    if (saleContext.LockedUtxos.Contains(saleUtxo.ToString()))
+                    if (saleContext.LockedUtxos.Contains(saleUtxo))
                     {
                         _logger.LogInformation($"Utxo {saleUtxo.TxHash}[{saleUtxo.OutputIndex}]({saleUtxo.Lovelaces}) skipped (already locked)");
                         continue;
