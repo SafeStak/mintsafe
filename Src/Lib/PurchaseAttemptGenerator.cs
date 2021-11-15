@@ -3,7 +3,7 @@ using System;
 
 namespace Mintsafe.Lib;
 
-public static class SalePurchaseGenerator
+public static class PurchaseAttemptGenerator
 {
     public static PurchaseAttempt FromUtxo(Utxo utxo, Sale sale)
     {

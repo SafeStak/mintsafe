@@ -16,7 +16,7 @@ public class SalePurchaseRequesterShould
     {
         var sale = FakeGenerator.GenerateSale(lovelacesPerToken: costPerTokenLovelace);
 
-        var salePurchase = SalePurchaseGenerator.FromUtxo(
+        var salePurchase = PurchaseAttemptGenerator.FromUtxo(
                 new Utxo(
                     "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                     0,
@@ -35,7 +35,7 @@ public class SalePurchaseRequesterShould
     {
         var sale = FakeGenerator.GenerateSale(lovelacesPerToken: costPerTokenLovelace);
 
-        var salePurchase = SalePurchaseGenerator.FromUtxo(
+        var salePurchase = PurchaseAttemptGenerator.FromUtxo(
                 new Utxo(
                     "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                     0,
@@ -57,7 +57,7 @@ public class SalePurchaseRequesterShould
             start: DateTime.UtcNow.AddSeconds(-secondsAfterStart),
             end: DateTime.UtcNow.AddSeconds(secondsBeforeEnd));
 
-        var salePurchase = SalePurchaseGenerator.FromUtxo(
+        var salePurchase = PurchaseAttemptGenerator.FromUtxo(
                 new Utxo(
                     txHash,
                     0,
@@ -78,7 +78,7 @@ public class SalePurchaseRequesterShould
 
         Action action = () =>
         {
-            SalePurchaseGenerator.FromUtxo(
+            PurchaseAttemptGenerator.FromUtxo(
                 new Utxo(
                     "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                     0,
@@ -96,7 +96,7 @@ public class SalePurchaseRequesterShould
 
         Action action = () =>
         {
-            SalePurchaseGenerator.FromUtxo(
+            PurchaseAttemptGenerator.FromUtxo(
                 new Utxo(
                     "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                     0,
@@ -117,7 +117,7 @@ public class SalePurchaseRequesterShould
 
         Action action = () =>
         {
-            SalePurchaseGenerator.FromUtxo(
+            PurchaseAttemptGenerator.FromUtxo(
                 new Utxo(
                     "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                     0,
@@ -138,7 +138,7 @@ public class SalePurchaseRequesterShould
 
         Action action = () =>
         {
-            SalePurchaseGenerator.FromUtxo(
+            PurchaseAttemptGenerator.FromUtxo(
                 new Utxo(
                     "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                     0,
@@ -159,7 +159,7 @@ public class SalePurchaseRequesterShould
 
         Action action = () =>
         {
-            SalePurchaseGenerator.FromUtxo(
+            PurchaseAttemptGenerator.FromUtxo(
                 new Utxo(
                     "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                     0,

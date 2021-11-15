@@ -43,7 +43,7 @@ public class NiftyAllocatorShould
             requestedQuantity,
             0);
 
-        var allocated = await _allocator.AllocateTokensForPurchaseAsync(
+        var allocated = await _allocator.AllocateNiftiesForPurchaseAsync(
             request, allocatedTokens, mintableTokens, sale);
 
         allocated.Length.Should().Be(expectedAllocatedQuantity);
@@ -73,7 +73,7 @@ public class NiftyAllocatorShould
 
         Func<Task> asyncTask = async () =>
         {
-            var allocated = await _allocator.AllocateTokensForPurchaseAsync(
+            var allocated = await _allocator.AllocateNiftiesForPurchaseAsync(
                 request, allocatedTokens, mintableTokens, sale);
         };
 
@@ -102,7 +102,7 @@ public class NiftyAllocatorShould
 
         Func<Task> asyncTask = async () =>
         {
-            var allocated = await _allocator.AllocateTokensForPurchaseAsync(
+            var allocated = await _allocator.AllocateNiftiesForPurchaseAsync(
                 request, allocatedTokens, mintableTokens, sale);
         };
 
@@ -132,7 +132,7 @@ public class NiftyAllocatorShould
 
         Func<Task> asyncTask = async () =>
         {
-            var allocated = await _allocator.AllocateTokensForPurchaseAsync(
+            var allocated = await _allocator.AllocateNiftiesForPurchaseAsync(
                 request, allocatedTokens, mintableTokens, sale);
         };
 

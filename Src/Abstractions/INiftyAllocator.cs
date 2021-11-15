@@ -6,7 +6,7 @@ namespace Mintsafe.Abstractions;
 
 public interface INiftyAllocator
 {
-    Task<Nifty[]> AllocateTokensForPurchaseAsync(
+    Task<Nifty[]> AllocateNiftiesForPurchaseAsync(
         PurchaseAttempt request,
         IList<Nifty> saleAllocatedNfts,
         IList<Nifty> saleMintableNfts,

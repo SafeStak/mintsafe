@@ -66,7 +66,7 @@ public class NiftyDistributor : INiftyDistributor
         var policyScriptPath = Path.Combine(_settings.BasePath, policyScriptFilename);
         var slotExpiry = GetUtxoSlotExpiry(collection, _settings.Network);
         var signingKeyFilePaths = new[]
-        {
+            {
                 Path.Combine(_settings.BasePath, $"{collection.PolicyId}.policy.skey"),
                 Path.Combine(_settings.BasePath, $"{sale.Id}.sale.skey")
             };

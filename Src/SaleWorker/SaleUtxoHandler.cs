@@ -51,10 +51,10 @@ public class SaleUtxoHandler : ISaleUtxoHandler
         var refundReason = string.Empty;
         try
         {
-            var purchaseRequest = SalePurchaseGenerator.FromUtxo(saleUtxo, activeSale);
+            var purchaseRequest = PurchaseAttemptGenerator.FromUtxo(saleUtxo, activeSale);
             _logger.LogInformation($"Successfully built purchase request: {purchaseRequest.NiftyQuantityRequested} NFTs for {saleUtxo.Lovelaces} and {purchaseRequest.ChangeInLovelace} change");
 
-            var tokens = await _tokenAllocator.AllocateTokensForPurchaseAsync(
+            var tokens = await _tokenAllocator.AllocateNiftiesForPurchaseAsync(
                 purchaseRequest, saleContext.AllocatedTokens, saleContext.MintableTokens, activeSale, ct);
             _logger.LogInformation($"Successfully allocated {tokens.Length} tokens");
 

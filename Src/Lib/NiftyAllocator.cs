@@ -23,7 +23,7 @@ public class NiftyAllocator : INiftyAllocator
         _random = new Random();
     }
 
-    public Task<Nifty[]> AllocateTokensForPurchaseAsync(
+    public Task<Nifty[]> AllocateNiftiesForPurchaseAsync(
         PurchaseAttempt request,
         IList<Nifty> saleAllocatedNfts,
         IList<Nifty> saleMintableNfts,
@@ -64,7 +64,7 @@ public class NiftyAllocator : INiftyAllocator
             saleAllocatedNfts.Add(tokenAllocated);
             saleMintableNfts.RemoveAt(randomIndex);
         }
-        _logger.LogInformation($"{nameof(AllocateTokensForPurchaseAsync)} completed with {purchaseAllocated.Count} tokens after {sw.ElapsedMilliseconds}ms");
+        _logger.LogInformation($"{nameof(AllocateNiftiesForPurchaseAsync)} completed with {purchaseAllocated.Count} tokens after {sw.ElapsedMilliseconds}ms");
 
         return Task.FromResult(purchaseAllocated.ToArray());
     }

@@ -26,13 +26,15 @@ IHost host = Host.CreateDefaultBuilder(args)
                 CollectionId: Guid.Parse("d5b35d3d-14cc-40ba-94f4-fe3b28bd52ae"));
         services.AddSingleton(settings);
 
-        services.AddHttpClient<BlockfrostClient>(nameof(BlockfrostClient), (s, client) =>
-        {
-            client.DefaultRequestHeaders.Add("project_id", settings.BlockFrostApiKey);
-            client.BaseAddress = settings.Network == Network.Mainnet
-                ? new Uri("https://cardano-mainnet.blockfrost.io")
-                : new Uri("https://cardano-testnet.blockfrost.io");
-        });
+        services.AddHttpClient<BlockfrostClient>(
+            nameof(BlockfrostClient), 
+            (s, client) =>
+            {
+                client.DefaultRequestHeaders.Add("project_id", settings.BlockFrostApiKey);
+                client.BaseAddress = settings.Network == Network.Mainnet
+                    ? new Uri("https://cardano-mainnet.blockfrost.io")
+                    : new Uri("https://cardano-testnet.blockfrost.io");
+            });
 
         services.AddSingleton<ISaleUtxoHandler, SaleUtxoHandler>();
         services.AddSingleton<INiftyAllocator, NiftyAllocator>();
