@@ -14,14 +14,7 @@ public record Utxo(string TxHash, int OutputIndex, Value[] Values)
 {
     public override int GetHashCode() => ToString().GetHashCode();
     public override string ToString() => $"{TxHash}__{OutputIndex}";
-    bool IEquatable<Utxo>.Equals(Utxo? other)
-    {
-        if (other == null)
-        {
-            return false;
-        }
-        return TxHash == other.TxHash && OutputIndex == other.OutputIndex;
-    }
+    bool IEquatable<Utxo>.Equals(Utxo? other) => other != null && TxHash == other.TxHash && OutputIndex == other.OutputIndex;
     public long Lovelaces => Values.First(v => v.Unit == Assets.LovelaceUnit).Quantity;
 }
 

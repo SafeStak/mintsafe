@@ -1,14 +1,13 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 
-namespace Mintsafe.Abstractions
+namespace Mintsafe.Abstractions;
+
+public interface IUtxoRefunder
 {
-    public interface IUtxoRefunder
-    {
-        Task<string> ProcessRefundForUtxo(
-            Utxo utxo, 
-            string signingKeyFilePath, 
-            string reason, 
-            CancellationToken ct = default);
-    }
+    Task<string> ProcessRefundForUtxo(
+        Utxo utxo, 
+        string signingKeyFilePath, 
+        string reason, 
+        CancellationToken ct = default);
 }

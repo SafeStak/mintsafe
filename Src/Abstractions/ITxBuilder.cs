@@ -1,12 +1,11 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 
-namespace Mintsafe.Abstractions
+namespace Mintsafe.Abstractions;
+
+public interface ITxBuilder
 {
-    public interface ITxBuilder
-    {
-        public Task<byte[]> BuildTxAsync(
-            TxBuildCommand buildCommand,
-            CancellationToken ct = default);
-    }
+    public Task<byte[]> BuildTxAsync(
+        TxBuildCommand buildCommand,
+        CancellationToken ct = default);
 }

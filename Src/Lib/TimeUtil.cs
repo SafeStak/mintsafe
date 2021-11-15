@@ -1,59 +1,58 @@
 ﻿using System;
 
-namespace Mintsafe.Lib
+namespace Mintsafe.Lib;
+
+public static class TimeUtil
 {
-    public static class TimeUtil
+    public static int GetTestnetSlotAt(DateTime utcDateTime)
     {
-        public static int GetTestnetSlotAt(DateTime utcDateTime)
-        {
-            if (utcDateTime.Kind != DateTimeKind.Utc)
-                throw new ArgumentException($"{nameof(utcDateTime)} must be DateTimeKind.Utc");
-            
-            var then = new DateTime(2021, 10, 28, 14, 0, 4, DateTimeKind.Utc);
-            var slotThen = 41060390;
+        if (utcDateTime.Kind != DateTimeKind.Utc)
+            throw new ArgumentException($"{nameof(utcDateTime)} must be DateTimeKind.Utc");
 
-            // Assumption is that 1 slot = 1 second although this can be adjusted through protocol updates
-            var secondsDiff = (utcDateTime - then).TotalSeconds;
+        var then = new DateTime(2021, 10, 28, 14, 0, 4, DateTimeKind.Utc);
+        var slotThen = 41060390;
 
-            return slotThen + (int)secondsDiff;
-        }
+        // Assumption is that 1 slot = 1 second although this can be adjusted through protocol updates
+        var secondsDiff = (utcDateTime - then).TotalSeconds;
 
-        public static DateTime GetUtcTimeFromTestnetSlot(long slot)
-        {
-            var then = new DateTime(2021, 10, 28, 14, 0, 4, DateTimeKind.Utc);
-            var slotThen = 41060390;
+        return slotThen + (int)secondsDiff;
+    }
 
-            var slotDifference = slot - slotThen;
+    public static DateTime GetUtcTimeFromTestnetSlot(long slot)
+    {
+        var then = new DateTime(2021, 10, 28, 14, 0, 4, DateTimeKind.Utc);
+        var slotThen = 41060390;
 
-            var time = then.AddSeconds(slotDifference);
+        var slotDifference = slot - slotThen;
 
-            return time;
-        }
+        var time = then.AddSeconds(slotDifference);
 
-        public static int GetMainnetSlotAt(DateTime utcDateTime)
-        {
-            if (utcDateTime.Kind != DateTimeKind.Utc)
-                throw new ArgumentException($"{nameof(utcDateTime)} must be DateTimeKind.Utc");
+        return time;
+    }
 
-            var then = new DateTime(2021, 10, 28, 14, 1, 0, DateTimeKind.Utc);
-            var slotThen = 43863369;
+    public static int GetMainnetSlotAt(DateTime utcDateTime)
+    {
+        if (utcDateTime.Kind != DateTimeKind.Utc)
+            throw new ArgumentException($"{nameof(utcDateTime)} must be DateTimeKind.Utc");
 
-            // Assumption is that 1 slot = 1 second although this can be adjusted through protocol updates
-            var secondsDiff = (utcDateTime - then).TotalSeconds;
+        var then = new DateTime(2021, 10, 28, 14, 1, 0, DateTimeKind.Utc);
+        var slotThen = 43863369;
 
-            return slotThen + (int)secondsDiff;
-        }
+        // Assumption is that 1 slot = 1 second although this can be adjusted through protocol updates
+        var secondsDiff = (utcDateTime - then).TotalSeconds;
 
-        public static DateTime GetUtcTimeFromMainnetSlot(long slot)
-        {
-            var then = new DateTime(2021, 10, 28, 14, 1, 0, DateTimeKind.Utc);
-            var slotThen = 43863369;
+        return slotThen + (int)secondsDiff;
+    }
 
-            var slotDifference = slot - slotThen;
+    public static DateTime GetUtcTimeFromMainnetSlot(long slot)
+    {
+        var then = new DateTime(2021, 10, 28, 14, 1, 0, DateTimeKind.Utc);
+        var slotThen = 43863369;
 
-            var time = then.AddSeconds(slotDifference);
+        var slotDifference = slot - slotThen;
 
-            return time;
-        }
+        var time = then.AddSeconds(slotDifference);
+
+        return time;
     }
 }

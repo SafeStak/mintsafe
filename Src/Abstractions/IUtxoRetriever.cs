@@ -1,10 +1,9 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 
-namespace Mintsafe.Abstractions
+namespace Mintsafe.Abstractions;
+
+public interface IUtxoRetriever
 {
-    public interface IUtxoRetriever
-    {
-        Task<Utxo[]> GetUtxosAtAddressAsync(string address, CancellationToken ct = default);
-    }
+    Task<Utxo[]> GetUtxosAtAddressAsync(string address, CancellationToken ct = default);
 }

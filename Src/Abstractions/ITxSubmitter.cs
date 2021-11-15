@@ -1,10 +1,9 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 
-namespace Mintsafe.Abstractions
+namespace Mintsafe.Abstractions;
+
+public interface ITxSubmitter
 {
-    public interface ITxSubmitter
-    {
-        public Task<string> SubmitTxAsync(byte[] txSignedBinary, CancellationToken ct = default);
-    }
+    public Task<string> SubmitTxAsync(byte[] txSignedBinary, CancellationToken ct = default);
 }
