@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Mintsafe.Abstractions;
 
-public interface IMetadataGenerator
+public interface IMetadataFileGenerator
 {
     Task GenerateNftStandardMetadataJsonFile(
         Nifty[] nfts,

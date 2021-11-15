@@ -13,17 +13,17 @@ public class UtxoRefunder : IUtxoRefunder
     private const long MinLovelace = 1250000;
 
     private readonly ILogger<UtxoRefunder> _logger;
-    private readonly MintsafeSaleWorkerSettings _settings;
+    private readonly MintsafeAppSettings _settings;
     private readonly ITxIoRetriever _txRetriever;
-    private readonly IMetadataGenerator _metadataGenerator;
+    private readonly IMetadataFileGenerator _metadataGenerator;
     private readonly ITxSubmitter _txSubmitter;
     private readonly ITxBuilder _txBuilder;
 
     public UtxoRefunder(
         ILogger<UtxoRefunder> logger,
-        MintsafeSaleWorkerSettings settings,
+        MintsafeAppSettings settings,
         ITxIoRetriever txRetriever,
-        IMetadataGenerator metadataGenerator,
+        IMetadataFileGenerator metadataGenerator,
         ITxBuilder txBuilder,
         ITxSubmitter txSubmitter)
     {

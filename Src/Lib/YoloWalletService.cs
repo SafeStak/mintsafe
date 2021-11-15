@@ -36,17 +36,17 @@ public interface IYoloWalletService
 public class YoloWalletService : IYoloWalletService
 {
     private readonly ILogger<YoloWalletService> _logger;
-    private readonly MintsafeSaleWorkerSettings _settings;
+    private readonly MintsafeAppSettings _settings;
     private readonly IUtxoRetriever _utxoRetriever;
-    private readonly IMetadataGenerator _metadataGenerator;
+    private readonly IMetadataFileGenerator _metadataGenerator;
     private readonly ITxSubmitter _txSubmitter;
     private readonly ITxBuilder _txBuilder;
 
     public YoloWalletService(
         ILogger<YoloWalletService> logger,
-        MintsafeSaleWorkerSettings settings,
+        MintsafeAppSettings settings,
         IUtxoRetriever utxoRetriever,
-        IMetadataGenerator metadataGenerator,
+        IMetadataFileGenerator metadataGenerator,
         ITxBuilder txBuilder,
         ITxSubmitter txSubmitter)
     {

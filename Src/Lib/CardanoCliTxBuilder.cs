@@ -31,12 +31,12 @@ public class CardanoCliException : ApplicationException
 public class CardanoCliTxBuilder : ITxBuilder
 {
     private readonly ILogger<CardanoCliTxBuilder> _logger;
-    private readonly MintsafeSaleWorkerSettings _settings;
+    private readonly MintsafeAppSettings _settings;
     private readonly string _networkMagic;
 
     public CardanoCliTxBuilder(
         ILogger<CardanoCliTxBuilder> logger,
-        MintsafeSaleWorkerSettings settings)
+        MintsafeAppSettings settings)
     {
         _logger = logger;
         _settings = settings;
@@ -267,11 +267,11 @@ public class CardanoCliTxBuilder : ITxBuilder
 public class FakeTxBuilder : ITxBuilder
 {
     private readonly ILogger<FakeTxBuilder> _logger;
-    private readonly MintsafeSaleWorkerSettings _settings;
+    private readonly MintsafeAppSettings _settings;
     private readonly string _networkMagic;
 
     public FakeTxBuilder(
-        ILogger<FakeTxBuilder> logger, MintsafeSaleWorkerSettings settings)
+        ILogger<FakeTxBuilder> logger, MintsafeAppSettings settings)
     {
         _logger = logger;
         _settings = settings;

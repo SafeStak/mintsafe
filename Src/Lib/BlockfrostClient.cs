@@ -13,7 +13,7 @@ namespace Mintsafe.Lib;
 public class BlockfrostClient : IBlockfrostClient
 {
     private readonly ILogger<BlockfrostClient> _logger;
-    private readonly MintsafeSaleWorkerSettings _settings;
+    private readonly MintsafeAppSettings _settings;
     private readonly HttpClient _httpClient;
 
     private static readonly MediaTypeHeaderValue CborMediaType = new("application/cbor");
@@ -24,7 +24,7 @@ public class BlockfrostClient : IBlockfrostClient
 
     public BlockfrostClient(
         ILogger<BlockfrostClient> logger,
-        MintsafeSaleWorkerSettings settings,
+        MintsafeAppSettings settings,
         HttpClient httpClient)
     {
         _logger = logger;

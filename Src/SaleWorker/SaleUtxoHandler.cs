@@ -21,14 +21,14 @@ public interface ISaleUtxoHandler
 public class SaleUtxoHandler : ISaleUtxoHandler
 {
     private readonly ILogger<SaleUtxoHandler> _logger;
-    private readonly MintsafeSaleWorkerSettings _settings;
+    private readonly MintsafeAppSettings _settings;
     private readonly INiftyAllocator _tokenAllocator;
     private readonly INiftyDistributor _tokenDistributor;
     private readonly IUtxoRefunder _utxoRefunder;
 
     public SaleUtxoHandler(
         ILogger<SaleUtxoHandler> logger,
-        MintsafeSaleWorkerSettings settings,
+        MintsafeAppSettings settings,
         INiftyAllocator tokenAllocator,
         INiftyDistributor tokenDistributor,
         IUtxoRefunder utxoRefunder)

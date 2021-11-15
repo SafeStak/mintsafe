@@ -16,7 +16,7 @@ IHost host = Host.CreateDefaultBuilder(args)
     {
         services.AddHostedService<Worker>();
 
-        var settings = new MintsafeSaleWorkerSettings(
+        var settings = new MintsafeAppSettings(
                 Network: Network.Testnet,
                 BlockFrostApiKey: "testneto96qDwlg4GaoKFfmKxPlHQhSkbea80cW",
                 //BlockFrostApiKey: "mainnetGk6cqBgfG4nkQtvA1F80hJHfXzYQs8bW",
@@ -36,7 +36,7 @@ IHost host = Host.CreateDefaultBuilder(args)
 
         services.AddSingleton<ISaleUtxoHandler, SaleUtxoHandler>();
         services.AddSingleton<INiftyAllocator, NiftyAllocator>();
-        services.AddSingleton<IMetadataGenerator, MetadataGenerator>();
+        services.AddSingleton<IMetadataFileGenerator, MetadataFileGenerator>();
         services.AddSingleton<INiftyDistributor, NiftyDistributor>();
         services.AddSingleton<IUtxoRefunder, UtxoRefunder>();
 

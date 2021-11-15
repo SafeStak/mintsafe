@@ -2,7 +2,7 @@
 
 namespace Mintsafe.Lib;
 
-public record MintsafeSaleWorkerSettings(
+public record MintsafeAppSettings(
     Network Network, 
     int PollingIntervalSeconds,
     string BasePath,

@@ -13,14 +13,14 @@ namespace Mintsafe.SaleWorker;
 public class Worker : BackgroundService
 {
     private readonly ILogger<Worker> _logger;
-    private readonly MintsafeSaleWorkerSettings _settings;
+    private readonly MintsafeAppSettings _settings;
     private readonly INiftyDataService _niftyDataService;
     private readonly IUtxoRetriever _utxoRetriever;
     private readonly ISaleUtxoHandler _saleUtxoHandler;
 
     public Worker(
         ILogger<Worker> logger,
-        MintsafeSaleWorkerSettings settings,
+        MintsafeAppSettings settings,
         INiftyDataService niftyDataService,
         IUtxoRetriever utxoRetriever,
         ISaleUtxoHandler saleUtxoHandler)

@@ -13,7 +13,7 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-var settings = new MintsafeSaleWorkerSettings(
+var settings = new MintsafeAppSettings(
                 Network: Network.Testnet,
                 BlockFrostApiKey: "testneto96qDwlg4GaoKFfmKxPlHQhSkbea80cW",
                 //BlockFrostApiKey: "mainnetGk6cqBgfG4nkQtvA1F80hJHfXzYQs8bW",
@@ -32,7 +32,7 @@ builder.Services.AddHttpClient<BlockfrostClient>(nameof(BlockfrostClient), (s, c
 });
 
 builder.Services.AddSingleton<INiftyAllocator, NiftyAllocator>();
-builder.Services.AddSingleton<IMetadataGenerator, MetadataGenerator>();
+builder.Services.AddSingleton<IMetadataFileGenerator, MetadataFileGenerator>();
 builder.Services.AddSingleton<INiftyDistributor, NiftyDistributor>();
 builder.Services.AddSingleton<IUtxoRefunder, UtxoRefunder>();
 

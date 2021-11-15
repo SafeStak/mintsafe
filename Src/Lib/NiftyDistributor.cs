@@ -13,16 +13,16 @@ public class NiftyDistributor : INiftyDistributor
     private const int MinLovelaceUtxo = 2000000;
 
     private readonly ILogger<NiftyDistributor> _logger;
-    private readonly MintsafeSaleWorkerSettings _settings;
-    private readonly IMetadataGenerator _metadataGenerator;
+    private readonly MintsafeAppSettings _settings;
+    private readonly IMetadataFileGenerator _metadataGenerator;
     private readonly ITxIoRetriever _txRetriever;
     private readonly ITxBuilder _txBuilder;
     private readonly ITxSubmitter _txSubmitter;
 
     public NiftyDistributor(
         ILogger<NiftyDistributor> logger,
-        MintsafeSaleWorkerSettings settings,
-        IMetadataGenerator metadataGenerator,
+        MintsafeAppSettings settings,
+        IMetadataFileGenerator metadataGenerator,
         ITxIoRetriever txRetriever,
         ITxBuilder txBuilder,
         ITxSubmitter txSubmitter)

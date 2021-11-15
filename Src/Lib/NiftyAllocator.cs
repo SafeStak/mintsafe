@@ -11,12 +11,12 @@ namespace Mintsafe.Lib;
 public class NiftyAllocator : INiftyAllocator
 {
     private readonly ILogger<NiftyAllocator> _logger;
-    private readonly MintsafeSaleWorkerSettings _settings;
+    private readonly MintsafeAppSettings _settings;
     private readonly Random _random;
 
     public NiftyAllocator(
         ILogger<NiftyAllocator> logger,
-        MintsafeSaleWorkerSettings settings)
+        MintsafeAppSettings settings)
     {
         _logger = logger;
         _settings = settings;

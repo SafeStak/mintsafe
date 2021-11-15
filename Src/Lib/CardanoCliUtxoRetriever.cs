@@ -14,12 +14,12 @@ namespace Mintsafe.Lib;
 public class CardanoCliUtxoRetriever : IUtxoRetriever
 {
     private readonly ILogger<CardanoCliUtxoRetriever> _logger;
-    private readonly MintsafeSaleWorkerSettings _settings;
+    private readonly MintsafeAppSettings _settings;
     private readonly string _networkMagic;
 
     public CardanoCliUtxoRetriever(
         ILogger<CardanoCliUtxoRetriever> logger,
-        MintsafeSaleWorkerSettings settings)
+        MintsafeAppSettings settings)
     {
         _logger = logger;
         _settings = settings;

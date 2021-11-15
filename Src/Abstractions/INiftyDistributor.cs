@@ -6,7 +6,7 @@ namespace Mintsafe.Abstractions;
 public interface INiftyDistributor
 {
     Task<string> DistributeNiftiesForSalePurchase(
-        Nifty[] nfts,
+        Nifty[] allocatedNfts,
         PurchaseAttempt purchaseRequest,
         NiftyCollection collection,
         Sale sale,

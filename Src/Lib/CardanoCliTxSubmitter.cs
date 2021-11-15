@@ -13,12 +13,12 @@ namespace Mintsafe.Lib;
 public class CardanoCliTxSubmitter : ITxSubmitter
 {
     private readonly ILogger<CardanoCliTxSubmitter> _logger;
-    private readonly MintsafeSaleWorkerSettings _settings;
+    private readonly MintsafeAppSettings _settings;
     private readonly string _networkMagic;
 
     public CardanoCliTxSubmitter(
         ILogger<CardanoCliTxSubmitter> logger,
-        MintsafeSaleWorkerSettings settings)
+        MintsafeAppSettings settings)
     {
         _logger = logger;
         _settings = settings;
