@@ -45,7 +45,7 @@ IHost host = Host.CreateDefaultBuilder(args)
         // Fakes
         services.AddSingleton<INiftyDataService, LocalNiftyDataService>();
         services.AddSingleton<IUtxoRetriever, FakeUtxoRetriever>();
-        services.AddSingleton<ITxIoRetriever, FakeTxIoRetriever>();
+        services.AddSingleton<ITxInfoRetriever, FakeTxIoRetriever>();
         services.AddSingleton<ITxBuilder, FakeTxBuilder>();
         services.AddSingleton<ITxSubmitter, FakeTxSubmitter>();
 

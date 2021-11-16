@@ -1,8 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
 using Mintsafe.Abstractions;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,7 +17,7 @@ public class NiftyDistributor : INiftyDistributor
     private readonly ILogger<NiftyDistributor> _logger;
     private readonly MintsafeAppSettings _settings;
     private readonly IMetadataFileGenerator _metadataGenerator;
-    private readonly ITxIoRetriever _txRetriever;
+    private readonly ITxInfoRetriever _txRetriever;
     private readonly ITxBuilder _txBuilder;
     private readonly ITxSubmitter _txSubmitter;
 
@@ -23,7 +25,7 @@ public class NiftyDistributor : INiftyDistributor
         ILogger<NiftyDistributor> logger,
         MintsafeAppSettings settings,
         IMetadataFileGenerator metadataGenerator,
-        ITxIoRetriever txRetriever,
+        ITxInfoRetriever txRetriever,
         ITxBuilder txBuilder,
         ITxSubmitter txSubmitter)
     {
@@ -35,31 +37,31 @@ public class NiftyDistributor : INiftyDistributor
         _txSubmitter = txSubmitter;
     }
 
-    public async Task<string> DistributeNiftiesForSalePurchase(
+    public async Task<NiftyDistributionResult> DistributeNiftiesForSalePurchase(
         Nifty[] nfts,
-        PurchaseAttempt purchaseRequest,
+        PurchaseAttempt purchaseAttempt,
         NiftyCollection collection,
         Sale sale,
         CancellationToken ct = default)
     {
         var sw = Stopwatch.StartNew();
         // Generate metadata file
-        var metadataJsonFileName = $"metadata-mint-{purchaseRequest.Utxo}.json";
+        var metadataJsonFileName = $"metadata-mint-{purchaseAttempt.Utxo}.json";
         var metadataJsonPath = Path.Combine(_settings.BasePath, metadataJsonFileName);
-        await _metadataGenerator.GenerateNftStandardMetadataJsonFile(nfts, collection, metadataJsonPath, ct);
+        await _metadataGenerator.GenerateNftStandardMetadataJsonFile(nfts, collection, metadataJsonPath, ct).ConfigureAwait(false);
         _logger.LogInformation($"{nameof(_metadataGenerator.GenerateNftStandardMetadataJsonFile)} generated at {metadataJsonPath} after {sw.ElapsedMilliseconds}ms");
 
-        // Derive buyer address after getting source UTxO details from Blockfrost
+        // Derive buyer address after getting source UTxO details 
         sw.Restart();
-        var txIo = await _txRetriever.GetTxIoAsync(purchaseRequest.Utxo.TxHash, ct);
+        var txIo = await _txRetriever.GetTxInfoAsync(purchaseAttempt.Utxo.TxHash, ct).ConfigureAwait(false);
         var buyerAddress = txIo.Inputs.First().Address;
-        _logger.LogInformation($"{nameof(_txRetriever.GetTxIoAsync)} completed after {sw.ElapsedMilliseconds}ms");
+        _logger.LogInformation($"{nameof(_txRetriever.GetTxInfoAsync)} completed after {sw.ElapsedMilliseconds}ms");
 
         // Map UtxoValues for new tokens
-        long buyerLovelacesReturned = MinLovelaceUtxo + purchaseRequest.ChangeInLovelace;
+        long buyerLovelacesReturned = MinLovelaceUtxo + purchaseAttempt.ChangeInLovelace;
         var tokenMintUtxoValues = nfts.Select(n => new Value($"{collection.PolicyId}.{n.AssetName}", 1)).ToArray();
         var buyerOutputUtxoValues = GetBuyerTxOutputUtxoValues(tokenMintUtxoValues, buyerLovelacesReturned);
-        var proceedsAddressLovelaces = purchaseRequest.Utxo.Lovelaces - buyerLovelacesReturned;
+        var proceedsAddressLovelaces = purchaseAttempt.Utxo.Lovelaces - buyerLovelacesReturned;
         var proceedsAddressUtxoValues = new[] { new Value(Assets.LovelaceUnit, proceedsAddressLovelaces) };
 
         var policyScriptFilename = $"{collection.PolicyId}.policy.script";
@@ -72,7 +74,7 @@ public class NiftyDistributor : INiftyDistributor
             };
 
         var txBuildCommand = new TxBuildCommand(
-            new[] { purchaseRequest.Utxo },
+            new[] { purchaseAttempt.Utxo },
             new[] {
                     new TxBuildOutput(buyerAddress, buyerOutputUtxoValues),
                     new TxBuildOutput(sale.ProceedsAddress, proceedsAddressUtxoValues, IsFeeDeducted: true) },
@@ -82,15 +84,44 @@ public class NiftyDistributor : INiftyDistributor
             slotExpiry,
             signingKeyFilePaths);
 
+        var txSubmissionBody = Array.Empty<byte>();
         sw.Restart();
-        var txSubmissionBody = await _txBuilder.BuildTxAsync(txBuildCommand, ct);
-        _logger.LogInformation($"{nameof(_txBuilder.BuildTxAsync)} completed after {sw.ElapsedMilliseconds}ms");
+        try
+        {
+            txSubmissionBody = await _txBuilder.BuildTxAsync(txBuildCommand, ct).ConfigureAwait(false);
+            _logger.LogInformation($"{nameof(_txBuilder.BuildTxAsync)} completed after {sw.ElapsedMilliseconds}ms");
+        }
+        catch (Exception ex)
+        {
+            return new NiftyDistributionResult(
+                NiftyDistributionOutcome.FailureTxBuild,
+                purchaseAttempt,
+                JsonSerializer.Serialize(txBuildCommand),
+                Exception: ex);
+        }
 
+        var txHash = string.Empty;
         sw.Restart();
-        var txHash = await _txSubmitter.SubmitTxAsync(txSubmissionBody, ct);
-        _logger.LogInformation($"{nameof(_txSubmitter.SubmitTxAsync)} completed after {sw.ElapsedMilliseconds}ms");
+        try
+        {
+            txHash = await _txSubmitter.SubmitTxAsync(txSubmissionBody, ct).ConfigureAwait(false);
+            _logger.LogInformation($"{nameof(_txSubmitter.SubmitTxAsync)} completed after {sw.ElapsedMilliseconds}ms");
+        }
+        catch (Exception ex)
+        {
+            return new NiftyDistributionResult(
+                NiftyDistributionOutcome.FailureTxSubmit,
+                purchaseAttempt,
+                JsonSerializer.Serialize(txBuildCommand),
+                Exception: ex);
+        }
 
-        return txHash;
+        return new NiftyDistributionResult(
+            NiftyDistributionOutcome.Successful, 
+            purchaseAttempt,
+            JsonSerializer.Serialize(txBuildCommand),
+            txHash,
+            nfts);
     }
 
     private static Value[] GetBuyerTxOutputUtxoValues(

@@ -37,7 +37,7 @@ builder.Services.AddSingleton<IUtxoRefunder, UtxoRefunder>();
 // Fakes
 builder.Services.AddSingleton<INiftyDataService, LocalNiftyDataService>();
 builder.Services.AddSingleton<IUtxoRetriever, FakeUtxoRetriever>();
-builder.Services.AddSingleton<ITxIoRetriever, FakeTxIoRetriever>();
+builder.Services.AddSingleton<ITxInfoRetriever, FakeTxIoRetriever>();
 builder.Services.AddSingleton<ITxBuilder, FakeTxBuilder>();
 builder.Services.AddSingleton<ITxSubmitter, FakeTxSubmitter>();
 

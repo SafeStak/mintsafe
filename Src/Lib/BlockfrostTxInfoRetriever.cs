@@ -6,16 +6,16 @@ using System.Threading.Tasks;
 
 namespace Mintsafe.Lib;
 
-public class BlockfrostTxIoRetriever : ITxIoRetriever
+public class BlockfrostTxInfoRetriever : ITxInfoRetriever
 {
     private readonly BlockfrostClient _blockFrostClient;
 
-    public BlockfrostTxIoRetriever(BlockfrostClient blockFrostClient)
+    public BlockfrostTxInfoRetriever(BlockfrostClient blockFrostClient)
     {
         _blockFrostClient = blockFrostClient;
     }
 
-    public async Task<TxInfo> GetTxIoAsync(string txHash, CancellationToken ct = default)
+    public async Task<TxInfo> GetTxInfoAsync(string txHash, CancellationToken ct = default)
     {
         var bfResult = await _blockFrostClient.GetTransactionAsync(txHash, ct).ConfigureAwait(false);
         // Null checks in case Blockfrost gives dodgy responses
@@ -29,9 +29,9 @@ public class BlockfrostTxIoRetriever : ITxIoRetriever
     }
 }
 
-public class FakeTxIoRetriever : ITxIoRetriever
+public class FakeTxIoRetriever : ITxInfoRetriever
 {
-    public async Task<TxInfo> GetTxIoAsync(string txHash, CancellationToken ct = default)
+    public async Task<TxInfo> GetTxInfoAsync(string txHash, CancellationToken ct = default)
     {
         await Task.Delay(100, ct);
 

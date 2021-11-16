@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Mintsafe.Lib.UnitTests;
 
-public class SalePurchaseRequesterShould
+public class PurchaseAttemptGeneratorShould
 {
     [Theory]
     [InlineData(10000000, 10000000, 1)]
@@ -64,7 +64,7 @@ public class SalePurchaseRequesterShould
                     new[] { new Value(Assets.LovelaceUnit, 10000000) }),
                 sale);
 
-        salePurchase.Utxo.TxHash.Should().Be(txHash); // TODO: more field assertions
+        salePurchase.Utxo.TxHash.Should().Be(txHash); 
         salePurchase.SaleId.Should().Be(Guid.Parse(saleId));
     }
 

@@ -58,10 +58,17 @@ public class SaleUtxoHandler : ISaleUtxoHandler
                 purchaseRequest, saleContext.AllocatedTokens, saleContext.MintableTokens, activeSale, ct);
             _logger.LogInformation($"Successfully allocated {tokens.Length} tokens");
 
-            var txHash = await _tokenDistributor.DistributeNiftiesForSalePurchase(tokens, purchaseRequest, collection, activeSale, ct);
-            _logger.LogInformation($"Successfully minted {tokens.Length} tokens from Tx {txHash}");
-
-            saleContext.SuccessfulUtxos.Add(saleUtxo);
+            var distributionResult = await _tokenDistributor.DistributeNiftiesForSalePurchase(tokens, purchaseRequest, collection, activeSale, ct);
+            if (distributionResult.Outcome == NiftyDistributionOutcome.Successful 
+                || distributionResult.Outcome == NiftyDistributionOutcome.SuccessfulAfterRetry)
+            {
+                _logger.LogInformation($"Successfully distributed {tokens.Length} tokens from Tx {distributionResult.MintTxHash}");
+                saleContext.SuccessfulUtxos.Add(saleUtxo);
+            }
+            else
+            {
+                _logger.LogWarning($"Failed distribution of {tokens.Length} tokens for {distributionResult.PurchaseAttempt.Utxo}\n{distributionResult.Exception}\n{distributionResult.MintTxBodyJson}");
+            }
         }
         catch (SaleInactiveException ex)
         {

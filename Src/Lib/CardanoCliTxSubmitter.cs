@@ -33,7 +33,7 @@ public class CardanoCliTxSubmitter : ITxSubmitter
         var txSubmissionId = Guid.NewGuid();
         var txSignedJsonPath = Path.Combine(_settings.BasePath, $"{txSubmissionId}.txsigned");
         var txSignedJson = $"{{ \"type\": \"Tx MaryEra\", \"description\": \"\", \"cborHex\": \"{Convert.ToHexString(txSignedBinary)}\"}}";
-        File.WriteAllText(txSignedJsonPath, txSignedJson);
+        await File.WriteAllTextAsync(txSignedJsonPath, txSignedJson).ConfigureAwait(false);
 
         var sw = Stopwatch.StartNew();
         var txHash = string.Empty;
@@ -42,7 +42,7 @@ public class CardanoCliTxSubmitter : ITxSubmitter
             var rawTxSubmissionResponse = await Command.ReadAsync(
                     "cardano-cli", string.Join(" ",
                         "transaction", "submit",
-                        GetNetworkParameter(),
+                        _networkMagic,
                         "--tx-file", txSignedJsonPath
                     ), noEcho: true, cancellationToken: ct);
 
@@ -67,12 +67,5 @@ public class CardanoCliTxSubmitter : ITxSubmitter
         {
             _logger.LogInformation($"Tx submitted after {sw.ElapsedMilliseconds}ms:{Environment.NewLine}{txHash}");
         }
-    }
-
-    private string GetNetworkParameter()
-    {
-        return _settings.Network == Network.Mainnet
-            ? "--mainnet"
-            : "--testnet-magic 1097911063";
     }
 }

@@ -67,3 +67,16 @@ public record PurchaseAttempt(
     Utxo Utxo,
     int NiftyQuantityRequested,
     long ChangeInLovelace);
+
+public enum NiftyDistributionOutcome { 
+    Successful = 1, SuccessfulAfterRetry, FailureTxBuild, FailureTxSubmit, FailureUnknown };
+
+public record NiftyDistributionResult(
+    NiftyDistributionOutcome Outcome,
+    PurchaseAttempt PurchaseAttempt,
+    string? MintTxBodyJson,
+    string? MintTxHash = null,
+    Nifty[]? NiftiesDistributed = null,
+    Exception? Exception = null);
+
+
