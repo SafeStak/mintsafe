@@ -1,12 +1,12 @@
 ﻿using Azure;
 using Azure.Data.Tables;
 
-namespace Mintsafe.DataAccess.Repositories
+namespace Mintsafe.DataAccess.Extensions
 {
-    public abstract class RepositoryBase
+    internal static class AsyncPageableExtensions
     {
-        //TODO to extension method
-        internal async Task<IList<TableEntity>> GetAllAsync(AsyncPageable<TableEntity> tableQuery, CancellationToken ct)
+        //TODO is this the best method?
+        internal static async Task<IList<TableEntity>> GetAllAsync(this AsyncPageable<TableEntity> tableQuery, CancellationToken ct)
         {
             var entities = new List<TableEntity>();
             await foreach (Page<TableEntity> page in tableQuery.AsPages().WithCancellation(ct))

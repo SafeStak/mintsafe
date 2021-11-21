@@ -1,6 +1,7 @@
 ﻿using Azure.Data.Tables;
 using Microsoft.Extensions.Azure;
 using Mintsafe.Abstractions;
+using Mintsafe.DataAccess.Extensions;
 
 namespace Mintsafe.DataAccess.Repositories
 {
@@ -9,7 +10,7 @@ namespace Mintsafe.DataAccess.Repositories
         Task<NiftyCollection> GetById(Guid collectionId, CancellationToken ct);
     }
 
-    public class NiftyCollectionRepository : RepositoryBase, INiftyCollectionRepository
+    public class NiftyCollectionRepository : INiftyCollectionRepository
     {
         private readonly TableClient _niftyClient;
 
@@ -20,11 +21,12 @@ namespace Mintsafe.DataAccess.Repositories
 
         public async Task<NiftyCollection> GetById(Guid id, CancellationToken ct)
         {
-            var niftyQuery = _niftyClient.QueryAsync<TableEntity>(x => x.RowKey == id.ToString()); //TODO define RowKey & PartitionKey
-            var sales = await GetAllAsync(niftyQuery, ct);
+            var niftyCollectionQuery = _niftyClient.QueryAsync<TableEntity>(x => x.RowKey == id.ToString()); //TODO define RowKey & PartitionKey
+            var sales = await niftyCollectionQuery.GetAllAsync(ct);
             return sales.Select(MapTableEntityToNiftyCollection).FirstOrDefault(); //TODO
         }
 
+        //TODO mapper class
         private NiftyCollection MapTableEntityToNiftyCollection(TableEntity tableEntity)
         {
             return new NiftyCollection();
