@@ -12,8 +12,6 @@ namespace Mintsafe.Lib;
 
 public class NiftyDistributor : INiftyDistributor
 {
-    private const int MinLovelaceUtxo = 2000000;
-
     private readonly ILogger<NiftyDistributor> _logger;
     private readonly MintsafeAppSettings _settings;
     private readonly IMetadataFileGenerator _metadataGenerator;
@@ -58,9 +56,13 @@ public class NiftyDistributor : INiftyDistributor
         _logger.LogInformation($"{nameof(_txRetriever.GetTxInfoAsync)} completed after {sw.ElapsedMilliseconds}ms");
 
         // Map UtxoValues for new tokens
-        long buyerLovelacesReturned = MinLovelaceUtxo + purchaseAttempt.ChangeInLovelace;
         var tokenMintUtxoValues = nfts.Select(n => new Value($"{collection.PolicyId}.{n.AssetName}", 1)).ToArray();
-        var buyerOutputUtxoValues = GetBuyerTxOutputUtxoValues(tokenMintUtxoValues, buyerLovelacesReturned);
+        // Chicken-and-egg bit to calculate the minimum output lovelace value after building the tx output back to the buyer
+        // Then mutating the lovelace value quantity with the calculated minLovelaceUtxo
+        var buyerOutputUtxoValues = GetBuyerTxOutputUtxoValues(tokenMintUtxoValues, lovelacesReturned: 0);
+        var minLovelaceUtxo = TxUtils.CalculateMinUtxoLovelace(buyerOutputUtxoValues);
+        long buyerLovelacesReturned = minLovelaceUtxo + purchaseAttempt.ChangeInLovelace;
+        buyerOutputUtxoValues[0].Quantity = buyerLovelacesReturned;
         var proceedsAddressLovelaces = purchaseAttempt.Utxo.Lovelaces - buyerLovelacesReturned;
         var proceedsAddressUtxoValues = new[] { new Value(Assets.LovelaceUnit, proceedsAddressLovelaces) };
 
@@ -128,11 +130,11 @@ public class NiftyDistributor : INiftyDistributor
         Value[] tokenMintValues, long lovelacesReturned)
     {
         var tokenOutputUtxoValues = new Value[tokenMintValues.Length + 1];
+        tokenOutputUtxoValues[0] = new Value(Assets.LovelaceUnit, lovelacesReturned);
         for (var i = 0; i < tokenMintValues.Length; i++)
         {
-            tokenOutputUtxoValues[i] = tokenMintValues[i];
+            tokenOutputUtxoValues[i+1] = tokenMintValues[i];
         }
-        tokenOutputUtxoValues[tokenMintValues.Length] = new Value(Assets.LovelaceUnit, lovelacesReturned);
         return tokenOutputUtxoValues;
     }
 

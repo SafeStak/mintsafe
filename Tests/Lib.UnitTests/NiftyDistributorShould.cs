@@ -214,15 +214,16 @@ public class NiftyDistributorShould
         Nifty[] nifties,
         string policyId)
     {
-        var output = buildCommand.Outputs.First(output => output.Address == buyerAddress);
-        var outputLovelace = output.Values.First(v => v.Unit == Assets.LovelaceUnit).Quantity;
+        var buyerOutput = buildCommand.Outputs.First(output => output.Address == buyerAddress);
+        var buyerOutputLovelace = buyerOutput.Values.First(v => v.Unit == Assets.LovelaceUnit).Quantity;
 
+        var minUtxoLovelaceQuantity = TxUtils.CalculateMinUtxoLovelace(buyerOutput.Values);
         var expectedNiftyAssetNames = nifties.Select(n => $"{policyId}.{n.AssetName}").ToArray();
-        var allSingleNiftyOutputs = output.Values
+        var allSingleNiftyOutputs = buyerOutput.Values
             .Where(v => v.Unit != Assets.LovelaceUnit)
             .All(v => expectedNiftyAssetNames.Contains(v.Unit) && v.Quantity == 1);
 
-        return (outputLovelace == changeInLovelace + 2000000) && allSingleNiftyOutputs;
+        return (buyerOutputLovelace == changeInLovelace + minUtxoLovelaceQuantity) && allSingleNiftyOutputs;
     }
 
     private static bool IsProceedsOutputCorrect(
@@ -231,10 +232,12 @@ public class NiftyDistributorShould
         long purchaseLovelaces,
         long changeInLovelace)
     {
-        var output = buildCommand.Outputs.First(output => output.Address == proceedsAddress);
-        var outputLovelace = output.Values.First(v => v.Unit == Assets.LovelaceUnit).Quantity;
+        var buyerOutput = buildCommand.Outputs.First(output => output.Address != proceedsAddress);
+        var proceedsOutput = buildCommand.Outputs.First(output => output.Address == proceedsAddress);
+        var outputLovelace = proceedsOutput.Values.First(v => v.Unit == Assets.LovelaceUnit).Quantity;
+        var minUtxoLovelaceQuantity = TxUtils.CalculateMinUtxoLovelace(buyerOutput.Values);
 
-        return outputLovelace == purchaseLovelaces - changeInLovelace - 2000000;
+        return outputLovelace == purchaseLovelaces - changeInLovelace - minUtxoLovelaceQuantity;
     }
 
     private static bool IsMintCorrect(

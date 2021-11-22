@@ -164,7 +164,7 @@ public class YoloWalletService : IYoloWalletService
         _logger.LogInformation($"Generated yolo signing key at {skeyPath} for {sourceAddress} after {sw.ElapsedMilliseconds}ms");
 
         // Determine change and build Tx
-        var changeValues = SubtractValues(combinedAssetValues, values);
+        var changeValues = combinedAssetValues.SubtractValues(values);
         var txBuildCommand = new TxBuildCommand(
             utxosAtSourceAddress,
             new[] {
@@ -188,20 +188,5 @@ public class YoloWalletService : IYoloWalletService
         return txHash;
     }
 
-    private static Value[] SubtractValues(
-        Value[] lhsValues, Value[] rhsValues)
-    {
-        static Value SubtractSingleValue(Value lhsValue, Value rhsValue)
-        {
-            return rhsValue == default
-                ? lhsValue
-                : new Value(lhsValue.Unit, lhsValue.Quantity - rhsValue.Quantity);
-        };
-
-        var diff = lhsValues
-            .Select(lv => SubtractSingleValue(lv, rhsValues.FirstOrDefault(rv => rv.Unit == lv.Unit)))
-            .ToArray();
-
-        return diff;
-    }
+ 
 }
