@@ -29,7 +29,7 @@ namespace Mintsafe.DataAccess.Repositories
         //TODO mapper class
         private Nifty MapTableEntityToNifty(TableEntity tableEntity)
         {
-            return new Nifty();
+            return null;
         }
     }
 }

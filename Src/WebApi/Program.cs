@@ -4,6 +4,12 @@ using Microsoft.Extensions.Hosting;
 using Mintsafe.Abstractions;
 using Mintsafe.Lib;
 using System;
+using Azure.Data.Tables;
+using Azure.Identity;
+using Microsoft.Extensions.Azure;
+using Mintsafe.DataAccess;
+using Mintsafe.DataAccess.Mapping;
+using Mintsafe.DataAccess.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,8 +40,53 @@ builder.Services.AddSingleton<IMetadataFileGenerator, MetadataFileGenerator>();
 builder.Services.AddSingleton<INiftyDistributor, NiftyDistributor>();
 builder.Services.AddSingleton<IUtxoRefunder, UtxoRefunder>();
 
+// Data Access
+
+builder.Services.AddSingleton<INiftyDataService, TableStorageDataService>();
+builder.Services.AddSingleton<INiftyCollectionRepository, NiftyCollectionRepository>();
+builder.Services.AddSingleton<INiftyRepository, NiftyRepository>();
+builder.Services.AddSingleton<ISaleRepository, SaleRepository>();
+builder.Services.AddSingleton<ISaleMapper, SaleMapper>();
+
+builder.Services.AddAzureClients(clientBuilder =>
+{
+    var connectionString = builder.Configuration.GetSection("Storage:ConnectionString").Value;
+
+    //TODO Cleanup here try and use .AddTableClient
+
+    clientBuilder.AddClient<TableClient, TableClientOptions>((provider, credential, options) =>
+    {
+        var tableClient = new TableClient(connectionString, "NiftyCollection");
+        tableClient.CreateIfNotExists();
+        return tableClient;
+    }).WithName("NiftyCollection");
+
+    clientBuilder.AddClient<TableClient, TableClientOptions>((provider, credential, options) =>
+    {
+        var tableClient = new TableClient(connectionString, "Nifty");
+        tableClient.CreateIfNotExists();
+        return tableClient;
+    }).WithName("Nifty");
+
+    clientBuilder.AddClient<TableClient, TableClientOptions>((provider, credential, options) =>
+    {
+        var tableClient = new TableClient(connectionString, "Sales");
+        tableClient.CreateIfNotExists();
+        return tableClient;
+    }).WithName("Sales");
+
+    // Use DefaultAzureCredential by default
+    clientBuilder.UseCredential(new DefaultAzureCredential());
+
+    // Set up any default settings
+    clientBuilder.ConfigureDefaults(builder.Configuration.GetSection("AzureDefaults"));
+});
+
+//TODO
+builder.Services.AddSingleton<IMetadataJsonBuilder, MetadataJsonBuilder>();
+
 // Fakes
-builder.Services.AddSingleton<INiftyDataService, LocalNiftyDataService>();
+//builder.Services.AddSingleton<INiftyDataService, LocalNiftyDataService>();
 builder.Services.AddSingleton<IUtxoRetriever, FakeUtxoRetriever>();
 builder.Services.AddSingleton<ITxInfoRetriever, FakeTxIoRetriever>();
 builder.Services.AddSingleton<ITxBuilder, FakeTxBuilder>();
