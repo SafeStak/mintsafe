@@ -1,49 +1,49 @@
-﻿using Azure.Data.Tables;
-using Mintsafe.Abstractions;
+﻿using Mintsafe.Abstractions;
 
 namespace Mintsafe.DataAccess.Mapping
 {
-    public interface ISaleMapper : ITableMapper<Sale> { }
+    public interface ISaleMapper
+    {
+        DTOs.Sale ToDto(Sale sale);
+        Sale FromDto(DTOs.Sale saleDto);
+    }
 
     public class SaleMapper : ISaleMapper
     {
-        public TableEntity ToTableEntity(Sale sale)
+        public DTOs.Sale ToDto(Sale sale)
         {
-            var tableEntity = new TableEntity
+            return new DTOs.Sale() //TODO System properties e.g eTag
             {
                 RowKey = sale.Id.ToString(),
                 PartitionKey = sale.CollectionId.ToString(),
-                ["IsActive"] = sale.IsActive,
-                ["Name"] = sale.Name,
-                ["Description"] = sale.Description,
-                ["LovelacesPerToken"] = sale.LovelacesPerToken,
-                ["SaleAddress"] = sale.SaleAddress,
-                ["ProceedsAddress"] = sale.ProceedsAddress,
-                ["TotalReleaseQuantity"] = sale.TotalReleaseQuantity,
-                ["MaxAllowedPurchaseQuantity"] = sale.MaxAllowedPurchaseQuantity,
-                ["Start"] = sale.Start, //TODO datetime tostring serialisation
-                ["End"] = sale.End //TODO datetime tostring serialisation
+                IsActive = sale.IsActive,
+                Name = sale.Name,
+                Description = sale.Description,
+                LovelacesPerToken = sale.LovelacesPerToken,
+                SaleAddress = sale.SaleAddress,
+                ProceedsAddress = sale.ProceedsAddress,
+                TotalReleaseQuantity = sale.TotalReleaseQuantity,
+                MaxAllowedPurchaseQuantity = sale.MaxAllowedPurchaseQuantity,
+                Start = sale.Start,
+                End = sale.End
             };
-
-            return tableEntity;
         }
 
-        public Sale FromTableEntity(TableEntity tableEntity)
+        public Sale FromDto(DTOs.Sale saleDto)
         {
-            //TODO generic type parsing
             return new Sale(
-                Guid.Parse(tableEntity.RowKey),
-                Guid.Parse(tableEntity.PartitionKey),
-                (bool)tableEntity["IsActive"],
-                (string)tableEntity["Name"],
-                (string)tableEntity["Description"],
-                (long)tableEntity["LovelacesPerToken"],
-                (string)tableEntity["SaleAddress"],
-                (string)tableEntity["ProceedsAddress"],
-                (int)tableEntity["TotalReleaseQuantity"],
-                (int)tableEntity["MaxAllowedPurchaseQuantity"],
-                (DateTime?)tableEntity["Start"],
-                (DateTime?)tableEntity["End"]
+                Guid.Parse(saleDto.RowKey),
+                Guid.Parse(saleDto.PartitionKey),
+                saleDto.IsActive,
+                saleDto.Name,
+                saleDto.Description,
+                saleDto.LovelacesPerToken,
+                saleDto.SaleAddress,
+                saleDto.ProceedsAddress,
+                saleDto.TotalReleaseQuantity,
+                saleDto.MaxAllowedPurchaseQuantity,
+                saleDto.Start,
+                saleDto.End
                 );
         }
     }

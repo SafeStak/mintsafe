@@ -20,28 +20,28 @@ namespace Mintsafe.DataAccess.Repositories
 
         public SaleRepository(IAzureClientFactory<TableClient> tableClientFactory, ISaleMapper saleMapper)
         {
-            _saleClient = tableClientFactory.CreateClient("Sales");
+            _saleClient = tableClientFactory.CreateClient("Sale");
             _saleMapper = saleMapper;
         }
         
         public async Task<IEnumerable<Sale>> GetByCollectionId(Guid collectionId, CancellationToken ct)
         {
-            var saleQuery = _saleClient.QueryAsync<TableEntity>(x => x.PartitionKey == collectionId.ToString()); //TODO define RowKey & PartitionKey
+            var saleQuery = _saleClient.QueryAsync<DTOs.Sale>(x => x.PartitionKey == collectionId.ToString()); //TODO unit test queries
             var sales = await saleQuery.GetAllAsync(ct);
-            return sales.Select(_saleMapper.FromTableEntity);
+            return sales.Select(_saleMapper.FromDto);
         }
 
         public async Task InsertOneAsync(Sale sale, CancellationToken ct)
         {
             //TODO set Id?
-            var tableEntity = _saleMapper.ToTableEntity(sale);
-            await _saleClient.AddEntityAsync(tableEntity, ct);
+            var saleDto = _saleMapper.ToDto(sale);
+            await _saleClient.AddEntityAsync(saleDto, ct);
         }
 
         public async Task UpsertOneAsync(Sale sale, CancellationToken ct) //TODO Can update individual values and TableUpdateMode.Merge
         {
-            var tableEntity = _saleMapper.ToTableEntity(sale);
-            await _saleClient.UpsertEntityAsync(tableEntity, TableUpdateMode.Replace, ct);
+            var saleDto = _saleMapper.ToDto(sale);
+            await _saleClient.UpsertEntityAsync(saleDto, TableUpdateMode.Merge, ct);
         }
     }
 }

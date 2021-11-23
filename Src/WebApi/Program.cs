@@ -44,7 +44,9 @@ builder.Services.AddSingleton<IUtxoRefunder, UtxoRefunder>();
 
 builder.Services.AddSingleton<INiftyDataService, TableStorageDataService>();
 builder.Services.AddSingleton<INiftyCollectionRepository, NiftyCollectionRepository>();
+builder.Services.AddSingleton<INiftyCollectionMapper, NiftyCollectionMapper>();
 builder.Services.AddSingleton<INiftyRepository, NiftyRepository>();
+builder.Services.AddSingleton<INiftyMapper, NiftyMapper>();
 builder.Services.AddSingleton<ISaleRepository, SaleRepository>();
 builder.Services.AddSingleton<ISaleMapper, SaleMapper>();
 
@@ -53,7 +55,7 @@ builder.Services.AddAzureClients(clientBuilder =>
     var connectionString = builder.Configuration.GetSection("Storage:ConnectionString").Value;
 
     //TODO Cleanup here try and use .AddTableClient
-
+    
     clientBuilder.AddClient<TableClient, TableClientOptions>((provider, credential, options) =>
     {
         var tableClient = new TableClient(connectionString, "NiftyCollection");
@@ -70,10 +72,10 @@ builder.Services.AddAzureClients(clientBuilder =>
 
     clientBuilder.AddClient<TableClient, TableClientOptions>((provider, credential, options) =>
     {
-        var tableClient = new TableClient(connectionString, "Sales");
+        var tableClient = new TableClient(connectionString, "Sale");
         tableClient.CreateIfNotExists();
         return tableClient;
-    }).WithName("Sales");
+    }).WithName("Sale");
 
     // Use DefaultAzureCredential by default
     clientBuilder.UseCredential(new DefaultAzureCredential());

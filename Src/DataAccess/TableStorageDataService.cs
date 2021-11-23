@@ -18,12 +18,23 @@ namespace Mintsafe.DataAccess
 
         public async Task<CollectionAggregate> GetCollectionAggregateAsync(Guid collectionId, CancellationToken ct = default)
         {
-            //TODO in parallel for performance?
-            var niftyCollection = await _niftyCollectionRepository.GetById(collectionId, ct);
-            var niftys = await _niftyRepository.GetByCollectionId(collectionId, ct);
-            var sales = await _saleRepository.GetByCollectionId(collectionId, ct);
+            var niftyCollectionTask = _niftyCollectionRepository.GetById(collectionId, ct);
+            var niftyTask = _niftyRepository.GetByCollectionId(collectionId, ct);
+            var saleTask = _saleRepository.GetByCollectionId(collectionId, ct); //TODO get active only
 
-            return new CollectionAggregate(niftyCollection, niftys.ToArray(), sales.ToArray());
+            //instrumentation and exception handling - ILogger
+
+            await Task.WhenAll(niftyCollectionTask, niftyTask, saleTask);
+
+            var niftyCollection = await niftyCollectionTask;
+            var nifties = (await niftyTask).ToArray();
+            var sales = (await saleTask).ToArray();
+
+            //var fileTask = _niftyFileRepository.GetByNiftyIds(nifties.Select(x => x.Id), ct);
+
+            //TODO CollectionAggregate composer
+
+            return new CollectionAggregate(niftyCollection, nifties, sales);
         }
     }
 }
