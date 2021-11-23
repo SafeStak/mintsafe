@@ -1,10 +1,8 @@
 ﻿using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text.Json;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Mintsafe.Lib.UnitTests;
