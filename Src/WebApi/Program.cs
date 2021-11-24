@@ -8,6 +8,7 @@ using Azure.Data.Tables;
 using Azure.Identity;
 using Microsoft.Extensions.Azure;
 using Mintsafe.DataAccess;
+using Mintsafe.DataAccess.Composers;
 using Mintsafe.DataAccess.Mapping;
 using Mintsafe.DataAccess.Repositories;
 
@@ -49,6 +50,10 @@ builder.Services.AddSingleton<INiftyRepository, NiftyRepository>();
 builder.Services.AddSingleton<INiftyMapper, NiftyMapper>();
 builder.Services.AddSingleton<ISaleRepository, SaleRepository>();
 builder.Services.AddSingleton<ISaleMapper, SaleMapper>();
+builder.Services.AddSingleton<INiftyFileRepository, NiftyFileRepository>();
+builder.Services.AddSingleton<INiftyFileMapper, NiftyFileMapper>();
+
+builder.Services.AddSingleton<ICollectionAggregateComposer, CollectionAggregateComposer>();
 
 builder.Services.AddAzureClients(clientBuilder =>
 {
@@ -76,6 +81,13 @@ builder.Services.AddAzureClients(clientBuilder =>
         tableClient.CreateIfNotExists();
         return tableClient;
     }).WithName("Sale");
+
+    clientBuilder.AddClient<TableClient, TableClientOptions>((provider, credential, options) =>
+    {
+        var tableClient = new TableClient(connectionString, "NiftyFile");
+        tableClient.CreateIfNotExists();
+        return tableClient;
+    }).WithName("NiftyFile");
 
     // Use DefaultAzureCredential by default
     clientBuilder.UseCredential(new DefaultAzureCredential());

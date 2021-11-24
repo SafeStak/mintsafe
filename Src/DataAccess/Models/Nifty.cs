@@ -1,8 +1,9 @@
 ﻿using System.Runtime.Serialization;
+using System.Text.Json;
 using Azure;
 using Azure.Data.Tables;
 
-namespace Mintsafe.DataAccess.DTOs
+namespace Mintsafe.DataAccess.Models
 {
     public class Nifty : ITableEntity
     {
@@ -29,8 +30,15 @@ namespace Mintsafe.DataAccess.DTOs
         public string Version { get; set; }
         public double RoyaltyPortion { get; set; }
         public string RoyaltyAddress { get; set; }
-        
-        //TODO Attributes as JSON
+
+        [IgnoreDataMember]
+        public IEnumerable<KeyValuePair<string, string>> Attributes { get; set; }
+
+        public string AttributesAsString
+        {
+            get => JsonSerializer.Serialize(Attributes);
+            set => Attributes = JsonSerializer.Deserialize<IEnumerable<KeyValuePair<string, string>>>(value)!; //TODO handle nulls
+        }
 
         public DateTimeOffset? Timestamp { get; set; }
         public ETag ETag { get; set; }

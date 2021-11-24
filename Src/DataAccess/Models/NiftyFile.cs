@@ -1,7 +1,7 @@
 ﻿using Azure;
 using Azure.Data.Tables;
 
-namespace Mintsafe.DataAccess.DTOs
+namespace Mintsafe.DataAccess.Models
 {
     public class NiftyFile : ITableEntity
     {

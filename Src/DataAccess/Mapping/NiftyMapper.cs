@@ -4,15 +4,15 @@ namespace Mintsafe.DataAccess.Mapping
 {
     public interface INiftyMapper
     {
-        Nifty FromDto(DTOs.Nifty dtoNifty);
-        DTOs.Nifty ToDto(Nifty nifty);
+        Nifty Map(Models.Nifty dtoNifty);
+        Models.Nifty Map(Nifty nifty);
     }
 
     public class NiftyMapper : INiftyMapper
     {
-        public DTOs.Nifty ToDto(Nifty nifty)
+        public Models.Nifty Map(Nifty nifty)
         {
-            return new DTOs.Nifty()
+            return new Models.Nifty()
             {
                 RowKey = nifty.Id.ToString(),
                 PartitionKey = nifty.CollectionId.ToString(),
@@ -26,11 +26,12 @@ namespace Mintsafe.DataAccess.Mapping
                 CreatedAt = nifty.CreatedAt,
                 Version = nifty.Version,
                 RoyaltyAddress = nifty.Royalty.Address,
-                RoyaltyPortion = nifty.Royalty.PortionOfSale
+                RoyaltyPortion = nifty.Royalty.PortionOfSale,
+                Attributes = nifty.Attributes
             };
         }
 
-        public Nifty FromDto(DTOs.Nifty dtoNifty)
+        public Nifty Map(Models.Nifty dtoNifty)
         {
             return new Nifty(
                 Guid.Parse(dtoNifty.RowKey),
@@ -42,11 +43,11 @@ namespace Mintsafe.DataAccess.Mapping
                 dtoNifty.Creators,
                 dtoNifty.Image,
                 dtoNifty.MediaType,
-                null, //TODO map later on not in repo
+                Array.Empty<NiftyFile>(), //TODO map later on not in repo
                 dtoNifty.CreatedAt,
                 new Royalty(dtoNifty.RoyaltyPortion, dtoNifty.RoyaltyAddress),
                 dtoNifty.Version,
-                null //TODO dictionary flatten
+                dtoNifty.Attributes
                 );
         }
     }

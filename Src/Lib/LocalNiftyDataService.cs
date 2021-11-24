@@ -106,9 +106,9 @@ public class LocalNiftyDataService : INiftyDataService
                 creatorsCsv.Split(','),
                 $"{urlBase}{i + 2}",
                 mediaType,
-                new[] {
-                        new NiftyFile(Guid.NewGuid(), "full_res_png", "image/png", $"{urlBase}{i}"),
-                        new NiftyFile(Guid.NewGuid(), "specs_pdf", "application/pdf", $"{urlBase}{i+1}")
+                new NiftyFile[] {
+                        //new NiftyFile(Guid.NewGuid(), "full_res_png", "image/png", $"{urlBase}{i}"),
+                        //new NiftyFile(Guid.NewGuid(), "specs_pdf", "application/pdf", $"{urlBase}{i+1}")
                 },
                 dateTimeParsed.AddDays(i),
                 new Royalty(royaltyPortion, royaltyAddress),

@@ -4,14 +4,14 @@ namespace Mintsafe.DataAccess.Mapping
 {
     public interface INiftyCollectionMapper
     {
-        NiftyCollection FromDto(DTOs.NiftyCollection dtoNiftyCollection);
-        DTOs.NiftyCollection ToDto(NiftyCollection niftyCollection);
+        NiftyCollection Map(Models.NiftyCollection dtoNiftyCollection);
+        Models.NiftyCollection Map(NiftyCollection niftyCollection);
     }
     public class NiftyCollectionMapper : INiftyCollectionMapper
     {
-        public DTOs.NiftyCollection ToDto(NiftyCollection niftyCollection)
+        public Models.NiftyCollection Map(NiftyCollection niftyCollection)
         {
-            return new DTOs.NiftyCollection()
+            return new Models.NiftyCollection()
             {
                 RowKey = niftyCollection.Id.ToString(),
                 PartitionKey = niftyCollection.PolicyId, //TODO PolicyId? Creator?,
@@ -27,7 +27,7 @@ namespace Mintsafe.DataAccess.Mapping
             };
         }
 
-        public NiftyCollection FromDto(DTOs.NiftyCollection dtoNiftyCollection)
+        public NiftyCollection Map(Models.NiftyCollection dtoNiftyCollection)
         {
             return new NiftyCollection(
                 Guid.Parse(dtoNiftyCollection.RowKey),

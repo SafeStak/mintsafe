@@ -94,7 +94,7 @@ namespace Mintsafe.Lib
                     Publishers = collection.Publishers,
                     Files = nft.Files.Select(
                         f => new CnftStandardFile { Name = f.Name, MediaType = f.MediaType, Src = f.Url, Hash = f.FileHash }).ToArray(),
-                    Attributes = nft.Attributes
+                    //Attributes = nft.Attributes
                 };
                 nftDictionary.Add(nft.AssetName, nftAsset);
             }
