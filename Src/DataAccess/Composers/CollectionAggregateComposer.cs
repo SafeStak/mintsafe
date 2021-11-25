@@ -12,9 +12,9 @@ namespace Mintsafe.DataAccess.Composers
         public CollectionAggregate Build(NiftyCollection collection, IEnumerable<Nifty> nifties, IEnumerable<Sale> sales, IEnumerable<NiftyFile> niftyFiles)
         {
             var activeSales = sales.Where(IsSaleOpen).ToArray();
-            var builtNifties = Build(nifties, niftyFiles); //TODO not built not hydrated, other word
+            var hydratedNifties = HydrateNifties(nifties, niftyFiles);
 
-            return new CollectionAggregate(collection, builtNifties, activeSales);
+            return new CollectionAggregate(collection, hydratedNifties, activeSales);
         }
 
         private static bool IsSaleOpen(Sale sale)
@@ -28,7 +28,7 @@ namespace Mintsafe.DataAccess.Composers
         }
 
         //TODO change from record so we can assign files property
-        private Nifty[] Build(IEnumerable<Nifty> nifties, IEnumerable<NiftyFile> niftyFiles)
+        private Nifty[] HydrateNifties(IEnumerable<Nifty> nifties, IEnumerable<NiftyFile> niftyFiles)
         {
             var returnNifties = new List<Nifty>();
             foreach (var nifty in nifties)

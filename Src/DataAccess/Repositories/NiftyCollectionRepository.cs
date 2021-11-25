@@ -9,7 +9,7 @@ namespace Mintsafe.DataAccess.Repositories
     public interface INiftyCollectionRepository
     {
         Task<NiftyCollection?> GetById(Guid collectionId, CancellationToken ct);
-        Task InsertOneAsync(NiftyCollection niftyCollection, CancellationToken ct);
+        Task UpsertOneAsync(NiftyCollection niftyCollection, CancellationToken ct);
     }
 
     public class NiftyCollectionRepository : INiftyCollectionRepository
@@ -30,10 +30,11 @@ namespace Mintsafe.DataAccess.Repositories
             return sales.Select(_niftyCollectionMapper.Map).FirstOrDefault();
         }
 
-        public async Task InsertOneAsync(NiftyCollection niftyCollection, CancellationToken ct)
+        public async Task UpsertOneAsync(NiftyCollection niftyCollection, CancellationToken ct)
         {
+            //TODO assign new guid as id
             var niftyCollectionDto = _niftyCollectionMapper.Map(niftyCollection);
-            await _niftyCollectionClient.AddEntityAsync(niftyCollectionDto, ct);
+            await _niftyCollectionClient.UpsertEntityAsync(niftyCollectionDto, TableUpdateMode.Merge, ct);
         }
     }
 }

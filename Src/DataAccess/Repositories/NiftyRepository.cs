@@ -9,7 +9,8 @@ namespace Mintsafe.DataAccess.Repositories
     public interface INiftyRepository
     {
         Task<IEnumerable<Nifty>> GetByCollectionId(Guid collectionId, CancellationToken ct);
-        Task InsertOneAsync(Nifty nifty, CancellationToken ct);
+        Task UpsertOneAsync(Nifty nifty, CancellationToken ct);
+        Task UpsertManyAsync(IEnumerable<Nifty> nifties, CancellationToken ct);
     }
 
     public class NiftyRepository : INiftyRepository
@@ -31,10 +32,20 @@ namespace Mintsafe.DataAccess.Repositories
             return sales.Select(_niftyMapper.Map);
         }
 
-        public async Task InsertOneAsync(Nifty nifty, CancellationToken ct)
+        public async Task UpsertOneAsync(Nifty nifty, CancellationToken ct)
         {
+            //TODO assign new guid as id
             var niftyCollectionDto = _niftyMapper.Map(nifty);
-            await _niftyClient.AddEntityAsync(niftyCollectionDto, ct);
+            await _niftyClient.UpsertEntityAsync(niftyCollectionDto,TableUpdateMode.Merge, ct);
+        }
+
+        public async Task UpsertManyAsync(IEnumerable<Nifty> nifties, CancellationToken ct)
+        {
+            //TODO assign new guid as id
+            var niftyDtos = nifties.Select(_niftyMapper.Map);
+            List<TableTransactionAction> addEntitiesBatch = new List<TableTransactionAction>();
+            addEntitiesBatch.AddRange(niftyDtos.Select(nfc => new TableTransactionAction(TableTransactionActionType.UpsertMerge, nfc)));
+            await _niftyClient.SubmitTransactionAsync(addEntitiesBatch, ct).ConfigureAwait(false);
         }
     }
 }

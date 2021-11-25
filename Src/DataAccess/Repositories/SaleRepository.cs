@@ -9,7 +9,6 @@ namespace Mintsafe.DataAccess.Repositories
     public interface ISaleRepository
     {
         Task<IEnumerable<Sale>> GetByCollectionId(Guid collectionId, CancellationToken ct);
-        Task InsertOneAsync(Sale sale, CancellationToken ct);
         Task UpsertOneAsync(Sale sale, CancellationToken ct);
     }
 
@@ -26,20 +25,14 @@ namespace Mintsafe.DataAccess.Repositories
         
         public async Task<IEnumerable<Sale>> GetByCollectionId(Guid collectionId, CancellationToken ct)
         {
-            var saleQuery = _saleClient.QueryAsync<Models.Sale>(x => x.PartitionKey == collectionId.ToString()); //TODO unit test queries
+            var saleQuery = _saleClient.QueryAsync<Models.Sale>(x => x.PartitionKey == collectionId.ToString());
             var sales = await saleQuery.GetAllAsync(ct);
             return sales.Select(_saleMapper.Map);
         }
 
-        public async Task InsertOneAsync(Sale sale, CancellationToken ct)
+        public async Task UpsertOneAsync(Sale sale, CancellationToken ct)
         {
-            //TODO set Id?
-            var saleDto = _saleMapper.Map(sale);
-            await _saleClient.AddEntityAsync(saleDto, ct);
-        }
-
-        public async Task UpsertOneAsync(Sale sale, CancellationToken ct) //TODO Can update individual values and TableUpdateMode.Merge
-        {
+            //TODO assign new guid as id
             var saleDto = _saleMapper.Map(sale);
             await _saleClient.UpsertEntityAsync(saleDto, TableUpdateMode.Merge, ct);
         }
