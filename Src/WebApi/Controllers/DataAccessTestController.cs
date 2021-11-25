@@ -58,7 +58,7 @@ namespace Mintsafe.WebApi.Controllers
 
             var niftyFile1 = new NiftyFile(Guid.NewGuid(), niftyId, "file1.file", "image/jpeg", "http://url.com", "hash");
             var niftyFile2 = new NiftyFile(Guid.NewGuid(), niftyId, "file2.file", "image/jpeg", "http://url.com", "hash");
-            await _niftyFileRepository.UpsertManyAsync(new []{niftyFile1, niftyFile2}, ct);
+            await _niftyFileRepository.UpsertManyAsync(collectionId, new []{niftyFile1, niftyFile2}, ct);
 
             var sale = new Sale(Guid.NewGuid(), collectionId, true, "Jacob Test", string.Empty, 5, "hash", "hash2", 5, 10);
             await _saleRepository.UpsertOneAsync(sale, ct);

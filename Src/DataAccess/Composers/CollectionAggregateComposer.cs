@@ -4,12 +4,12 @@ namespace Mintsafe.DataAccess.Composers
 {
     public interface ICollectionAggregateComposer
     {
-        CollectionAggregate Build(NiftyCollection collection, IEnumerable<Nifty> nifties, IEnumerable<Sale> sales, IEnumerable<NiftyFile> niftyFiles);
+        CollectionAggregate Build(NiftyCollection? collection, IEnumerable<Nifty> nifties, IEnumerable<Sale> sales, IEnumerable<NiftyFile> niftyFiles);
     }
 
     public class CollectionAggregateComposer : ICollectionAggregateComposer
     {
-        public CollectionAggregate Build(NiftyCollection collection, IEnumerable<Nifty> nifties, IEnumerable<Sale> sales, IEnumerable<NiftyFile> niftyFiles)
+        public CollectionAggregate Build(NiftyCollection? collection, IEnumerable<Nifty> nifties, IEnumerable<Sale> sales, IEnumerable<NiftyFile> niftyFiles)
         {
             var activeSales = sales.Where(IsSaleOpen).ToArray();
             var hydratedNifties = HydrateNifties(nifties, niftyFiles);
@@ -19,12 +19,7 @@ namespace Mintsafe.DataAccess.Composers
 
         private static bool IsSaleOpen(Sale sale)
         {
-            if (!sale.IsActive
-                || (sale.Start.HasValue && sale.Start > DateTime.UtcNow)
-                || (sale.End.HasValue && sale.End < DateTime.UtcNow))
-                return false;
-
-            return true;
+            return sale.IsActive && (!sale.Start.HasValue || !(sale.Start > DateTime.UtcNow)) && (!sale.End.HasValue || !(sale.End < DateTime.UtcNow));
         }
 
         //TODO change from record so we can assign files property

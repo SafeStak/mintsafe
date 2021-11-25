@@ -5,7 +5,7 @@ namespace Mintsafe.DataAccess.Mapping
     public interface INiftyFileMapper
     {
         NiftyFile Map(Models.NiftyFile dtoNifty);
-        Models.NiftyFile Map(NiftyFile nifty);
+        Models.NiftyFile Map(Guid collectionId, NiftyFile nifty);
     }
 
     public class NiftyFileMapper : INiftyFileMapper
@@ -14,7 +14,7 @@ namespace Mintsafe.DataAccess.Mapping
         {
             return new NiftyFile(
                 Guid.Parse(niftyFileDto.RowKey),
-                Guid.Parse(niftyFileDto.PartitionKey),
+                Guid.Parse(niftyFileDto.NiftyId),
                 niftyFileDto.Name,
                 niftyFileDto.MediaType,
                 niftyFileDto.Url,
@@ -22,12 +22,13 @@ namespace Mintsafe.DataAccess.Mapping
             );
         }
 
-        public Models.NiftyFile Map(NiftyFile niftyFile)
+        public Models.NiftyFile Map(Guid collectionId, NiftyFile niftyFile)
         {
             return new Models.NiftyFile()
             {
                 RowKey = niftyFile.Id.ToString(),
-                PartitionKey = niftyFile.NiftyId.ToString(),
+                PartitionKey = collectionId.ToString(),
+                NiftyId = niftyFile.NiftyId.ToString(),
                 Name = niftyFile.Name,
                 MediaType = niftyFile.MediaType,
                 Url = niftyFile.Url,

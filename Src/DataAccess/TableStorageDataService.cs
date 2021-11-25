@@ -41,14 +41,14 @@ namespace Mintsafe.DataAccess
                 var niftyCollectionTask = _niftyCollectionRepository.GetById(collectionId, ct);
                 var niftyTask = _niftyRepository.GetByCollectionId(collectionId, ct);
                 var saleTask = _saleRepository.GetByCollectionId(collectionId, ct);
+                var niftyFileTask = _niftyFileRepository.GetByCollectionId(collectionId, ct);
 
-                await Task.WhenAll(niftyCollectionTask, niftyTask, saleTask);
+                await Task.WhenAll(niftyCollectionTask, niftyTask, saleTask, niftyFileTask);
 
                 niftyCollection = await niftyCollectionTask;
                 nifties = (await niftyTask).ToList();
                 sales = await saleTask;
-
-                niftyFiles = await _niftyFileRepository.GetByNiftyIds(nifties.Select(x => x.Id), ct);
+                niftyFiles = await niftyFileTask;
 
                 _logger.LogInformation($"Finished getting all entities for collectionId: {collectionId} from table storage after {sw.ElapsedMilliseconds}ms");
             }
@@ -59,6 +59,6 @@ namespace Mintsafe.DataAccess
             }
 
             return _collectionAggregateComposer.Build(niftyCollection, nifties, sales, niftyFiles);
-        }
+        }   
     }
 }
