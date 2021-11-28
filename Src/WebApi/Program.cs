@@ -59,10 +59,10 @@ builder.Services.AddAzureClients(clientBuilder =>
 {
     var connectionString = builder.Configuration.GetSection("Storage:ConnectionString").Value;
     
-    clientBuilder.AddTableClient(connectionString, Constants.NiftyCollectionTableName);
-    clientBuilder.AddTableClient(connectionString, Constants.NiftyTableName);
-    clientBuilder.AddTableClient(connectionString, Constants.SaleTableName);
-    clientBuilder.AddTableClient(connectionString, Constants.NiftyFileTableName);
+    clientBuilder.AddTableClient(connectionString, Constants.TableNames.NiftyCollection);
+    clientBuilder.AddTableClient(connectionString, Constants.TableNames.Nifty);
+    clientBuilder.AddTableClient(connectionString, Constants.TableNames.Sale);
+    clientBuilder.AddTableClient(connectionString, Constants.TableNames.NiftyFile);
 });
 
 //TODO

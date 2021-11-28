@@ -2,9 +2,17 @@
 {
     public class Constants
     {
-        public const string NiftyCollectionTableName = "NiftyCollection";
-        public const string NiftyFileTableName = "NiftyFile";
-        public const string NiftyTableName = "Nifty";
-        public const string SaleTableName = "Sale";
+        public class TableNames
+        {
+            public const string NiftyCollection = "NiftyCollection";
+            public const string NiftyFile = "NiftyFile";
+            public const string Nifty = "Nifty";
+            public const string Sale = "Sale";
+        }
+
+        public class EventIds
+        {
+            public const int FailedToRetrieve = 100;
+        }
     }
 }

@@ -19,7 +19,7 @@ namespace Mintsafe.DataAccess.Repositories
 
         public SaleRepository(IAzureClientFactory<TableClient> tableClientFactory)
         {
-            _saleClient = tableClientFactory.CreateClient(Constants.SaleTableName);
+            _saleClient = tableClientFactory.CreateClient(Constants.TableNames.Sale);
         }
         
         public async Task<IEnumerable<Sale>> GetByCollectionId(Guid collectionId, CancellationToken ct)

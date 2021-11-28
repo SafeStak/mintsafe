@@ -2,9 +2,8 @@
 using Microsoft.Extensions.Logging;
 using Mintsafe.Abstractions;
 using Mintsafe.DataAccess.Composers;
-using Mintsafe.DataAccess.Mapping;
-using Mintsafe.DataAccess.Models;
 using Mintsafe.DataAccess.Repositories;
+using Mintsafe.DataAccess.Supporting;
 
 namespace Mintsafe.DataAccess
 {
@@ -56,7 +55,7 @@ namespace Mintsafe.DataAccess
             }
             catch (Exception e)
             {
-                _logger.LogError(100, e, $"Failed to retrieve entities from table storage for collectionId: {collectionId}");
+                _logger.LogError(Constants.EventIds.FailedToRetrieve, e, $"Failed to retrieve entities from table storage for collectionId: {collectionId}");
                 throw;
             }
 

@@ -21,7 +21,7 @@ namespace Mintsafe.DataAccess.Repositories
 
         public NiftyRepository(IAzureClientFactory<TableClient> tableClientFactory)
         {
-            _niftyClient = tableClientFactory.CreateClient(Constants.NiftyTableName);
+            _niftyClient = tableClientFactory.CreateClient(Constants.TableNames.Nifty);
         }
 
         public async Task<IEnumerable<Nifty>> GetByCollectionId(Guid collectionId, CancellationToken ct)
