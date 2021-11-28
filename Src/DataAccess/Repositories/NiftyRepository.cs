@@ -3,14 +3,15 @@ using Microsoft.Extensions.Azure;
 using Mintsafe.Abstractions;
 using Mintsafe.DataAccess.Extensions;
 using Mintsafe.DataAccess.Mapping;
+using Mintsafe.DataAccess.Supporting;
 
 namespace Mintsafe.DataAccess.Repositories
 {
     public interface INiftyRepository
     {
         Task<IEnumerable<Nifty>> GetByCollectionId(Guid collectionId, CancellationToken ct);
-        Task UpsertOneAsync(Nifty nifty, CancellationToken ct);
-        Task UpsertManyAsync(IEnumerable<Nifty> nifties, CancellationToken ct);
+        Task UpdateOneAsync(Nifty nifty, CancellationToken ct);
+        Task UpdateManyAsync(IEnumerable<Nifty> nifties, CancellationToken ct);
     }
 
     public class NiftyRepository : INiftyRepository
@@ -20,7 +21,7 @@ namespace Mintsafe.DataAccess.Repositories
 
         public NiftyRepository(IAzureClientFactory<TableClient> tableClientFactory, INiftyMapper niftyMapper)
         {
-            _niftyClient = tableClientFactory.CreateClient("Nifty");
+            _niftyClient = tableClientFactory.CreateClient(Constants.NiftyTableName);
             _niftyMapper = niftyMapper;
         }
 
@@ -32,14 +33,14 @@ namespace Mintsafe.DataAccess.Repositories
             return sales.Select(_niftyMapper.Map);
         }
 
-        public async Task UpsertOneAsync(Nifty nifty, CancellationToken ct)
+        public async Task UpdateOneAsync(Nifty nifty, CancellationToken ct)
         {
             //TODO assign new guid as id
             var niftyCollectionDto = _niftyMapper.Map(nifty);
             await _niftyClient.UpsertEntityAsync(niftyCollectionDto,TableUpdateMode.Merge, ct);
         }
 
-        public async Task UpsertManyAsync(IEnumerable<Nifty> nifties, CancellationToken ct)
+        public async Task UpdateManyAsync(IEnumerable<Nifty> nifties, CancellationToken ct)
         {
             //TODO assign new guid as id
             var niftyDtos = nifties.Select(_niftyMapper.Map);

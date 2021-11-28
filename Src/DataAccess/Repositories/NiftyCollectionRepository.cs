@@ -3,13 +3,14 @@ using Microsoft.Extensions.Azure;
 using Mintsafe.Abstractions;
 using Mintsafe.DataAccess.Extensions;
 using Mintsafe.DataAccess.Mapping;
+using Mintsafe.DataAccess.Supporting;
 
 namespace Mintsafe.DataAccess.Repositories
 {
     public interface INiftyCollectionRepository
     {
         Task<NiftyCollection?> GetById(Guid collectionId, CancellationToken ct);
-        Task UpsertOneAsync(NiftyCollection niftyCollection, CancellationToken ct);
+        Task UpdateOneAsync(NiftyCollection niftyCollection, CancellationToken ct);
     }
 
     public class NiftyCollectionRepository : INiftyCollectionRepository
@@ -19,7 +20,7 @@ namespace Mintsafe.DataAccess.Repositories
 
         public NiftyCollectionRepository(IAzureClientFactory<TableClient> tableClientFactory, INiftyCollectionMapper niftyCollectionMapper)
         {
-            _niftyCollectionClient = tableClientFactory.CreateClient("NiftyCollection");
+            _niftyCollectionClient = tableClientFactory.CreateClient(Constants.NiftyCollectionTableName);
             _niftyCollectionMapper = niftyCollectionMapper;
         }
 
@@ -30,7 +31,7 @@ namespace Mintsafe.DataAccess.Repositories
             return sales.Select(_niftyCollectionMapper.Map).FirstOrDefault();
         }
 
-        public async Task UpsertOneAsync(NiftyCollection niftyCollection, CancellationToken ct)
+        public async Task UpdateOneAsync(NiftyCollection niftyCollection, CancellationToken ct)
         {
             //TODO assign new guid as id
             var niftyCollectionDto = _niftyCollectionMapper.Map(niftyCollection);

@@ -3,13 +3,14 @@ using Microsoft.Extensions.Azure;
 using Mintsafe.Abstractions;
 using Mintsafe.DataAccess.Extensions;
 using Mintsafe.DataAccess.Mapping;
+using Mintsafe.DataAccess.Supporting;
 
 namespace Mintsafe.DataAccess.Repositories
 {
     public interface ISaleRepository
     {
         Task<IEnumerable<Sale>> GetByCollectionId(Guid collectionId, CancellationToken ct);
-        Task UpsertOneAsync(Sale sale, CancellationToken ct);
+        Task UpdateOneAsync(Sale sale, CancellationToken ct);
     }
 
     public class SaleRepository : ISaleRepository
@@ -19,7 +20,7 @@ namespace Mintsafe.DataAccess.Repositories
 
         public SaleRepository(IAzureClientFactory<TableClient> tableClientFactory, ISaleMapper saleMapper)
         {
-            _saleClient = tableClientFactory.CreateClient("Sale");
+            _saleClient = tableClientFactory.CreateClient(Constants.SaleTableName);
             _saleMapper = saleMapper;
         }
         
@@ -30,7 +31,7 @@ namespace Mintsafe.DataAccess.Repositories
             return sales.Select(_saleMapper.Map);
         }
 
-        public async Task UpsertOneAsync(Sale sale, CancellationToken ct)
+        public async Task UpdateOneAsync(Sale sale, CancellationToken ct)
         {
             //TODO assign new guid as id
             var saleDto = _saleMapper.Map(sale);

@@ -3,14 +3,15 @@ using Microsoft.Extensions.Azure;
 using Mintsafe.Abstractions;
 using Mintsafe.DataAccess.Extensions;
 using Mintsafe.DataAccess.Mapping;
+using Mintsafe.DataAccess.Supporting;
 
 namespace Mintsafe.DataAccess.Repositories
 {
     public interface INiftyFileRepository
     {
         Task<IEnumerable<NiftyFile>> GetByCollectionId(Guid collectionId, CancellationToken ct);
-        Task UpsertOneAsync(Guid collectionId, NiftyFile niftyFile, CancellationToken ct);
-        Task UpsertManyAsync(Guid collectionId, IEnumerable<NiftyFile> niftyFiles, CancellationToken ct);
+        Task UpdateOneAsync(Guid collectionId, NiftyFile niftyFile, CancellationToken ct);
+        Task UpdateManyAsync(Guid collectionId, IEnumerable<NiftyFile> niftyFiles, CancellationToken ct);
     }
 
     public class NiftyFileRepository : INiftyFileRepository
@@ -20,7 +21,7 @@ namespace Mintsafe.DataAccess.Repositories
 
         public NiftyFileRepository(IAzureClientFactory<TableClient> tableClientFactory, INiftyFileMapper niftyFileMapper)
         {
-            _niftyFileClient = tableClientFactory.CreateClient("NiftyFile");
+            _niftyFileClient = tableClientFactory.CreateClient(Constants.NiftyFileTableName);
             _niftyFileMapper = niftyFileMapper;
         }
 
@@ -32,14 +33,14 @@ namespace Mintsafe.DataAccess.Repositories
             return sales.Select(_niftyFileMapper.Map);
         }
 
-        public async Task UpsertOneAsync(Guid collectionId, NiftyFile niftyFile, CancellationToken ct)
+        public async Task UpdateOneAsync(Guid collectionId, NiftyFile niftyFile, CancellationToken ct)
         {
             //TODO assign new guid as id
             var niftyCollectionDto = _niftyFileMapper.Map(collectionId, niftyFile);
             await _niftyFileClient.UpsertEntityAsync(niftyCollectionDto, TableUpdateMode.Merge, ct);
         }
 
-        public async Task UpsertManyAsync(Guid collectionId, IEnumerable<NiftyFile> niftyFiles, CancellationToken ct)
+        public async Task UpdateManyAsync(Guid collectionId, IEnumerable<NiftyFile> niftyFiles, CancellationToken ct)
         {
             //TODO assign new guid as id
             var niftyCollectionDtos = niftyFiles.Select(nf => _niftyFileMapper.Map(collectionId, nf));

@@ -43,7 +43,7 @@ namespace Mintsafe.WebApi.Controllers
 
             var niftyCollection = new NiftyCollection(collectionId, "a", "name", "desc", true, "", new[] {"a", "b"},
                 DateTime.UtcNow, DateTime.UtcNow, 5);
-            await _collectionRepository.UpsertOneAsync(niftyCollection, ct);
+            await _collectionRepository.UpdateOneAsync(niftyCollection, ct);
 
             var niftyId = Guid.NewGuid();
 
@@ -54,14 +54,14 @@ namespace Mintsafe.WebApi.Controllers
                     new("a", "b"),
                     new("b", "c")
                 });
-            await _niftyRepository.UpsertOneAsync(nifty, ct);
+            await _niftyRepository.UpdateOneAsync(nifty, ct);
 
             var niftyFile1 = new NiftyFile(Guid.NewGuid(), niftyId, "file1.file", "image/jpeg", "http://url.com", "hash");
             var niftyFile2 = new NiftyFile(Guid.NewGuid(), niftyId, "file2.file", "image/jpeg", "http://url.com", "hash");
-            await _niftyFileRepository.UpsertManyAsync(collectionId, new []{niftyFile1, niftyFile2}, ct);
+            await _niftyFileRepository.UpdateManyAsync(collectionId, new []{niftyFile1, niftyFile2}, ct);
 
             var sale = new Sale(Guid.NewGuid(), collectionId, true, "Jacob Test", string.Empty, 5, "hash", "hash2", 5, 10);
-            await _saleRepository.UpsertOneAsync(sale, ct);
+            await _saleRepository.UpdateOneAsync(sale, ct);
 
             return collectionId;
         }
