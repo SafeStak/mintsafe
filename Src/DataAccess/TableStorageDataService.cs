@@ -2,6 +2,8 @@
 using Microsoft.Extensions.Logging;
 using Mintsafe.Abstractions;
 using Mintsafe.DataAccess.Composers;
+using Mintsafe.DataAccess.Mapping;
+using Mintsafe.DataAccess.Models;
 using Mintsafe.DataAccess.Repositories;
 
 namespace Mintsafe.DataAccess
@@ -59,6 +61,6 @@ namespace Mintsafe.DataAccess
             }
 
             return _collectionAggregateComposer.Build(niftyCollection, nifties, sales, niftyFiles);
-        }   
+        }
     }
 }

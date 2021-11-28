@@ -1,14 +1,16 @@
 ﻿using Azure.Data.Tables;
 using Microsoft.Extensions.Azure;
 using Mintsafe.DataAccess.Extensions;
+using Mintsafe.DataAccess.Models;
 using Mintsafe.DataAccess.Supporting;
 
 namespace Mintsafe.DataAccess.Repositories
 {
     public interface ISaleRepository
     {
-        Task<IEnumerable<Models.Sale>> GetByCollectionId(Guid collectionId, CancellationToken ct);
-        Task UpdateOneAsync(Models.Sale sale, CancellationToken ct);
+        Task<IEnumerable<Sale>> GetByCollectionId(Guid collectionId, CancellationToken ct);
+        Task UpdateOneAsync(Sale sale, CancellationToken ct);
+        Task InsertOneAsync(Sale sale, CancellationToken ct);
     }
 
     public class SaleRepository : ISaleRepository
@@ -20,15 +22,21 @@ namespace Mintsafe.DataAccess.Repositories
             _saleClient = tableClientFactory.CreateClient(Constants.SaleTableName);
         }
         
-        public async Task<IEnumerable<Models.Sale>> GetByCollectionId(Guid collectionId, CancellationToken ct)
+        public async Task<IEnumerable<Sale>> GetByCollectionId(Guid collectionId, CancellationToken ct)
         {
             var saleQuery = _saleClient.QueryAsync<Models.Sale>(x => x.PartitionKey == collectionId.ToString());
             return await saleQuery.GetAllAsync(ct);
         }
 
-        public async Task UpdateOneAsync(Models.Sale sale, CancellationToken ct)
+        public async Task UpdateOneAsync(Sale sale, CancellationToken ct)
         {
             await _saleClient.UpsertEntityAsync(sale, TableUpdateMode.Merge, ct);
+        }
+
+        public async Task InsertOneAsync(Sale sale, CancellationToken ct)
+        {
+            sale.RowKey = Guid.NewGuid().ToString();
+            await _saleClient.AddEntityAsync(sale, ct);
         }
     }
 }

@@ -1,14 +1,16 @@
 ﻿using Azure.Data.Tables;
 using Microsoft.Extensions.Azure;
 using Mintsafe.DataAccess.Extensions;
+using Mintsafe.DataAccess.Models;
 using Mintsafe.DataAccess.Supporting;
 
 namespace Mintsafe.DataAccess.Repositories
 {
     public interface INiftyCollectionRepository
     {
-        Task<Models.NiftyCollection?> GetById(Guid collectionId, CancellationToken ct);
-        Task UpdateOneAsync(Models.NiftyCollection niftyCollection, CancellationToken ct);
+        Task<NiftyCollection?> GetById(Guid collectionId, CancellationToken ct);
+        Task UpdateOneAsync(NiftyCollection niftyCollection, CancellationToken ct);
+        Task InsertOneAsync(NiftyCollection niftyCollection, CancellationToken ct);
     }
 
     public class NiftyCollectionRepository : INiftyCollectionRepository
@@ -20,16 +22,22 @@ namespace Mintsafe.DataAccess.Repositories
             _niftyCollectionClient = tableClientFactory.CreateClient(Constants.NiftyCollectionTableName);
         }
 
-        public async Task<Models.NiftyCollection?> GetById(Guid id, CancellationToken ct)
+        public async Task<NiftyCollection?> GetById(Guid id, CancellationToken ct)
         {
-            var niftyCollectionQuery = _niftyCollectionClient.QueryAsync<Models.NiftyCollection>(x => x.RowKey == id.ToString());
+            var niftyCollectionQuery = _niftyCollectionClient.QueryAsync<NiftyCollection>(x => x.RowKey == id.ToString());
             var sales = await niftyCollectionQuery.GetAllAsync(ct); //TODO GetOneAsync
             return sales.FirstOrDefault();
         }
 
-        public async Task UpdateOneAsync(Models.NiftyCollection niftyCollection, CancellationToken ct)
+        public async Task UpdateOneAsync(NiftyCollection niftyCollection, CancellationToken ct)
         {
             await _niftyCollectionClient.UpsertEntityAsync(niftyCollection, TableUpdateMode.Merge, ct);
+        }
+
+        public async Task InsertOneAsync(NiftyCollection niftyCollection, CancellationToken ct)
+        {
+            niftyCollection.RowKey = Guid.NewGuid().ToString();
+            await _niftyCollectionClient.AddEntityAsync(niftyCollection, ct);
         }
     }
 }
