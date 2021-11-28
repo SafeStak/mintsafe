@@ -4,12 +4,19 @@ namespace Mintsafe.DataAccess.Mapping
 {
     public interface INiftyMapper
     {
-        Nifty Map(Models.Nifty dtoNifty);
+        Nifty Map(Models.Nifty dtoNifty, IEnumerable<Models.NiftyFile> niftyFiles);
         Models.Nifty Map(Nifty nifty);
     }
 
     public class NiftyMapper : INiftyMapper
     {
+        private readonly INiftyFileMapper _niftyFileMapper;
+
+        public NiftyMapper(INiftyFileMapper niftyFileMapper)
+        {
+            _niftyFileMapper = niftyFileMapper;
+        }
+
         public Models.Nifty Map(Nifty nifty)
         {
             return new Models.Nifty()
@@ -31,7 +38,7 @@ namespace Mintsafe.DataAccess.Mapping
             };
         }
 
-        public Nifty Map(Models.Nifty dtoNifty)
+        public Nifty Map(Models.Nifty dtoNifty, IEnumerable<Models.NiftyFile> niftyFiles)
         {
             return new Nifty(
                 Guid.Parse(dtoNifty.RowKey),
@@ -43,7 +50,7 @@ namespace Mintsafe.DataAccess.Mapping
                 dtoNifty.Creators,
                 dtoNifty.Image,
                 dtoNifty.MediaType,
-                Array.Empty<NiftyFile>(), //TODO map later on not in repo
+                niftyFiles.Select(_niftyFileMapper.Map).ToArray(),
                 dtoNifty.CreatedAt,
                 new Royalty(dtoNifty.RoyaltyPortion, dtoNifty.RoyaltyAddress),
                 dtoNifty.Version,

@@ -1,49 +1,49 @@
 ﻿using Mintsafe.Abstractions;
+using Mintsafe.DataAccess.Mapping;
 
 namespace Mintsafe.DataAccess.Composers
 {
     public interface ICollectionAggregateComposer
     {
-        CollectionAggregate Build(NiftyCollection? collection, IEnumerable<Nifty> nifties, IEnumerable<Sale> sales, IEnumerable<NiftyFile> niftyFiles);
+        CollectionAggregate Build(Models.NiftyCollection? collection, IEnumerable<Models.Nifty> nifties, IEnumerable<Models.Sale> sales, IEnumerable<Models.NiftyFile> niftyFiles);
     }
 
     public class CollectionAggregateComposer : ICollectionAggregateComposer
     {
-        public CollectionAggregate Build(NiftyCollection? collection, IEnumerable<Nifty> nifties, IEnumerable<Sale> sales, IEnumerable<NiftyFile> niftyFiles)
+        private readonly INiftyMapper _niftyMapper;
+        private readonly INiftyCollectionMapper _niftyCollectionMapper;
+        private readonly ISaleMapper _saleMapper;
+
+        public CollectionAggregateComposer(INiftyMapper niftyMapper, INiftyCollectionMapper niftyCollectionMapper, ISaleMapper saleMapper)
+        {
+            _niftyMapper = niftyMapper;
+            _niftyCollectionMapper = niftyCollectionMapper;
+            _saleMapper = saleMapper;
+        }
+
+        public CollectionAggregate Build(Models.NiftyCollection? collection, IEnumerable<Models.Nifty> nifties, IEnumerable<Models.Sale> sales, IEnumerable<Models.NiftyFile> niftyFiles)
         {
             var activeSales = sales.Where(IsSaleOpen).ToArray();
             var hydratedNifties = HydrateNifties(nifties, niftyFiles);
 
-            return new CollectionAggregate(collection, hydratedNifties, activeSales);
+            var mappedCollection = _niftyCollectionMapper.Map(collection);
+            var mappedSales = activeSales.Select(_saleMapper.Map).ToArray();
+
+            return new CollectionAggregate(mappedCollection, hydratedNifties, mappedSales);
         }
 
-        private static bool IsSaleOpen(Sale sale)
+        private static bool IsSaleOpen(Models.Sale sale)
         {
             return sale.IsActive && (!sale.Start.HasValue || !(sale.Start > DateTime.UtcNow)) && (!sale.End.HasValue || !(sale.End < DateTime.UtcNow));
         }
 
-        //TODO change from record so we can assign files property
-        private Nifty[] HydrateNifties(IEnumerable<Nifty> nifties, IEnumerable<NiftyFile> niftyFiles)
+        private Nifty[] HydrateNifties(IEnumerable<Models.Nifty> nifties, IEnumerable<Models.NiftyFile> allFiles)
         {
             var returnNifties = new List<Nifty>();
             foreach (var nifty in nifties)
             {
-                var files = niftyFiles.Where(x => x.NiftyId == nifty.Id).ToArray();
-                var newNifty = new Nifty(
-                    nifty.Id,
-                    nifty.CollectionId,
-                    nifty.IsMintable,
-                    nifty.AssetName,
-                    nifty.Name,
-                    nifty.Description,
-                    nifty.Creators,
-                    nifty.Image,
-                    nifty.MediaType,
-                    files,
-                    nifty.CreatedAt,
-                    nifty.Royalty,
-                    nifty.Version,
-                    nifty.Attributes);
+                var niftyFiles = allFiles.Where(x => x.NiftyId == nifty.RowKey);
+                var newNifty = _niftyMapper.Map(nifty, niftyFiles);
                 returnNifties.Add(newNifty);
             }
 

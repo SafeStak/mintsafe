@@ -41,27 +41,27 @@ namespace Mintsafe.WebApi.Controllers
         {
             var collectionId = Guid.NewGuid();
 
-            var niftyCollection = new NiftyCollection(collectionId, "a", "name", "desc", true, "", new[] {"a", "b"},
-                DateTime.UtcNow, DateTime.UtcNow, 5);
-            await _collectionRepository.UpdateOneAsync(niftyCollection, ct);
+            //var niftyCollection = new NiftyCollection(collectionId, "a", "name", "desc", true, "", new[] {"a", "b"},
+            //    DateTime.UtcNow, DateTime.UtcNow, 5);
+            //await _collectionRepository.UpdateOneAsync(niftyCollection, ct);
 
-            var niftyId = Guid.NewGuid();
+            //var niftyId = Guid.NewGuid();
 
-            var nifty = new Nifty(niftyId, collectionId, true, "file.jpg", "file", "desc", new[] {"a", "b"},
-                "http://", "img", null, DateTime.UtcNow, new Royalty(5, "lol"), "v1",
-                new List<KeyValuePair<string, string>>()
-                {
-                    new("a", "b"),
-                    new("b", "c")
-                });
-            await _niftyRepository.UpdateOneAsync(nifty, ct);
+            //var nifty = new Nifty(niftyId, collectionId, true, "file.jpg", "file", "desc", new[] {"a", "b"},
+            //    "http://", "img", null, DateTime.UtcNow, new Royalty(5, "lol"), "v1",
+            //    new List<KeyValuePair<string, string>>()
+            //    {
+            //        new("a", "b"),
+            //        new("b", "c")
+            //    });
+            //await _niftyRepository.UpdateOneAsync(nifty, ct);
 
-            var niftyFile1 = new NiftyFile(Guid.NewGuid(), niftyId, "file1.file", "image/jpeg", "http://url.com", "hash");
-            var niftyFile2 = new NiftyFile(Guid.NewGuid(), niftyId, "file2.file", "image/jpeg", "http://url.com", "hash");
-            await _niftyFileRepository.UpdateManyAsync(collectionId, new []{niftyFile1, niftyFile2}, ct);
+            //var niftyFile1 = new NiftyFile(Guid.NewGuid(), niftyId, "file1.file", "image/jpeg", "http://url.com", "hash");
+            //var niftyFile2 = new NiftyFile(Guid.NewGuid(), niftyId, "file2.file", "image/jpeg", "http://url.com", "hash");
+            //await _niftyFileRepository.UpdateManyAsync(collectionId, new []{niftyFile1, niftyFile2}, ct);
 
-            var sale = new Sale(Guid.NewGuid(), collectionId, true, "Jacob Test", string.Empty, 5, "hash", "hash2", 5, 10);
-            await _saleRepository.UpdateOneAsync(sale, ct);
+            //var sale = new Sale(Guid.NewGuid(), collectionId, true, "Jacob Test", string.Empty, 5, "hash", "hash2", 5, 10);
+            //await _saleRepository.UpdateOneAsync(sale, ct);
 
             return collectionId;
         }

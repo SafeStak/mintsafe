@@ -31,10 +31,10 @@ namespace Mintsafe.DataAccess
         {
             var sw = Stopwatch.StartNew();
 
-            NiftyCollection? niftyCollection;
-            IList<Nifty> nifties;
-            IEnumerable<Sale> sales;
-            IEnumerable<NiftyFile> niftyFiles;
+            Models.NiftyCollection? niftyCollection;
+            IList<Models.Nifty> nifties;
+            IEnumerable<Models.Sale> sales;
+            IEnumerable<Models.NiftyFile> niftyFiles;
 
             try
             {
