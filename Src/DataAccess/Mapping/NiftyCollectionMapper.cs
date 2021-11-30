@@ -1,17 +1,11 @@
 ﻿using Mintsafe.Abstractions;
 
 namespace Mintsafe.DataAccess.Mapping
-{
-    public interface INiftyCollectionMapper
+{ public static class NiftyCollectionMapper
     {
-        NiftyCollection Map(Models.NiftyCollection dtoNiftyCollection);
-        Models.NiftyCollection Map(NiftyCollection niftyCollection);
-    }
-    public class NiftyCollectionMapper : INiftyCollectionMapper
-    {
-        public Models.NiftyCollection Map(NiftyCollection niftyCollection)
+        public static Models.NiftyCollection Map(NiftyCollection niftyCollection)
         {
-            return new Models.NiftyCollection()
+            return new Models.NiftyCollection
             {
                 RowKey = niftyCollection.Id.ToString(),
                 PartitionKey = niftyCollection.PolicyId, //TODO PolicyId? Creator?,
@@ -27,7 +21,7 @@ namespace Mintsafe.DataAccess.Mapping
             };
         }
 
-        public NiftyCollection Map(Models.NiftyCollection dtoNiftyCollection)
+        public static NiftyCollection Map(Models.NiftyCollection dtoNiftyCollection)
         {
             return new NiftyCollection(
                 Guid.Parse(dtoNiftyCollection.RowKey),

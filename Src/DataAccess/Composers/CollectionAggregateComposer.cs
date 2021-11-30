@@ -10,24 +10,13 @@ namespace Mintsafe.DataAccess.Composers
 
     public class CollectionAggregateComposer : ICollectionAggregateComposer
     {
-        private readonly INiftyMapper _niftyMapper;
-        private readonly INiftyCollectionMapper _niftyCollectionMapper;
-        private readonly ISaleMapper _saleMapper;
-
-        public CollectionAggregateComposer(INiftyMapper niftyMapper, INiftyCollectionMapper niftyCollectionMapper, ISaleMapper saleMapper)
-        {
-            _niftyMapper = niftyMapper;
-            _niftyCollectionMapper = niftyCollectionMapper;
-            _saleMapper = saleMapper;
-        }
-
         public CollectionAggregate Build(Models.NiftyCollection? collection, IEnumerable<Models.Nifty> nifties, IEnumerable<Models.Sale> sales, IEnumerable<Models.NiftyFile> niftyFiles)
         {
             var activeSales = sales.Where(IsSaleOpen).ToArray();
             var hydratedNifties = HydrateNifties(nifties, niftyFiles);
 
-            var mappedCollection = _niftyCollectionMapper.Map(collection);
-            var mappedSales = activeSales.Select(_saleMapper.Map).ToArray();
+            var mappedCollection = NiftyCollectionMapper.Map(collection);
+            var mappedSales = activeSales.Select(SaleMapper.Map).ToArray();
 
             return new CollectionAggregate(mappedCollection, hydratedNifties, mappedSales);
         }
@@ -43,7 +32,7 @@ namespace Mintsafe.DataAccess.Composers
             foreach (var nifty in nifties)
             {
                 var niftyFiles = allFiles.Where(x => x.NiftyId == nifty.RowKey);
-                var newNifty = _niftyMapper.Map(nifty, niftyFiles);
+                var newNifty = NiftyMapper.Map(nifty, niftyFiles);
                 returnNifties.Add(newNifty);
             }
 

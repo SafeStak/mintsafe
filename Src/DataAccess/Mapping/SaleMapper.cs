@@ -2,17 +2,11 @@
 
 namespace Mintsafe.DataAccess.Mapping
 {
-    public interface ISaleMapper
+    public class SaleMapper
     {
-        Models.Sale Map(Sale sale);
-        Sale Map(Models.Sale saleDto);
-    }
-
-    public class SaleMapper : ISaleMapper
-    {
-        public Models.Sale Map(Sale sale)
+        public static Models.Sale Map(Sale sale)
         {
-            return new Models.Sale() //TODO System properties e.g eTag
+            return new Models.Sale //TODO System properties e.g eTag
             {
                 RowKey = sale.Id.ToString(),
                 PartitionKey = sale.CollectionId.ToString(),
@@ -29,7 +23,7 @@ namespace Mintsafe.DataAccess.Mapping
             };
         }
 
-        public Sale Map(Models.Sale saleDto)
+        public static Sale Map(Models.Sale saleDto)
         {
             return new Sale(
                 Guid.Parse(saleDto.RowKey),

@@ -45,13 +45,9 @@ builder.Services.AddSingleton<IUtxoRefunder, UtxoRefunder>();
 // Data Access
 builder.Services.AddSingleton<INiftyDataService, TableStorageDataService>();
 builder.Services.AddSingleton<INiftyCollectionRepository, NiftyCollectionRepository>();
-builder.Services.AddSingleton<INiftyCollectionMapper, NiftyCollectionMapper>();
 builder.Services.AddSingleton<INiftyRepository, NiftyRepository>();
-builder.Services.AddSingleton<INiftyMapper, NiftyMapper>();
 builder.Services.AddSingleton<ISaleRepository, SaleRepository>();
-builder.Services.AddSingleton<ISaleMapper, SaleMapper>();
 builder.Services.AddSingleton<INiftyFileRepository, NiftyFileRepository>();
-builder.Services.AddSingleton<INiftyFileMapper, NiftyFileMapper>();
 
 builder.Services.AddSingleton<ICollectionAggregateComposer, CollectionAggregateComposer>();
 

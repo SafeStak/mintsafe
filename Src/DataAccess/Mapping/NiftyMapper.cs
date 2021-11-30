@@ -2,24 +2,11 @@
 
 namespace Mintsafe.DataAccess.Mapping
 {
-    public interface INiftyMapper
+    public static class NiftyMapper
     {
-        Nifty Map(Models.Nifty dtoNifty, IEnumerable<Models.NiftyFile> niftyFiles);
-        Models.Nifty Map(Nifty nifty);
-    }
-
-    public class NiftyMapper : INiftyMapper
-    {
-        private readonly INiftyFileMapper _niftyFileMapper;
-
-        public NiftyMapper(INiftyFileMapper niftyFileMapper)
+        public static Models.Nifty Map(Nifty nifty)
         {
-            _niftyFileMapper = niftyFileMapper;
-        }
-
-        public Models.Nifty Map(Nifty nifty)
-        {
-            return new Models.Nifty()
+            return new Models.Nifty
             {
                 RowKey = nifty.Id.ToString(),
                 PartitionKey = nifty.CollectionId.ToString(),
@@ -38,7 +25,7 @@ namespace Mintsafe.DataAccess.Mapping
             };
         }
 
-        public Nifty Map(Models.Nifty dtoNifty, IEnumerable<Models.NiftyFile> niftyFiles)
+        public static Nifty Map(Models.Nifty dtoNifty, IEnumerable<Models.NiftyFile> niftyFiles)
         {
             return new Nifty(
                 Guid.Parse(dtoNifty.RowKey),
@@ -50,7 +37,7 @@ namespace Mintsafe.DataAccess.Mapping
                 dtoNifty.Creators,
                 dtoNifty.Image,
                 dtoNifty.MediaType,
-                niftyFiles.Select(_niftyFileMapper.Map).ToArray(),
+                niftyFiles.Select(NiftyFileMapper.Map).ToArray(),
                 dtoNifty.CreatedAt,
                 new Royalty(dtoNifty.RoyaltyPortion, dtoNifty.RoyaltyAddress),
                 dtoNifty.Version,
