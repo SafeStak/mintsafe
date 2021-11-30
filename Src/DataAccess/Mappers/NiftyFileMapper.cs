@@ -1,6 +1,6 @@
 ﻿using Mintsafe.Abstractions;
 
-namespace Mintsafe.DataAccess.Mapping
+namespace Mintsafe.DataAccess.Mappers
 {
     public static class NiftyFileMapper
     {

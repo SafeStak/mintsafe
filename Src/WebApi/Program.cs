@@ -4,12 +4,10 @@ using Microsoft.Extensions.Hosting;
 using Mintsafe.Abstractions;
 using Mintsafe.Lib;
 using System;
-using Azure.Data.Tables;
 using Microsoft.Extensions.Azure;
 using Mintsafe.DataAccess;
 using Mintsafe.DataAccess.Composers;
 using Mintsafe.DataAccess.Extensions;
-using Mintsafe.DataAccess.Mapping;
 using Mintsafe.DataAccess.Repositories;
 using Mintsafe.DataAccess.Supporting;
 

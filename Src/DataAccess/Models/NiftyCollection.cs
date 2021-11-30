@@ -16,12 +16,12 @@ namespace Mintsafe.DataAccess.Models
         public string BrandImage { get; set; }
 
         [IgnoreDataMember]
-        public string[] Publishers { get; set; }
+        public string[]? Publishers { get; set; }
 
-        public string PublishersAsString
+        public string? PublishersAsString
         {
-            get => string.Join(',', Publishers);
-            set => Publishers = value.Split(',');
+            get => Publishers != null ? string.Join(',', Publishers.Where(x => !string.IsNullOrWhiteSpace(x))) : null;
+            set => Publishers = value?.Split(',');
         }
 
         public DateTime CreatedAt { get; set; }

@@ -1,5 +1,5 @@
 ﻿using Mintsafe.Abstractions;
-using Mintsafe.DataAccess.Mapping;
+using Mintsafe.DataAccess.Mappers;
 
 namespace Mintsafe.DataAccess.Composers
 {

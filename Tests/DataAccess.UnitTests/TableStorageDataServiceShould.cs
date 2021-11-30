@@ -2,7 +2,7 @@ using Xunit;
 
 namespace Mintsafe.DataAccess.UnitTests
 {
-    public class UnitTest1
+    public class TableStorageDataServiceShould
     {
         [Fact]
         public void Test1()

@@ -16,12 +16,12 @@ namespace Mintsafe.DataAccess.Models
         public string Description { get; set; }
 
         [IgnoreDataMember]
-        public string[] Creators { get; set; }
+        public string[]? Creators { get; set; }
 
-        public string CreatorsAsString
+        public string? CreatorsAsString
         {
-            get => string.Join(',', Creators);
-            set => Creators = value.Split(',');
+            get => Creators != null ? string.Join(',', Creators.Where(x => !string.IsNullOrWhiteSpace(x))) : null;
+            set => Creators = value?.Split(',');
         }
 
         public string Image { get; set; }
