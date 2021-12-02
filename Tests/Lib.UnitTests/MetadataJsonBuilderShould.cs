@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -61,6 +62,8 @@ public class MetadataJsonBuilderShould
             asset.MediaType.Should().Be(token.MediaType);
             foreach (var file in token.Files)
             {
+                if (asset.Files == null)
+                    throw new Exception("Files cannot be null");
                 var assetFile = asset.Files.First(f => f.Name == file.Name);
                 assetFile.Name.Should().Be(file.Name);
                 assetFile.Src.Should().Be(file.Url);
