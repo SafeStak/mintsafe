@@ -39,6 +39,9 @@ public static class TxUtils
         const int utxoEntrySizeWithoutVal = 27;
         const int coinSize = 2; 
         const int adaOnlyUtxoSizeWords = utxoEntrySizeWithoutVal + coinSize;
+        const int byteRoundUpAddition = 7;
+        const int byteLength = 8;
+        const int dataHashSizeWords = 10;
 
         var isAdaOnlyUtxo = outputValues.Length == 1 && outputValues[0].Unit == Assets.LovelaceUnit;
         if (isAdaOnlyUtxo)
@@ -58,9 +61,9 @@ public static class TxUtils
         var valueSize = fixedUtxoPrefix + (
             (policyIds.Count * policyIdBytes) 
             + (customTokens.Length * fixedPerTokenCost) 
-            + sumAssetNameLengths + 7)/8;
+            + sumAssetNameLengths + byteRoundUpAddition) / byteLength;
 
-        var dataHashSize = hasDataHash ? 10 : 0;
+        var dataHashSize = hasDataHash ? dataHashSizeWords : 0;
 
         var minUtxoLovelace = lovelacePerUtxoWord * (utxoEntrySizeWithoutVal + valueSize + dataHashSize);
 

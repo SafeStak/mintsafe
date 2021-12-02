@@ -36,7 +36,7 @@ public class TimeUtilShould
 
     [Theory]
     [InlineData(2021, 10, 28, 14, 1, 0, 43863369)]
-    [InlineData(2022, 1, 28, 19, 0, 0, 51830109)]
+    [InlineData(2022, 4, 1, 0, 0, 0, 57204909)]
     public void Return_Correct_Mainnet_Slot_For_Utc_DateTime(
         int year, int month, int day, int hour, int minute, int second,
         int expectedSlot)
