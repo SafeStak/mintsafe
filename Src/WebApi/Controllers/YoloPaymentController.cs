@@ -5,7 +5,7 @@ using Mintsafe.Lib;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Mintsafe.WebApi
+namespace Mintsafe.WebApi.Controllers
 {
     public class YoloPayment
     {
