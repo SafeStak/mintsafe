@@ -1,0 +1,69 @@
+﻿@page "/yolowallet"
+@using Mintsafe.Abstractions
+@using Mintsafe.WasmApp.Services
+
+<PageTitle>YOLO Wallet</PageTitle>
+
+<input @bind="Address" placeholder="addr1..." style="width: 550px" />
+<button @onclick="QueryAddressUtxos">Query</button>
+@(Utxos?.Sum(u => u.Lovelaces)/1000000) ADA
+
+@if (Utxos != null)
+{
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Hash</th>
+				<th>Index</th>
+				<th>Lovelaces</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var utxo in Utxos)
+			{
+				<tr>
+					<td>@utxo.TxHash</td>
+					<td>@utxo.OutputIndex</td>
+					<td>@utxo.Lovelaces</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}
+
+@code {
+
+	public string? Address { get; set; }
+
+	[CascadingParameter]
+	private Error Error { get; set; }
+
+	[Inject]
+	private IAddressUtxoService AddressUtxoService { get; set; }
+
+	private Utxo[]? Utxos { get; set; }
+
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			if (!string.IsNullOrWhiteSpace(Address))
+			{
+				Utxos = await AddressUtxoService.Get(Address);
+			}
+		}
+		catch (Exception ex)
+		{
+			Error.ProcessError(ex);
+		}
+	}
+
+	public async Task QueryAddressUtxos()
+	{
+		if (!string.IsNullOrWhiteSpace(Address))
+		{
+			Utxos = await AddressUtxoService.Get(Address);
+		}
+	}
+
+}

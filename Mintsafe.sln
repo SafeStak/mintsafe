@@ -27,7 +27,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mintsafe.Abstractions", "Sr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mintsafe.SaleWorker", "Src\SaleWorker\Mintsafe.SaleWorker.csproj", "{04CDB2A4-7068-4A1B-A926-AD31968521F4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mintsafe.App", "Src\App\Mintsafe.App\Mintsafe.App.csproj", "{32FF48AD-0196-43CA-A8A0-D4825E6C35A5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mintsafe.WasmApp", "Src\WasmApp\Mintsafe.WasmApp.csproj", "{32FF48AD-0196-43CA-A8A0-D4825E6C35A5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

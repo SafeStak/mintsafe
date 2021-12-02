@@ -39,6 +39,7 @@ IHost host = Host.CreateDefaultBuilder(args)
         services.AddSingleton<ISaleUtxoHandler, SaleUtxoHandler>();
         services.AddSingleton<INiftyAllocator, NiftyAllocator>();
         services.AddSingleton<IMetadataFileGenerator, MetadataFileGenerator>();
+        services.AddSingleton<IMetadataJsonBuilder, MetadataJsonBuilder>();
         services.AddSingleton<INiftyDistributor, NiftyDistributor>();
         services.AddSingleton<IUtxoRefunder, UtxoRefunder>();
 

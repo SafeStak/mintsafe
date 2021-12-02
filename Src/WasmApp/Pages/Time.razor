@@ -1,0 +1,95 @@
+﻿@page "/time"
+@page "/time/{DateTimeIso8601}"
+@using Mintsafe.Abstractions
+@using Mintsafe.Lib
+@using Mintsafe.WasmApp.Services
+@using System.Globalization
+
+<PageTitle>Time</PageTitle>
+
+<h2>Time to Slots</h2>
+<input @bind="DateTimeIso8601" type="datetime" />
+<button @onclick="GetSlot">Get Slot</button>
+
+Mainnet Slot: @MainnetSlotDerived
+Testnet Slot: @TestnetSlotDerived
+
+<h2>Mainnet Slot to UTC Time</h2>
+<section>
+	<input @bind="MainnetSlot" type="number" /><button @onclick="GetMainnetDateTime">Get Time</button>
+	@MainnetDateTimeUtcDerived
+</section>
+
+<h2>Testnet Slot to UTC Time</h2>
+<section>
+	<input @bind="TestnetSlot" type="number" /><button @onclick="GetTestnetDateTime">Get Time</button>
+	@TestnetDateTimeUtcDerived
+</section>
+
+@code {
+
+	[CascadingParameter]
+	private Error Error { get; set; }
+
+	[Parameter]
+	public string DateTimeIso8601 { get; set; }
+
+	public DateTime? MainnetDateTimeUtcDerived { get; set; }
+
+	public DateTime? TestnetDateTimeUtcDerived { get; set; }
+
+	[Parameter]
+	public long? MainnetSlot { get; set; }
+
+	[Parameter]
+	public long? TestnetSlot { get; set; }
+
+	public long? MainnetSlotDerived { get; set; }
+
+	public long? TestnetSlotDerived { get; set; }
+
+	protected override void OnInitialized()
+	{
+		try
+		{
+			if (string.IsNullOrWhiteSpace(DateTimeIso8601)) 
+			{
+				DateTimeIso8601 = DateTime.UtcNow.ToString(@"yyyy-MM-dd\THH:mm:ss\Z");
+			}
+			GetSlot();
+		}
+		catch (Exception ex)
+		{
+			Error.ProcessError(ex);
+		}
+	}
+
+	public void GetSlot()
+	{
+		DateTime.TryParseExact(
+            DateTimeIso8601,
+            @"yyyy-MM-dd\THH:mm:ss\Z",
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.AssumeUniversal,
+            out var dateTimeParsed);
+        var utcDateTime = dateTimeParsed.ToUniversalTime();
+		MainnetSlotDerived = TimeUtil.GetMainnetSlotAt(utcDateTime);
+		TestnetSlotDerived = TimeUtil.GetTestnetSlotAt(utcDateTime);
+	}
+
+	public void GetMainnetDateTime()
+	{
+		if (MainnetSlot.HasValue)
+		{
+			MainnetDateTimeUtcDerived = TimeUtil.GetUtcTimeFromMainnetSlot(MainnetSlot.Value);
+		}
+	}
+
+	public void GetTestnetDateTime()
+	{
+		if (TestnetSlot.HasValue)
+		{
+			TestnetDateTimeUtcDerived = TimeUtil.GetUtcTimeFromTestnetSlot(TestnetSlot.Value);
+		}
+	}
+}

@@ -49,7 +49,7 @@ public class BlockFrostTransactionUtxoResponse
 
 public class BlockFrostAddressUtxo
 {
-    public string? Tx_Hash { get; init; }
-    public int Output_Index { get; init; }
+    public string? Tx_hash { get; init; }
+    public int Output_index { get; init; }
     public BlockFrostValue[]? Amount { get; init; }
 }
