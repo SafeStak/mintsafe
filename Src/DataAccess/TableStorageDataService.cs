@@ -83,11 +83,11 @@ namespace Mintsafe.DataAccess
 
                 await Task.WhenAll(niftyCollectionTask, niftyTask, saleTask, niftyFileTask);
 
-                _logger.LogInformation($"Inserts all entities for collectionId: {collectionId} into table storage after {sw.ElapsedMilliseconds}ms");
+                _logger.LogInformation($"Inserted all entities for collectionId: {collectionId} into table storage after {sw.ElapsedMilliseconds}ms");
             }
             catch (Exception e)
             {
-                _logger.LogError(Constants.EventIds.FailedToInsert, e, $"Failed to insert all entities for collectionId:{collectionId}");
+                _logger.LogError(Constants.EventIds.FailedToInsert, e, $"Failed to insert all entities for collectionId: {collectionId}");
                 throw;
             }
         }
