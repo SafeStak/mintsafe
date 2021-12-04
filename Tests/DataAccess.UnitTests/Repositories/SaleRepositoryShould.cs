@@ -17,13 +17,19 @@ namespace Mintsafe.DataAccess.UnitTests.Repositories
 {
     public class SaleRepositoryShould
     {
-        private readonly Mock<IAzureClientFactory<TableClient>> _azureClientFactoryMock;
-        private readonly Mock<TableClient> _SaleClientMock;
+        private readonly Mock<TableClient> _saleClientMock;
+
+        private readonly ISaleRepository _saleRepository;
 
         public SaleRepositoryShould()
         {
-            _azureClientFactoryMock = new Mock<IAzureClientFactory<TableClient>>();
-            _SaleClientMock = new Mock<TableClient>();
+            _saleClientMock = new Mock<TableClient>();
+
+            var azureClientFactoryMock = new Mock<IAzureClientFactory<TableClient>>();
+            azureClientFactoryMock.Setup(x => x.CreateClient("Sale"))
+                .Returns(_saleClientMock.Object);
+
+            _saleRepository = new SaleRepository(azureClientFactoryMock.Object);
         }
 
         [Fact]
@@ -36,15 +42,11 @@ namespace Mintsafe.DataAccess.UnitTests.Repositories
 
             var page = Page<Sale>.FromValues(new[] { sale }, null, new Mock<Response>().Object);
 
-            _SaleClientMock.Setup(x => x.QueryAsync<Sale>(x => x.PartitionKey == collectionId.ToString(),
+            _saleClientMock.Setup(x => x.QueryAsync<Sale>(x => x.PartitionKey == collectionId.ToString(),
                     It.IsAny<int?>(), It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
                 .Returns(AsyncPageable<Sale>.FromPages(new[] { page }));
 
-            _azureClientFactoryMock.Setup(x => x.CreateClient("Sale"))
-                .Returns(_SaleClientMock.Object);
-
-            var repo = new SaleRepository(_azureClientFactoryMock.Object);
-            var result = await repo.GetByCollectionIdAsync(collectionId, CancellationToken.None);
+            var result = await _saleRepository.GetByCollectionIdAsync(collectionId, CancellationToken.None);
 
             result.Should().NotBeNullOrEmpty();
             result.Count().Should().Be(1);
@@ -57,13 +59,9 @@ namespace Mintsafe.DataAccess.UnitTests.Repositories
             var fixture = new Fixture();
             var sale = fixture.Create<Sale>();
 
-            _azureClientFactoryMock.Setup(x => x.CreateClient("Sale"))
-                .Returns(_SaleClientMock.Object);
+            await _saleRepository.UpdateOneAsync(sale, CancellationToken.None);
 
-            var repo = new SaleRepository(_azureClientFactoryMock.Object);
-            await repo.UpdateOneAsync(sale, CancellationToken.None);
-
-            _SaleClientMock.Verify(x => x.UpdateEntityAsync(sale, sale.ETag, TableUpdateMode.Merge, It.IsAny<CancellationToken>()));
+            _saleClientMock.Verify(x => x.UpdateEntityAsync(sale, sale.ETag, TableUpdateMode.Merge, It.IsAny<CancellationToken>()));
         }
 
 
@@ -73,13 +71,9 @@ namespace Mintsafe.DataAccess.UnitTests.Repositories
             var fixture = new Fixture();
             var sale = fixture.Create<Sale>();
 
-            _azureClientFactoryMock.Setup(x => x.CreateClient("Sale"))
-                .Returns(_SaleClientMock.Object);
+            await _saleRepository.InsertOneAsync(sale, CancellationToken.None);
 
-            var repo = new SaleRepository(_azureClientFactoryMock.Object);
-            await repo.InsertOneAsync(sale, CancellationToken.None);
-
-            _SaleClientMock.Verify(x => x.AddEntityAsync(sale, It.IsAny<CancellationToken>()));
+            _saleClientMock.Verify(x => x.AddEntityAsync(sale, It.IsAny<CancellationToken>()));
         }
     }
 }

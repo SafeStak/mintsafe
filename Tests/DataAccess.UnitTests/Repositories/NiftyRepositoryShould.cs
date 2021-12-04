@@ -17,13 +17,18 @@ namespace Mintsafe.DataAccess.UnitTests.Repositories
 {
     public class NiftyRepositoryShould
     {
-        private readonly Mock<IAzureClientFactory<TableClient>> _azureClientFactoryMock;
-        private readonly Mock<TableClient> _NiftyClientMock;
+        private readonly Mock<TableClient> _niftyClientMock;
+        private readonly INiftyRepository _niftyRepository;
 
         public NiftyRepositoryShould()
         {
-            _azureClientFactoryMock = new Mock<IAzureClientFactory<TableClient>>();
-            _NiftyClientMock = new Mock<TableClient>();
+            _niftyClientMock = new Mock<TableClient>();
+
+            var azureClientFactoryMock = new Mock<IAzureClientFactory<TableClient>>();
+            azureClientFactoryMock.Setup(x => x.CreateClient("Nifty"))
+                .Returns(_niftyClientMock.Object);
+
+            _niftyRepository = new NiftyRepository(azureClientFactoryMock.Object);
         }
 
         [Fact]
@@ -36,15 +41,11 @@ namespace Mintsafe.DataAccess.UnitTests.Repositories
 
             var page = Page<Nifty>.FromValues(new[] { Nifty }, null, new Mock<Response>().Object);
 
-            _NiftyClientMock.Setup(x => x.QueryAsync<Nifty>(x => x.PartitionKey == collectionId.ToString(),
+            _niftyClientMock.Setup(x => x.QueryAsync<Nifty>(x => x.PartitionKey == collectionId.ToString(),
                     It.IsAny<int?>(), It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
                 .Returns(AsyncPageable<Nifty>.FromPages(new[] { page }));
 
-            _azureClientFactoryMock.Setup(x => x.CreateClient("Nifty"))
-                .Returns(_NiftyClientMock.Object);
-
-            var repo = new NiftyRepository(_azureClientFactoryMock.Object);
-            var result = await repo.GetByCollectionIdAsync(collectionId, CancellationToken.None);
+            var result = await _niftyRepository.GetByCollectionIdAsync(collectionId, CancellationToken.None);
 
             result.Should().NotBeNullOrEmpty();
             result.Count().Should().Be(1);
@@ -56,15 +57,11 @@ namespace Mintsafe.DataAccess.UnitTests.Repositories
         {
 
             var fixture = new Fixture().Build<Nifty>().Without(x => x.AttributesAsString).Without(x => x.CreatorsAsString);
-            var Nifty = fixture.Create();
+            var nifty = fixture.Create();
 
-            _azureClientFactoryMock.Setup(x => x.CreateClient("Nifty"))
-                .Returns(_NiftyClientMock.Object);
+            await _niftyRepository.UpdateOneAsync(nifty, CancellationToken.None);
 
-            var repo = new NiftyRepository(_azureClientFactoryMock.Object);
-            await repo.UpdateOneAsync(Nifty, CancellationToken.None);
-
-            _NiftyClientMock.Verify(x => x.UpdateEntityAsync(Nifty, Nifty.ETag, TableUpdateMode.Merge, It.IsAny<CancellationToken>()));
+            _niftyClientMock.Verify(x => x.UpdateEntityAsync(nifty, nifty.ETag, TableUpdateMode.Merge, It.IsAny<CancellationToken>()));
         }
 
 
@@ -73,15 +70,11 @@ namespace Mintsafe.DataAccess.UnitTests.Repositories
         {
 
             var fixture = new Fixture().Build<Nifty>().Without(x => x.AttributesAsString).Without(x => x.CreatorsAsString);
-            var Nifty = fixture.Create();
+            var nifty = fixture.Create();
 
-            _azureClientFactoryMock.Setup(x => x.CreateClient("Nifty"))
-                .Returns(_NiftyClientMock.Object);
+            await _niftyRepository.InsertOneAsync(nifty, CancellationToken.None);
 
-            var repo = new NiftyRepository(_azureClientFactoryMock.Object);
-            await repo.InsertOneAsync(Nifty, CancellationToken.None);
-
-            _NiftyClientMock.Verify(x => x.AddEntityAsync(Nifty, It.IsAny<CancellationToken>()));
+            _niftyClientMock.Verify(x => x.AddEntityAsync(nifty, It.IsAny<CancellationToken>()));
         }
     }
 }
