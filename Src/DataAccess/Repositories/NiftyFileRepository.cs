@@ -59,14 +59,15 @@ namespace Mintsafe.DataAccess.Repositories
 
         public async Task InsertManyAsync(Guid collectionId, IEnumerable<NiftyFile> niftyFiles, CancellationToken ct)
         {
-            foreach (var niftyFile in niftyFiles)
+            var files = niftyFiles.ToList();
+            foreach (var niftyFile in files)
             {
                 niftyFile.RowKey = Guid.NewGuid().ToString();
                 niftyFile.PartitionKey = collectionId.ToString(); //TODO?
             }
 
             List<TableTransactionAction> addEntitiesBatch = new List<TableTransactionAction>();
-            addEntitiesBatch.AddRange(niftyFiles.Select(nf => new TableTransactionAction(TableTransactionActionType.Add, nf)));
+            addEntitiesBatch.AddRange(files.Select(nf => new TableTransactionAction(TableTransactionActionType.Add, nf)));
             await _niftyFileClient.SubmitTransactionAsync(addEntitiesBatch, ct).ConfigureAwait(false);
         }
     }

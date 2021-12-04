@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Mintsafe.Abstractions;
 using Mintsafe.DataAccess.Composers;
+using Mintsafe.DataAccess.Mappers;
 using Mintsafe.DataAccess.Repositories;
 using Mintsafe.DataAccess.Supporting;
 
@@ -60,6 +61,29 @@ namespace Mintsafe.DataAccess
             }
 
             return _collectionAggregateComposer.Build(niftyCollection, nifties, sales, niftyFiles);
+        }
+
+        //WIP quick hack
+        public async Task InsertCollectionAggregateAsync(CollectionAggregate collectionAggregate, CancellationToken ct = default)
+        {
+            var collectionId = collectionAggregate.Collection.Id;
+            var niftyCollection = NiftyCollectionMapper.Map(collectionAggregate.Collection);
+            var nifties = collectionAggregate.Tokens.Select(NiftyMapper.Map);
+            var sales = collectionAggregate.ActiveSales.Select(SaleMapper.Map);
+            var files = collectionAggregate.Tokens.SelectMany(x => x.Files.Select(NiftyFileMapper.Map));
+
+            try
+            {
+                await _niftyCollectionRepository.InsertOneAsync(niftyCollection, ct);
+                await _niftyRepository.InsertManyAsync(nifties, ct);
+                await _saleRepository.InsertOneAsync(sales.FirstOrDefault(), ct); //TODO insert many
+                await _niftyFileRepository.InsertManyAsync(collectionId, files, ct);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(666, e, "Failed to insert");
+                throw;
+            }
         }
     }
 }

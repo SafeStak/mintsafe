@@ -53,6 +53,11 @@ public class LocalNiftyDataService : INiftyDataService
         return Task.FromResult(new CollectionAggregate(collection, tokens, ActiveSales: activeSales));
     }
 
+    public Task InsertCollectionAggregateAsync(CollectionAggregate collectionAggregate, CancellationToken ct = default)
+    {
+        throw new NotImplementedException();
+    }
+
     private static bool IsSaleOpen(Sale sale)
     {
         if (!sale.IsActive

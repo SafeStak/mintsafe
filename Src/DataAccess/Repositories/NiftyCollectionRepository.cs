@@ -36,7 +36,7 @@ namespace Mintsafe.DataAccess.Repositories
 
         public async Task InsertOneAsync(NiftyCollection niftyCollection, CancellationToken ct)
         {
-            niftyCollection.RowKey = Guid.NewGuid().ToString();
+            //niftyCollection.RowKey = Guid.NewGuid().ToString(); //TODO always define a collectionId
             await _niftyCollectionClient.AddEntityAsync(niftyCollection, ct);
         }
     }
