@@ -44,20 +44,13 @@ namespace Mintsafe.DataAccess.Repositories
 
         public async Task InsertOneAsync(Nifty nifty, CancellationToken ct)
         {
-            nifty.RowKey = Guid.NewGuid().ToString();
             await _niftyClient.AddEntityAsync(nifty, ct);
         }
 
         public async Task InsertManyAsync(IEnumerable<Nifty> nifties, CancellationToken ct)
         {
-            var niftyList = nifties.ToList();
-            foreach (var nifty in niftyList)
-            {
-                nifty.RowKey = Guid.NewGuid().ToString();
-            }
-
             List<TableTransactionAction> addEntitiesBatch = new List<TableTransactionAction>();
-            addEntitiesBatch.AddRange(niftyList.Select(nfc => new TableTransactionAction(TableTransactionActionType.Add, nfc)));
+            addEntitiesBatch.AddRange(nifties.Select(nfc => new TableTransactionAction(TableTransactionActionType.Add, nfc)));
             await _niftyClient.SubmitTransactionAsync(addEntitiesBatch, ct).ConfigureAwait(false);
         }
     }

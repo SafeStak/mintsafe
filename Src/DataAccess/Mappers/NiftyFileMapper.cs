@@ -16,12 +16,12 @@ namespace Mintsafe.DataAccess.Mappers
             );
         }
 
-        public static Models.NiftyFile Map(NiftyFile niftyFile)
+        public static Models.NiftyFile Map(Guid collectionId, NiftyFile niftyFile)
         {
             return new Models.NiftyFile
             {
                 RowKey = niftyFile.Id.ToString(),
-                //PartitionKey = collectionId.ToString(),
+                PartitionKey = collectionId.ToString(),
                 NiftyId = niftyFile.NiftyId.ToString(),
                 Name = niftyFile.Name,
                 MediaType = niftyFile.MediaType,

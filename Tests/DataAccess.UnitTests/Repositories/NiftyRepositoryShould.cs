@@ -75,15 +75,11 @@ namespace Mintsafe.DataAccess.UnitTests.Repositories
             var fixture = new Fixture().Build<Nifty>().Without(x => x.AttributesAsString).Without(x => x.CreatorsAsString);
             var Nifty = fixture.Create();
 
-            Nifty.RowKey = null;
-
             _azureClientFactoryMock.Setup(x => x.CreateClient("Nifty"))
                 .Returns(_NiftyClientMock.Object);
 
             var repo = new NiftyRepository(_azureClientFactoryMock.Object);
             await repo.InsertOneAsync(Nifty, CancellationToken.None);
-
-            Nifty.RowKey.Should().NotBeNull();
 
             _NiftyClientMock.Verify(x => x.AddEntityAsync(Nifty, It.IsAny<CancellationToken>()));
         }

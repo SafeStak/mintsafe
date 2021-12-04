@@ -52,12 +52,11 @@ namespace Mintsafe.DataAccess.UnitTests.Mappers
                 "hash"
             );
 
-            //var model = NiftyFileMapper.Map(collectionId, niftyFile);
-            var model = NiftyFileMapper.Map(niftyFile);
+            var model = NiftyFileMapper.Map(collectionId, niftyFile);
 
             model.Should().NotBeNull();
             model.RowKey.Should().Be(rowKey.ToString());
-            //model.PartitionKey.Should().Be(collectionId.ToString());
+            model.PartitionKey.Should().Be(collectionId.ToString());
             model.NiftyId.Should().Be(niftyId.ToString());
             model.Name.Should().Be("Name");
             model.MediaType.Should().Be("jpeg");

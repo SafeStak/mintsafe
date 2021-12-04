@@ -67,17 +67,18 @@ namespace Mintsafe.DataAccess
         public async Task InsertCollectionAggregateAsync(CollectionAggregate collectionAggregate, CancellationToken ct = default)
         {
             var collectionId = collectionAggregate.Collection.Id;
+
             var niftyCollection = NiftyCollectionMapper.Map(collectionAggregate.Collection);
             var nifties = collectionAggregate.Tokens.Select(NiftyMapper.Map);
             var sales = collectionAggregate.ActiveSales.Select(SaleMapper.Map);
-            var files = collectionAggregate.Tokens.SelectMany(x => x.Files.Select(NiftyFileMapper.Map));
+            var files = collectionAggregate.Tokens.SelectMany(x => x.Files.Select(f => NiftyFileMapper.Map(collectionId, f)));
 
             try
             {
                 await _niftyCollectionRepository.InsertOneAsync(niftyCollection, ct);
                 await _niftyRepository.InsertManyAsync(nifties, ct);
-                await _saleRepository.InsertOneAsync(sales.FirstOrDefault(), ct); //TODO insert many
-                await _niftyFileRepository.InsertManyAsync(collectionId, files, ct);
+                await _saleRepository.InsertManyAsync(sales, ct);
+                await _niftyFileRepository.InsertManyAsync(files, ct);
             }
             catch (Exception e)
             {

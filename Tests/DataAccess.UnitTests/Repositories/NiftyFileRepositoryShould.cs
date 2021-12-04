@@ -54,19 +54,15 @@ namespace Mintsafe.DataAccess.UnitTests.Repositories
         [Fact]
         public async Task Call_UpdateEntityAsync_When_UpdateOneAsync_Is_Called()
         {
-            var collectionId = Guid.NewGuid();
-
             var fixture = new Fixture();
             var niftyFile = fixture.Create<NiftyFile>();
-            niftyFile.PartitionKey = null;
 
             _azureClientFactoryMock.Setup(x => x.CreateClient("NiftyFile"))
                 .Returns(_niftyFileClientMock.Object);
 
             var repo = new NiftyFileRepository(_azureClientFactoryMock.Object);
-            await repo.UpdateOneAsync(collectionId, niftyFile, CancellationToken.None);
+            await repo.UpdateOneAsync(niftyFile, CancellationToken.None);
 
-            niftyFile.PartitionKey.Should().Be(collectionId.ToString());
             _niftyFileClientMock.Verify(x => x.UpdateEntityAsync(niftyFile, niftyFile.ETag, TableUpdateMode.Merge, It.IsAny<CancellationToken>()));
         }
 
@@ -74,8 +70,6 @@ namespace Mintsafe.DataAccess.UnitTests.Repositories
         [Fact]
         public async Task Call_AddEntityAsync_And_Set_RowKey_When_InsertOneAsync_Is_Called()
         {
-            var collectionId = Guid.NewGuid();
-
             var fixture = new Fixture();
             var niftyFile = fixture.Create<NiftyFile>();
 
@@ -85,7 +79,7 @@ namespace Mintsafe.DataAccess.UnitTests.Repositories
                 .Returns(_niftyFileClientMock.Object);
 
             var repo = new NiftyFileRepository(_azureClientFactoryMock.Object);
-            await repo.InsertOneAsync(collectionId, niftyFile, CancellationToken.None);
+            await repo.InsertOneAsync(niftyFile, CancellationToken.None);
 
             niftyFile.RowKey.Should().NotBeNull();
 
