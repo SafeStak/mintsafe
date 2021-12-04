@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Mintsafe.DataAccess.UnitTests
+﻿namespace Mintsafe.DataAccess.UnitTests
 {
-    internal class CollectionAggregateComposerShould
+    public class CollectionAggregateComposerShould
     {
     }
 }
