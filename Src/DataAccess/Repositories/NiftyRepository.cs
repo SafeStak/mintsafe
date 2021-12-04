@@ -32,7 +32,7 @@ namespace Mintsafe.DataAccess.Repositories
 
         public async Task UpdateOneAsync(Nifty nifty, CancellationToken ct)
         {
-            await _niftyClient.UpsertEntityAsync(nifty, TableUpdateMode.Merge, ct);
+            await _niftyClient.UpdateEntityAsync(nifty, nifty.ETag, TableUpdateMode.Merge, ct);
         }
 
         public async Task UpdateManyAsync(IEnumerable<Nifty> nifties, CancellationToken ct)

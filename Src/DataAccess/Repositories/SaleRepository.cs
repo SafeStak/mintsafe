@@ -30,7 +30,7 @@ namespace Mintsafe.DataAccess.Repositories
 
         public async Task UpdateOneAsync(Sale sale, CancellationToken ct)
         {
-            await _saleClient.UpsertEntityAsync(sale, TableUpdateMode.Merge, ct);
+            await _saleClient.UpdateEntityAsync(sale, sale.ETag, TableUpdateMode.Merge, ct);
         }
 
         public async Task InsertOneAsync(Sale sale, CancellationToken ct)

@@ -34,8 +34,8 @@ namespace Mintsafe.DataAccess.Repositories
 
         public async Task UpdateOneAsync(Guid collectionId, NiftyFile niftyFile, CancellationToken ct)
         {
-            niftyFile.PartitionKey = collectionId.ToString(); //TODO?
-            await _niftyFileClient.UpsertEntityAsync(niftyFile, TableUpdateMode.Merge, ct);
+            niftyFile.PartitionKey = collectionId.ToString();
+            await _niftyFileClient.UpdateEntityAsync(niftyFile, niftyFile.ETag, TableUpdateMode.Merge, ct);
         }
 
         public async Task UpdateManyAsync(Guid collectionId, IEnumerable<NiftyFile> niftyFiles, CancellationToken ct)
