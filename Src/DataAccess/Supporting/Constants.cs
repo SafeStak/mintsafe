@@ -13,6 +13,7 @@
         public class EventIds
         {
             public const int FailedToRetrieve = 100;
+            public const int FailedToInsert = 200;
         }
     }
 }

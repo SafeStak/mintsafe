@@ -8,7 +8,7 @@ namespace Mintsafe.DataAccess.Repositories
 {
     public interface INiftyRepository
     {
-        Task<IEnumerable<Nifty>> GetByCollectionId(Guid collectionId, CancellationToken ct);
+        Task<IEnumerable<Nifty>> GetByCollectionIdAsync(Guid collectionId, CancellationToken ct);
         Task UpdateOneAsync(Nifty nifty, CancellationToken ct);
         Task UpdateManyAsync(IEnumerable<Nifty> nifties, CancellationToken ct);
         Task InsertOneAsync(Nifty nifty, CancellationToken ct);
@@ -24,7 +24,7 @@ namespace Mintsafe.DataAccess.Repositories
             _niftyClient = tableClientFactory.CreateClient(Constants.TableNames.Nifty);
         }
 
-        public async Task<IEnumerable<Nifty>> GetByCollectionId(Guid collectionId, CancellationToken ct)
+        public async Task<IEnumerable<Nifty>> GetByCollectionIdAsync(Guid collectionId, CancellationToken ct)
         {
             var niftyQuery = _niftyClient.QueryAsync<Nifty>(x => x.PartitionKey == collectionId.ToString());
             return await niftyQuery.GetAllAsync(ct);

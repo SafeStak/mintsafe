@@ -40,10 +40,10 @@ namespace Mintsafe.DataAccess
 
             try
             {
-                var niftyCollectionTask = _niftyCollectionRepository.GetById(collectionId, ct);
-                var niftyTask = _niftyRepository.GetByCollectionId(collectionId, ct);
-                var saleTask = _saleRepository.GetByCollectionId(collectionId, ct);
-                var niftyFileTask = _niftyFileRepository.GetByCollectionId(collectionId, ct);
+                var niftyCollectionTask = _niftyCollectionRepository.GetByIdAsync(collectionId, ct);
+                var niftyTask = _niftyRepository.GetByCollectionIdAsync(collectionId, ct);
+                var saleTask = _saleRepository.GetByCollectionIdAsync(collectionId, ct);
+                var niftyFileTask = _niftyFileRepository.GetByCollectionIdAsync(collectionId, ct);
 
                 await Task.WhenAll(niftyCollectionTask, niftyTask, saleTask, niftyFileTask);
 
@@ -63,9 +63,10 @@ namespace Mintsafe.DataAccess
             return _collectionAggregateComposer.Build(niftyCollection, nifties, sales, niftyFiles);
         }
 
-        //WIP quick hack
         public async Task InsertCollectionAggregateAsync(CollectionAggregate collectionAggregate, CancellationToken ct = default)
         {
+            var sw = Stopwatch.StartNew();
+
             var collectionId = collectionAggregate.Collection.Id;
 
             var niftyCollection = NiftyCollectionMapper.Map(collectionAggregate.Collection);
@@ -75,14 +76,18 @@ namespace Mintsafe.DataAccess
 
             try
             {
-                await _niftyCollectionRepository.InsertOneAsync(niftyCollection, ct);
-                await _niftyRepository.InsertManyAsync(nifties, ct);
-                await _saleRepository.InsertManyAsync(sales, ct);
-                await _niftyFileRepository.InsertManyAsync(files, ct);
+                var niftyCollectionTask = _niftyCollectionRepository.InsertOneAsync(niftyCollection, ct);
+                var niftyTask = _niftyRepository.InsertManyAsync(nifties, ct);
+                var saleTask = _saleRepository.InsertManyAsync(sales, ct);
+                var niftyFileTask = _niftyFileRepository.InsertManyAsync(files, ct);
+
+                await Task.WhenAll(niftyCollectionTask, niftyTask, saleTask, niftyFileTask);
+
+                _logger.LogInformation($"Inserts all entities for collectionId: {collectionId} into table storage after {sw.ElapsedMilliseconds}ms");
             }
             catch (Exception e)
             {
-                _logger.LogError(666, e, "Failed to insert");
+                _logger.LogError(Constants.EventIds.FailedToInsert, e, $"Failed to insert all entities for collectionId:{collectionId}");
                 throw;
             }
         }

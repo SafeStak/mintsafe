@@ -52,19 +52,19 @@ namespace Mintsafe.DataAccess.UnitTests
             var collectionId = Guid.NewGuid();
 
             var niftyCollection = new Fixture().Build<NiftyCollection>().Create();
-            _niftyCollectionRepositoryMock.Setup(x => x.GetById(collectionId, It.IsAny<CancellationToken>()))
+            _niftyCollectionRepositoryMock.Setup(x => x.GetByIdAsync(collectionId, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(niftyCollection);
 
             var nifty = new Fixture().Build<Nifty>().Without(x => x.AttributesAsString).Without(x => x.CreatorsAsString).Create();
-            _niftyRepositoryMock.Setup(x => x.GetByCollectionId(collectionId, It.IsAny<CancellationToken>()))
+            _niftyRepositoryMock.Setup(x => x.GetByCollectionIdAsync(collectionId, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new []{nifty});
 
             var sale = new Fixture().Build<Sale>().Create();
-            _saleRepositoryMock.Setup(x => x.GetByCollectionId(collectionId, It.IsAny<CancellationToken>()))
+            _saleRepositoryMock.Setup(x => x.GetByCollectionIdAsync(collectionId, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new[] {sale});
 
             var niftyFile = new Fixture().Build<NiftyFile>().Create();
-            _niftyFileRepositoryMock.Setup(x => x.GetByCollectionId(collectionId, It.IsAny<CancellationToken>()))
+            _niftyFileRepositoryMock.Setup(x => x.GetByCollectionIdAsync(collectionId, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new[] {niftyFile});
 
             var collectionAggregate = new Fixture().Build<CollectionAggregate>().Create();
@@ -87,7 +87,7 @@ namespace Mintsafe.DataAccess.UnitTests
         public async Task Log_And_Throw_On_NiftyCollection_Exception()
         {
             var exception = new Exception();
-            _niftyCollectionRepositoryMock.Setup(x => x.GetById(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            _niftyCollectionRepositoryMock.Setup(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(exception);
 
             Func<Task<CollectionAggregate>> act = async () => await _tableStorageDataService.GetCollectionAggregateAsync(Guid.NewGuid());
@@ -108,7 +108,7 @@ namespace Mintsafe.DataAccess.UnitTests
         public async Task Log_And_Throw_On_Nifty_Exception()
         {
             var exception = new Exception();
-            _niftyRepositoryMock.Setup(x => x.GetByCollectionId(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            _niftyRepositoryMock.Setup(x => x.GetByCollectionIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(exception);
 
             Func<Task<CollectionAggregate>> act = async () => await _tableStorageDataService.GetCollectionAggregateAsync(Guid.NewGuid());
@@ -129,7 +129,7 @@ namespace Mintsafe.DataAccess.UnitTests
         public async Task Log_And_Throw_On_NiftyFile_Exception()
         {
             var exception = new Exception();
-            _niftyFileRepositoryMock.Setup(x => x.GetByCollectionId(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            _niftyFileRepositoryMock.Setup(x => x.GetByCollectionIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(exception);
 
             Func<Task<CollectionAggregate>> act = async () => await _tableStorageDataService.GetCollectionAggregateAsync(Guid.NewGuid());
@@ -150,7 +150,7 @@ namespace Mintsafe.DataAccess.UnitTests
         public async Task Log_And_Throw_On_Sales_Exception()
         {
             var exception = new Exception();
-            _saleRepositoryMock.Setup(x => x.GetByCollectionId(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            _saleRepositoryMock.Setup(x => x.GetByCollectionIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(exception);
 
             Func<Task<CollectionAggregate>> act = async () => await _tableStorageDataService.GetCollectionAggregateAsync(Guid.NewGuid());

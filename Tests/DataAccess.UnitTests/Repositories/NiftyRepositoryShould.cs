@@ -44,7 +44,7 @@ namespace Mintsafe.DataAccess.UnitTests.Repositories
                 .Returns(_NiftyClientMock.Object);
 
             var repo = new NiftyRepository(_azureClientFactoryMock.Object);
-            var result = await repo.GetByCollectionId(collectionId, CancellationToken.None);
+            var result = await repo.GetByCollectionIdAsync(collectionId, CancellationToken.None);
 
             result.Should().NotBeNullOrEmpty();
             result.Count().Should().Be(1);
