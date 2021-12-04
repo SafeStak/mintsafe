@@ -27,9 +27,7 @@ namespace Mintsafe.DataAccess.Repositories
         public async Task<IEnumerable<NiftyFile>> GetByCollectionId(Guid collectionId, CancellationToken ct)
         {
             var niftyQuery = _niftyFileClient.QueryAsync<NiftyFile>(x => x.PartitionKey == collectionId.ToString());
-            var sales = await niftyQuery.GetAllAsync(ct);
-
-            return sales;
+            return await niftyQuery.GetAllAsync(ct);
         }
 
         public async Task UpdateOneAsync(NiftyFile niftyFile, CancellationToken ct)
