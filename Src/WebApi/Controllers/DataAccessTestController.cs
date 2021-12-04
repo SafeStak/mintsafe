@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Mintsafe.Abstractions;
-using Mintsafe.DataAccess.Repositories;
 
 namespace Mintsafe.WebApi.Controllers
 {
