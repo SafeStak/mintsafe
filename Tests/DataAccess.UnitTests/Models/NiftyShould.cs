@@ -63,6 +63,7 @@ namespace Mintsafe.DataAccess.UnitTests.Models
             niftyCollection.AttributesAsString.Should().Be("[{\"Key\":\"Colour\",\"Value\":\"Orange\"},{\"Key\":\"Size\",\"Value\":\"Large\"}]");
         }
 
+
         [Fact]
         public void Set_Attributes_Correctly()
         {

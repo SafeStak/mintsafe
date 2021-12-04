@@ -6,7 +6,7 @@ namespace Mintsafe.DataAccess.Mappers
     {
         public static Models.Sale Map(Sale sale)
         {
-            return new Models.Sale //TODO System properties e.g eTag
+            return new Models.Sale
             {
                 RowKey = sale.Id.ToString(),
                 PartitionKey = sale.CollectionId.ToString(),

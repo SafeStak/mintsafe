@@ -37,7 +37,7 @@ namespace Mintsafe.DataAccess.Models
         public string AttributesAsString
         {
             get => JsonSerializer.Serialize(Attributes);
-            set => Attributes = JsonSerializer.Deserialize<IEnumerable<KeyValuePair<string, string>>>(value)!; //TODO handle nulls
+            set => Attributes = JsonSerializer.Deserialize<IEnumerable<KeyValuePair<string, string>>>(value)!;
         }
 
         public DateTimeOffset? Timestamp { get; set; }
