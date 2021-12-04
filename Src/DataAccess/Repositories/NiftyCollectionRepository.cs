@@ -31,7 +31,7 @@ namespace Mintsafe.DataAccess.Repositories
 
         public async Task UpdateOneAsync(NiftyCollection niftyCollection, CancellationToken ct)
         {
-            await _niftyCollectionClient.UpsertEntityAsync(niftyCollection, TableUpdateMode.Merge, ct);
+            await _niftyCollectionClient.UpdateEntityAsync(niftyCollection, niftyCollection.ETag, TableUpdateMode.Merge, ct);
         }
 
         public async Task InsertOneAsync(NiftyCollection niftyCollection, CancellationToken ct)
