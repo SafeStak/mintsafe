@@ -36,20 +36,13 @@ namespace Mintsafe.DataAccess.Repositories
 
         public async Task InsertOneAsync(Sale sale, CancellationToken ct)
         {
-            sale.RowKey = Guid.NewGuid().ToString();
             await _saleClient.AddEntityAsync(sale, ct);
         }
 
         public async Task InsertManyAsync(IEnumerable<Sale> sales, CancellationToken ct)
         {
-            var saleList = sales.ToList();
-            foreach (var sale in saleList)
-            {
-                sale.RowKey = Guid.NewGuid().ToString();
-            }
-
             List<TableTransactionAction> addEntitiesBatch = new List<TableTransactionAction>();
-            addEntitiesBatch.AddRange(saleList.Select(nfc => new TableTransactionAction(TableTransactionActionType.Add, nfc)));
+            addEntitiesBatch.AddRange(sales.Select(nfc => new TableTransactionAction(TableTransactionActionType.Add, nfc)));
             await _saleClient.SubmitTransactionAsync(addEntitiesBatch, ct).ConfigureAwait(false);
         }
     }

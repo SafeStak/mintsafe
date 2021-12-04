@@ -68,20 +68,16 @@ namespace Mintsafe.DataAccess.UnitTests.Repositories
 
 
         [Fact]
-        public async Task Call_AddEntityAsync_And_Set_RowKey_When_InsertOneAsync_Is_Called()
+        public async Task Call_AddEntityAsync_When_InsertOneAsync_Is_Called()
         {
             var fixture = new Fixture();
             var sale = fixture.Create<Sale>();
-
-            sale.RowKey = null;
 
             _azureClientFactoryMock.Setup(x => x.CreateClient("Sale"))
                 .Returns(_SaleClientMock.Object);
 
             var repo = new SaleRepository(_azureClientFactoryMock.Object);
             await repo.InsertOneAsync(sale, CancellationToken.None);
-
-            sale.RowKey.Should().NotBeNull();
 
             _SaleClientMock.Verify(x => x.AddEntityAsync(sale, It.IsAny<CancellationToken>()));
         }
