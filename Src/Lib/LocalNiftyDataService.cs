@@ -53,6 +53,11 @@ public class LocalNiftyDataService : INiftyDataService
         return Task.FromResult(new CollectionAggregate(collection, tokens, ActiveSales: activeSales));
     }
 
+    public Task InsertCollectionAggregateAsync(CollectionAggregate collectionAggregate, CancellationToken ct = default)
+    {
+        throw new NotImplementedException();
+    }
+
     private static bool IsSaleOpen(Sale sale)
     {
         if (!sale.IsActive
@@ -96,24 +101,29 @@ public class LocalNiftyDataService : INiftyDataService
         }
 
         return Enumerable.Range(0, mintableTokenCount)
-            .Select(i => new Nifty(
-                Guid.NewGuid(),
-                collectionId == null ? Guid.NewGuid() : Guid.Parse(collectionId),
-                isMintable,
-                $"{baseName}{i}",
-                $"{baseName} {i}",
-                $"{baseName} {i} Description",
-                creatorsCsv.Split(','),
-                $"{urlBase}{i + 2}",
-                mediaType,
-                new[] {
-                        new NiftyFile(Guid.NewGuid(), "full_res_png", "image/png", $"{urlBase}{i}"),
-                        new NiftyFile(Guid.NewGuid(), "specs_pdf", "application/pdf", $"{urlBase}{i+1}")
-                },
-                dateTimeParsed.AddDays(i),
-                new Royalty(royaltyPortion, royaltyAddress),
-                version,
-                GetAttributesForIndex(i)))
+            .Select(i =>
+            {
+                var niftyId = Guid.NewGuid();
+                return new Nifty(
+                    niftyId,
+                    collectionId == null ? Guid.NewGuid() : Guid.Parse(collectionId),
+                    isMintable,
+                    $"{baseName}{i}",
+                    $"{baseName} {i}",
+                    $"{baseName} {i} Description",
+                    creatorsCsv.Split(','),
+                    $"{urlBase}{i + 2}",
+                    mediaType,
+                    new NiftyFile[]
+                    {
+                        new(Guid.NewGuid(), niftyId, "full_res_png", "image/png", $"{urlBase}{i}"),
+                        new(Guid.NewGuid(), niftyId, "specs_pdf", "application/pdf", $"{urlBase}{i + 1}")
+                    },
+                    dateTimeParsed.AddDays(i),
+                    new Royalty(royaltyPortion, royaltyAddress),
+                    version,
+                    GetAttributesForIndex(i));
+            })
             .ToArray();
     }
 }

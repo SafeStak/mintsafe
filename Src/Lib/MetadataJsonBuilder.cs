@@ -25,7 +25,7 @@ namespace Mintsafe.Lib
         public string[]? Creators { get; set; }
         public string[]? Publishers { get; set; }
         public CnftStandardFile[]? Files { get; set; }
-        public Dictionary<string, string>? Attributes { get; set; }
+        public IEnumerable<KeyValuePair<string, string>>? Attributes { get; set; }
     }
 
     public class CnftStandardRoyalty

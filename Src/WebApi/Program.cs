@@ -4,6 +4,12 @@ using Microsoft.Extensions.Hosting;
 using Mintsafe.Abstractions;
 using Mintsafe.Lib;
 using System;
+using Microsoft.Extensions.Azure;
+using Mintsafe.DataAccess;
+using Mintsafe.DataAccess.Composers;
+using Mintsafe.DataAccess.Extensions;
+using Mintsafe.DataAccess.Repositories;
+using Mintsafe.DataAccess.Supporting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,8 +52,29 @@ builder.Services.AddSingleton<INiftyDistributor, NiftyDistributor>();
 builder.Services.AddSingleton<IUtxoRefunder, UtxoRefunder>();
 builder.Services.AddSingleton<IYoloWalletService, YoloWalletService>();
 
+// Data Access
+builder.Services.AddSingleton<INiftyDataService, TableStorageDataService>();
+builder.Services.AddSingleton<INiftyCollectionRepository, NiftyCollectionRepository>();
+builder.Services.AddSingleton<INiftyRepository, NiftyRepository>();
+builder.Services.AddSingleton<ISaleRepository, SaleRepository>();
+builder.Services.AddSingleton<INiftyFileRepository, NiftyFileRepository>();
+
+builder.Services.AddSingleton<ICollectionAggregateComposer, CollectionAggregateComposer>();
+
+builder.Services.AddAzureClients(clientBuilder =>
+{
+    var connectionString = builder.Configuration.GetSection("Storage:ConnectionString").Value;
+    
+    clientBuilder.AddTableClient(connectionString, Constants.TableNames.NiftyCollection);
+    clientBuilder.AddTableClient(connectionString, Constants.TableNames.Nifty);
+    clientBuilder.AddTableClient(connectionString, Constants.TableNames.Sale);
+    clientBuilder.AddTableClient(connectionString, Constants.TableNames.NiftyFile);
+});
+
+//TODO
+builder.Services.AddSingleton<IMetadataJsonBuilder, MetadataJsonBuilder>();
+
 // Fakes
-builder.Services.AddSingleton<INiftyDataService, LocalNiftyDataService>();
 //builder.Services.AddSingleton<IUtxoRetriever, FakeUtxoRetriever>();
 builder.Services.AddSingleton<ITxInfoRetriever, FakeTxIoRetriever>();
 builder.Services.AddSingleton<ITxBuilder, FakeTxBuilder>();

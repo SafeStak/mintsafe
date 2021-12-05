@@ -34,10 +34,11 @@ public record Nifty(
     DateTime CreatedAt,
     Royalty Royalty,
     string Version,
-    Dictionary<string, string> Attributes);
+    IEnumerable<KeyValuePair<string, string>> Attributes);
 
 public record NiftyFile(
     Guid Id,
+    Guid NiftyId,
     string Name,
     string MediaType,
     string Url,
