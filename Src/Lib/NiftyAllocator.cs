@@ -11,14 +11,17 @@ namespace Mintsafe.Lib;
 public class NiftyAllocator : INiftyAllocator
 {
     private readonly ILogger<NiftyAllocator> _logger;
+    private readonly IInstrumentor _instrumentor;
     private readonly MintsafeAppSettings _settings;
     private readonly Random _random;
 
     public NiftyAllocator(
         ILogger<NiftyAllocator> logger,
+        IInstrumentor instrumentor,
         MintsafeAppSettings settings)
     {
         _logger = logger;
+        _instrumentor = instrumentor;
         _settings = settings;
         _random = new Random();
     }
@@ -64,8 +67,16 @@ public class NiftyAllocator : INiftyAllocator
             saleAllocatedNfts.Add(tokenAllocated);
             saleMintableNfts.RemoveAt(randomIndex);
         }
-        _logger.LogInformation($"{nameof(AllocateNiftiesForPurchaseAsync)} completed with {purchaseAllocated.Count} tokens after {sw.ElapsedMilliseconds}ms");
-
+        _instrumentor.TrackDependency(
+            EventIds.AllocatorElapsed,
+            sw.ElapsedMilliseconds,
+            DateTime.UtcNow,
+            nameof(NiftyAllocator),
+            string.Empty,
+            nameof(AllocateNiftiesForPurchaseAsync),
+            isSuccessful: true);
+        _logger.LogDebug(EventIds.AllocatorElapsed, $"{nameof(AllocateNiftiesForPurchaseAsync)} completed with {purchaseAllocated.Count} tokens after {sw.ElapsedMilliseconds}ms");
+        
         return Task.FromResult(purchaseAllocated.ToArray());
     }
 }

@@ -13,6 +13,7 @@ namespace Mintsafe.Lib;
 public class NiftyDistributor : INiftyDistributor
 {
     private readonly ILogger<NiftyDistributor> _logger;
+    private readonly IInstrumentor _instrumentor;
     private readonly MintsafeAppSettings _settings;
     private readonly IMetadataFileGenerator _metadataGenerator;
     private readonly ITxInfoRetriever _txRetriever;
@@ -21,6 +22,7 @@ public class NiftyDistributor : INiftyDistributor
 
     public NiftyDistributor(
         ILogger<NiftyDistributor> logger,
+        IInstrumentor instrumentor,
         MintsafeAppSettings settings,
         IMetadataFileGenerator metadataGenerator,
         ITxInfoRetriever txRetriever,
@@ -28,6 +30,7 @@ public class NiftyDistributor : INiftyDistributor
         ITxSubmitter txSubmitter)
     {
         _logger = logger;
+        _instrumentor = instrumentor;
         _settings = settings;
         _metadataGenerator = metadataGenerator;
         _txRetriever = txRetriever;
@@ -42,18 +45,19 @@ public class NiftyDistributor : INiftyDistributor
         Sale sale,
         CancellationToken ct = default)
     {
+        var swTotal = Stopwatch.StartNew();
         var sw = Stopwatch.StartNew();
         // Generate metadata file
         var metadataJsonFileName = $"metadata-mint-{purchaseAttempt.Utxo}.json";
         var metadataJsonPath = Path.Combine(_settings.BasePath, metadataJsonFileName);
         await _metadataGenerator.GenerateNftStandardMetadataJsonFile(nfts, collection, metadataJsonPath, ct).ConfigureAwait(false);
-        _logger.LogInformation($"{nameof(_metadataGenerator.GenerateNftStandardMetadataJsonFile)} generated at {metadataJsonPath} after {sw.ElapsedMilliseconds}ms");
+        _logger.LogDebug($"{nameof(_metadataGenerator.GenerateNftStandardMetadataJsonFile)} generated at {metadataJsonPath} after {sw.ElapsedMilliseconds}ms");
 
         // Derive buyer address after getting source UTxO details 
         sw.Restart();
         var txIo = await _txRetriever.GetTxInfoAsync(purchaseAttempt.Utxo.TxHash, ct).ConfigureAwait(false);
         var buyerAddress = txIo.Inputs.First().Address;
-        _logger.LogInformation($"{nameof(_txRetriever.GetTxInfoAsync)} completed after {sw.ElapsedMilliseconds}ms");
+        _logger.LogDebug($"{nameof(_txRetriever.GetTxInfoAsync)} completed after {sw.ElapsedMilliseconds}ms");
 
         // Map UtxoValues for new tokens
         var tokenMintUtxoValues = nfts.Select(n => new Value($"{collection.PolicyId}.{n.AssetName}", 1)).ToArray();
@@ -91,7 +95,7 @@ public class NiftyDistributor : INiftyDistributor
         try
         {
             txSubmissionBody = await _txBuilder.BuildTxAsync(txBuildCommand, ct).ConfigureAwait(false);
-            _logger.LogInformation($"{nameof(_txBuilder.BuildTxAsync)} completed after {sw.ElapsedMilliseconds}ms");
+            _logger.LogDebug($"{nameof(_txBuilder.BuildTxAsync)} completed after {sw.ElapsedMilliseconds}ms");
         }
         catch (Exception ex)
         {
@@ -107,7 +111,7 @@ public class NiftyDistributor : INiftyDistributor
         try
         {
             txHash = await _txSubmitter.SubmitTxAsync(txSubmissionBody, ct).ConfigureAwait(false);
-            _logger.LogInformation($"{nameof(_txSubmitter.SubmitTxAsync)} completed after {sw.ElapsedMilliseconds}ms");
+            _logger.LogDebug($"{nameof(_txSubmitter.SubmitTxAsync)} completed after {sw.ElapsedMilliseconds}ms");
         }
         catch (Exception ex)
         {
@@ -117,6 +121,16 @@ public class NiftyDistributor : INiftyDistributor
                 JsonSerializer.Serialize(txBuildCommand),
                 Exception: ex);
         }
+
+        _instrumentor.TrackDependency(
+            EventIds.DistributorElapsed,
+            swTotal.ElapsedMilliseconds,
+            DateTime.UtcNow,
+            nameof(NiftyDistributor),
+            string.Empty,
+            nameof(DistributeNiftiesForSalePurchase),
+            data: JsonSerializer.Serialize(txBuildCommand),
+            isSuccessful: true);
 
         return new NiftyDistributionResult(
             NiftyDistributionOutcome.Successful, 

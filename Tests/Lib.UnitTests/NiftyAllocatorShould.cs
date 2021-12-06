@@ -4,6 +4,7 @@ using Mintsafe.Abstractions;
 using System;
 using System.Threading.Tasks;
 using Xunit;
+using static Mintsafe.Lib.UnitTests.FakeGenerator;
 
 namespace Mintsafe.Lib.UnitTests;
 
@@ -15,7 +16,8 @@ public class NiftyAllocatorShould
     {
         _allocator = new NiftyAllocator(
             NullLogger<NiftyAllocator>.Instance,
-            FakeGenerator.GenerateSettings());
+            NullInstrumentor.Instance,
+            GenerateSettings());
     }
 
     [Theory]
@@ -33,9 +35,9 @@ public class NiftyAllocatorShould
         int saleReleaseQuantity,
         int expectedAllocatedQuantity)
     {
-        var sale = FakeGenerator.GenerateSale(totalReleaseQuantity: saleReleaseQuantity);
-        var mintableTokens = FakeGenerator.GenerateTokens(saleMintableCount);
-        var allocatedTokens = FakeGenerator.GenerateTokens(saleAllocatedCount);
+        var sale = GenerateSale(totalReleaseQuantity: saleReleaseQuantity);
+        var mintableTokens = GenerateTokens(saleMintableCount);
+        var allocatedTokens = GenerateTokens(saleAllocatedCount);
         var request = new PurchaseAttempt(
             Guid.NewGuid(),
             Guid.NewGuid(),
@@ -61,9 +63,9 @@ public class NiftyAllocatorShould
         int requestedQuantity,
         int saleReleaseQuantity)
     {
-        var sale = FakeGenerator.GenerateSale(totalReleaseQuantity: saleReleaseQuantity);
-        var mintableTokens = FakeGenerator.GenerateTokens(saleMintableCount);
-        var allocatedTokens = FakeGenerator.GenerateTokens(saleAllocatedCount);
+        var sale = GenerateSale(totalReleaseQuantity: saleReleaseQuantity);
+        var mintableTokens = GenerateTokens(saleMintableCount);
+        var allocatedTokens = GenerateTokens(saleAllocatedCount);
         var request = new PurchaseAttempt(
             Guid.NewGuid(),
             Guid.NewGuid(),
@@ -90,9 +92,9 @@ public class NiftyAllocatorShould
         int requestedQuantity,
         int saleReleaseQuantity)
     {
-        var sale = FakeGenerator.GenerateSale(totalReleaseQuantity: saleReleaseQuantity);
-        var mintableTokens = FakeGenerator.GenerateTokens(saleMintableCount);
-        var allocatedTokens = FakeGenerator.GenerateTokens(saleAllocatedCount);
+        var sale = GenerateSale(totalReleaseQuantity: saleReleaseQuantity);
+        var mintableTokens = GenerateTokens(saleMintableCount);
+        var allocatedTokens = GenerateTokens(saleAllocatedCount);
         var request = new PurchaseAttempt(
             Guid.NewGuid(),
             Guid.NewGuid(),
@@ -120,9 +122,9 @@ public class NiftyAllocatorShould
         int requestedQuantity,
         int saleReleaseQuantity)
     {
-        var sale = FakeGenerator.GenerateSale(totalReleaseQuantity: saleReleaseQuantity);
-        var allocatedTokens = FakeGenerator.GenerateTokens(saleAllocatedCount);
-        var mintableTokens = FakeGenerator.GenerateTokens(saleMintableCount);
+        var sale = GenerateSale(totalReleaseQuantity: saleReleaseQuantity);
+        var allocatedTokens = GenerateTokens(saleAllocatedCount);
+        var mintableTokens = GenerateTokens(saleMintableCount);
         var request = new PurchaseAttempt(
             Guid.NewGuid(),
             Guid.NewGuid(),

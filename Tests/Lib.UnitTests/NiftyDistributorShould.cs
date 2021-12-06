@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
+using static Mintsafe.Lib.UnitTests.FakeGenerator;
 
 namespace Mintsafe.Lib.UnitTests;
 
@@ -26,7 +27,8 @@ public class NiftyDistributorShould
         _mockTxSubmitter = new Mock<ITxSubmitter>();
         _distributor = new NiftyDistributor(
             NullLogger<NiftyDistributor>.Instance,
-            FakeGenerator.GenerateSettings(),
+            NullInstrumentor.Instance,
+            GenerateSettings(),
             _mockMetadataGenerator.Object,
             _mockTxIoRetriever.Object,
             _mockTxBuilder.Object,
@@ -39,12 +41,12 @@ public class NiftyDistributorShould
     public async Task Distribute_Nifties_For_SalePurchase_Given_Active_Sale_When_Purchase_Is_Valid(
         int niftyCount)
     {
-        var purchaseAttempt = new PurchaseAttempt(Guid.NewGuid(), Guid.NewGuid(), FakeGenerator.GenerateUtxos(1, 10000000).First(), 3, 0);
-        var allocatedNifties = FakeGenerator.GenerateTokens(niftyCount).ToArray();
+        var purchaseAttempt = new PurchaseAttempt(Guid.NewGuid(), Guid.NewGuid(), GenerateUtxos(1, 10000000).First(), 3, 0);
+        var allocatedNifties = GenerateTokens(niftyCount).ToArray();
         var buildTxOutputBytes = new byte[] { 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20 };
         _mockTxIoRetriever
             .Setup(t => t.GetTxInfoAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(FakeGenerator.GenerateTxIoAggregate());
+            .ReturnsAsync(GenerateTxIoAggregate());
         _mockTxBuilder
             .Setup(t => t.BuildTxAsync(It.IsAny<TxBuildCommand>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(buildTxOutputBytes);
@@ -55,8 +57,8 @@ public class NiftyDistributorShould
         var distributionResult = await _distributor.DistributeNiftiesForSalePurchase(
             nfts: allocatedNifties,
             purchaseAttempt: purchaseAttempt,
-            collection: FakeGenerator.GenerateCollection(),
-            sale: FakeGenerator.GenerateSale());
+            collection: GenerateCollection(),
+            sale: GenerateSale());
 
         distributionResult.Outcome.Should().Be(NiftyDistributionOutcome.Successful);
         distributionResult.PurchaseAttempt.Should().Be(purchaseAttempt);
@@ -80,7 +82,7 @@ public class NiftyDistributorShould
         var buildTxOutputBytes = new byte[] { 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20 };
         _mockTxIoRetriever
             .Setup(t => t.GetTxInfoAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(FakeGenerator.GenerateTxIoAggregate());
+            .ReturnsAsync(GenerateTxIoAggregate());
         _mockTxBuilder
             .Setup(t => t.BuildTxAsync(It.IsAny<TxBuildCommand>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(buildTxOutputBytes);
@@ -93,10 +95,10 @@ public class NiftyDistributorShould
             new[] { new Value(Assets.LovelaceUnit, purchaseUtxoLovelaceValue) });
 
         var txHash = await _distributor.DistributeNiftiesForSalePurchase(
-            nfts: FakeGenerator.GenerateTokens(3).ToArray(),
+            nfts: GenerateTokens(3).ToArray(),
             purchaseAttempt: new PurchaseAttempt(Guid.NewGuid(), Guid.NewGuid(), purchaseUtxo, 3, 0),
-            collection: FakeGenerator.GenerateCollection(),
-            sale: FakeGenerator.GenerateSale());
+            collection: GenerateCollection(),
+            sale: GenerateSale());
 
         _mockTxBuilder
             .Verify(
@@ -114,21 +116,21 @@ public class NiftyDistributorShould
         var buildTxOutputBytes = new byte[] { 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20 };
         _mockTxIoRetriever
             .Setup(t => t.GetTxInfoAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(FakeGenerator.GenerateTxIoAggregate(inputAddress: buyerAddress));
+            .ReturnsAsync(GenerateTxIoAggregate(inputAddress: buyerAddress));
         _mockTxBuilder
             .Setup(t => t.BuildTxAsync(It.IsAny<TxBuildCommand>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(buildTxOutputBytes);
         _mockTxSubmitter
             .Setup(t => t.SubmitTxAsync(It.Is<byte[]>(b => b == buildTxOutputBytes), It.IsAny<CancellationToken>()))
             .ReturnsAsync("01daae688d236601109d9fc1bc11d7380a7617e6835eddca6527738963a87279");
-        var nifties = FakeGenerator.GenerateTokens(niftyCount).ToArray();
+        var nifties = GenerateTokens(niftyCount).ToArray();
 
         var txHash = await _distributor.DistributeNiftiesForSalePurchase(
             nfts: nifties,
             purchaseAttempt: new PurchaseAttempt(
-                Guid.NewGuid(), Guid.NewGuid(), FakeGenerator.GenerateUtxos(1, 10000000).First(), niftyCount, changeInLovelace),
-            collection: FakeGenerator.GenerateCollection(policyId: policyId),
-            sale: FakeGenerator.GenerateSale());
+                Guid.NewGuid(), Guid.NewGuid(), GenerateUtxos(1, 10000000).First(), niftyCount, changeInLovelace),
+            collection: GenerateCollection(policyId: policyId),
+            sale: GenerateSale());
 
         _mockTxBuilder
             .Verify(
@@ -148,21 +150,21 @@ public class NiftyDistributorShould
         var buildTxOutputBytes = new byte[] { 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20 };
         _mockTxIoRetriever
             .Setup(t => t.GetTxInfoAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(FakeGenerator.GenerateTxIoAggregate());
+            .ReturnsAsync(GenerateTxIoAggregate());
         _mockTxBuilder
             .Setup(t => t.BuildTxAsync(It.IsAny<TxBuildCommand>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(buildTxOutputBytes);
         _mockTxSubmitter
             .Setup(t => t.SubmitTxAsync(It.Is<byte[]>(b => b == buildTxOutputBytes), It.IsAny<CancellationToken>()))
             .ReturnsAsync("01daae688d236601109d9fc1bc11d7380a7617e6835eddca6527738963a87279");
-        var nifties = FakeGenerator.GenerateTokens(niftyCount).ToArray();
+        var nifties = GenerateTokens(niftyCount).ToArray();
 
         var txHash = await _distributor.DistributeNiftiesForSalePurchase(
             nfts: nifties,
             purchaseAttempt: new PurchaseAttempt(
-                Guid.NewGuid(), Guid.NewGuid(), FakeGenerator.GenerateUtxos(1, purchaseLovelaces).First(), niftyCount, changeInLovelace),
-            collection: FakeGenerator.GenerateCollection(),
-            sale: FakeGenerator.GenerateSale(proceedsAddress: proceedsAddress));
+                Guid.NewGuid(), Guid.NewGuid(), GenerateUtxos(1, purchaseLovelaces).First(), niftyCount, changeInLovelace),
+            collection: GenerateCollection(),
+            sale: GenerateSale(proceedsAddress: proceedsAddress));
 
         _mockTxBuilder
             .Verify(
@@ -183,21 +185,21 @@ public class NiftyDistributorShould
         var buildTxOutputBytes = new byte[] { 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20 };
         _mockTxIoRetriever
             .Setup(t => t.GetTxInfoAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(FakeGenerator.GenerateTxIoAggregate());
+            .ReturnsAsync(GenerateTxIoAggregate());
         _mockTxBuilder
             .Setup(t => t.BuildTxAsync(It.IsAny<TxBuildCommand>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(buildTxOutputBytes);
         _mockTxSubmitter
             .Setup(t => t.SubmitTxAsync(It.Is<byte[]>(b => b == buildTxOutputBytes), It.IsAny<CancellationToken>()))
             .ReturnsAsync("01daae688d236601109d9fc1bc11d7380a7617e6835eddca6527738963a87279");
-        var nifties = FakeGenerator.GenerateTokens(niftyCount).ToArray();
+        var nifties = GenerateTokens(niftyCount).ToArray();
 
         var txHash = await _distributor.DistributeNiftiesForSalePurchase(
             nfts: nifties,
             purchaseAttempt: new PurchaseAttempt(
-                Guid.NewGuid(), Guid.NewGuid(), FakeGenerator.GenerateUtxos(1, 1000000).First(), 3, 0),
-            collection: FakeGenerator.GenerateCollection(policyId: policyId),
-            sale: FakeGenerator.GenerateSale());
+                Guid.NewGuid(), Guid.NewGuid(), GenerateUtxos(1, 1000000).First(), 3, 0),
+            collection: GenerateCollection(policyId: policyId),
+            sale: GenerateSale());
 
         _mockTxBuilder
             .Verify(

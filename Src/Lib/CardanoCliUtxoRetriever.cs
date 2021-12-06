@@ -14,14 +14,17 @@ namespace Mintsafe.Lib;
 public class CardanoCliUtxoRetriever : IUtxoRetriever
 {
     private readonly ILogger<CardanoCliUtxoRetriever> _logger;
+    private readonly IInstrumentor _instrumentor;
     private readonly MintsafeAppSettings _settings;
     private readonly string _networkMagic;
 
     public CardanoCliUtxoRetriever(
         ILogger<CardanoCliUtxoRetriever> logger,
+        IInstrumentor instrumentor,
         MintsafeAppSettings settings)
     {
         _logger = logger;
+        _instrumentor = instrumentor;
         _settings = settings;
         _networkMagic = _settings.Network == Network.Mainnet
             ? "--mainnet"
@@ -30,6 +33,7 @@ public class CardanoCliUtxoRetriever : IUtxoRetriever
 
     public async Task<Utxo[]> GetUtxosAtAddressAsync(string address, CancellationToken ct = default)
     {
+        var isSuccessful = false;
         var sw = Stopwatch.StartNew();
         var rawUtxoResponse = string.Empty;
         try
@@ -40,6 +44,7 @@ public class CardanoCliUtxoRetriever : IUtxoRetriever
                     _networkMagic,
                     "--address", address
                 ), noEcho: true, cancellationToken: ct);
+            isSuccessful = true;
         }
         catch (Win32Exception ex)
         {
@@ -51,6 +56,14 @@ public class CardanoCliUtxoRetriever : IUtxoRetriever
         }
         finally
         {
+            _instrumentor.TrackDependency(
+                EventIds.UtxoRetrievalElapsed,
+                sw.ElapsedMilliseconds,
+                DateTime.UtcNow,
+                nameof(BlockfrostClient),
+                string.Empty,
+                nameof(CardanoCliUtxoRetriever),
+                isSuccessful: isSuccessful);
             _logger.LogDebug($"UTxOs retrieved after {sw.ElapsedMilliseconds}ms:{Environment.NewLine}{rawUtxoResponse}");
         }
 

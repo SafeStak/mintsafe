@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Mintsafe.Abstractions;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -10,15 +11,18 @@ namespace Mintsafe.Lib;
 public class MetadataFileGenerator : IMetadataFileGenerator
 {
     private readonly ILogger<MetadataFileGenerator> _logger;
+    private readonly IInstrumentor _instrumentor;
     private readonly MintsafeAppSettings _settings;
     private readonly IMetadataJsonBuilder _metadataJsonBuilder;
 
     public MetadataFileGenerator(
         ILogger<MetadataFileGenerator> logger,
+        IInstrumentor instrumentor,
         MintsafeAppSettings settings,
         IMetadataJsonBuilder metadataJsonBuilder)
     {
         _logger = logger;
+        _instrumentor = instrumentor;
         _settings = settings;
         _metadataJsonBuilder = metadataJsonBuilder;
     }
@@ -32,6 +36,14 @@ public class MetadataFileGenerator : IMetadataFileGenerator
         var json = _metadataJsonBuilder.GenerateNftStandardJson(nfts, collection);
         var sw = Stopwatch.StartNew();
         await File.WriteAllTextAsync(outputPath, json, ct).ConfigureAwait(false);
+        _instrumentor.TrackDependency(
+            EventIds.MetadataFileElapsed,
+            sw.ElapsedMilliseconds,
+            DateTime.UtcNow,
+            nameof(MetadataFileGenerator),
+            outputPath,
+            nameof(GenerateNftStandardMetadataJsonFile),
+            isSuccessful: true);
         _logger.LogDebug($"NFT Metadata JSON file generated at {outputPath} after {sw.ElapsedMilliseconds}ms");
     }
 
@@ -43,6 +55,14 @@ public class MetadataFileGenerator : IMetadataFileGenerator
         var json = _metadataJsonBuilder.GenerateMessageJson(message);
         var sw = Stopwatch.StartNew();
         await File.WriteAllTextAsync(outputPath, json, ct).ConfigureAwait(false);
+        _instrumentor.TrackDependency(
+            EventIds.MetadataFileElapsed,
+            sw.ElapsedMilliseconds,
+            DateTime.UtcNow,
+            nameof(MetadataFileGenerator),
+            outputPath,
+            nameof(GenerateMessageMetadataJsonFile),
+            isSuccessful: true);
         _logger.LogDebug($"Message Metadata JSON file generated at {outputPath} after {sw.ElapsedMilliseconds}ms");
     }
 }

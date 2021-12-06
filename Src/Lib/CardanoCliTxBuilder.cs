@@ -3,6 +3,7 @@ using Mintsafe.Abstractions;
 using SimpleExec;
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -31,14 +32,17 @@ public class CardanoCliException : ApplicationException
 public class CardanoCliTxBuilder : ITxBuilder
 {
     private readonly ILogger<CardanoCliTxBuilder> _logger;
+    private readonly IInstrumentor _instrumentor;
     private readonly MintsafeAppSettings _settings;
     private readonly string _networkMagic;
 
     public CardanoCliTxBuilder(
         ILogger<CardanoCliTxBuilder> logger,
+        IInstrumentor instrumentor,
         MintsafeAppSettings settings)
     {
         _logger = logger;
+        _instrumentor = instrumentor;
         _settings = settings;
         _networkMagic = _settings.Network == Network.Mainnet
             ? "--mainnet"
@@ -50,14 +54,19 @@ public class CardanoCliTxBuilder : ITxBuilder
         CancellationToken ct = default)
     {
         var buildId = Guid.NewGuid();
+        var isSuccessful = false;
+        var sw = Stopwatch.StartNew();
         try
         {
             var protocolParamsOutputPath = Path.Combine(_settings.BasePath, "protocol.json");
-            await Command.ReadAsync(
-                "cardano-cli",
-                $"query protocol-parameters {_networkMagic} --out-file {protocolParamsOutputPath}",
-                noEcho: true,
-                cancellationToken: ct);
+            if (!File.Exists(protocolParamsOutputPath))
+            {
+                await Command.ReadAsync(
+                    "cardano-cli",
+                    $"query protocol-parameters {_networkMagic} --out-file {protocolParamsOutputPath}",
+                    noEcho: true,
+                    cancellationToken: ct);
+            }
 
             var feeCalculationTxBodyOutputPath = Path.Combine(_settings.BasePath, $"fee-{buildId}.txraw");
             var feeCalculationTxBuildArgs = string.Join(" ",
@@ -131,7 +140,7 @@ public class CardanoCliTxBuilder : ITxBuilder
 
             // Extract bytes from cborHex field of JSON in signed tx file
             var cborJson = File.ReadAllText(signedTxOutputPath);
-            _logger.LogInformation(cborJson);
+            _logger.LogDebug(cborJson);
             var doc = JsonDocument.Parse(cborJson);
             var cborHex = doc.RootElement.GetProperty("cborHex").GetString();
             if (string.IsNullOrWhiteSpace(cborHex))
@@ -140,7 +149,7 @@ public class CardanoCliTxBuilder : ITxBuilder
                 throw new ApplicationException("cborHex field from generated signature is null");
             }
             var signedTxCborBytes = HexStringToByteArray(cborHex);
-
+            isSuccessful = true;
             return signedTxCborBytes;
         }
         catch (Win32Exception ex)
@@ -150,6 +159,17 @@ public class CardanoCliTxBuilder : ITxBuilder
         catch (Exception ex)
         {
             throw new CardanoCliException($"Unhandled exception in {nameof(CardanoCliTxBuilder)}", ex, _settings.Network.ToString());
+        }
+        finally
+        {
+            _instrumentor.TrackDependency(
+                EventIds.TxBuilderElapsed,
+                sw.ElapsedMilliseconds,
+                DateTime.UtcNow,
+                nameof(CardanoCliTxBuilder),
+                Path.Combine(_settings.BasePath, $"{buildId}.txsigned"),
+                nameof(BuildTxAsync),
+                isSuccessful: isSuccessful);
         }
     }
 

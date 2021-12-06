@@ -13,7 +13,7 @@ namespace Mintsafe.Lib;
 /// <summary>
 /// A TOTALLY UNSAFE wallet API used for quicker testnet validation.
 /// The signing keys behind the source address are passed in raw hex format
-/// Take the cboxHex field value after running "cat source.skey"
+/// Take the cboxHex field value after running "cat payment.skey"
 /// </summary>
 public interface IYoloWalletService
 {
@@ -36,6 +36,7 @@ public interface IYoloWalletService
 public class YoloWalletService : IYoloWalletService
 {
     private readonly ILogger<YoloWalletService> _logger;
+    private readonly IInstrumentor _instrumentor;
     private readonly MintsafeAppSettings _settings;
     private readonly IUtxoRetriever _utxoRetriever;
     private readonly IMetadataFileGenerator _metadataGenerator;
@@ -44,6 +45,7 @@ public class YoloWalletService : IYoloWalletService
 
     public YoloWalletService(
         ILogger<YoloWalletService> logger,
+        IInstrumentor instrumentor,
         MintsafeAppSettings settings,
         IUtxoRetriever utxoRetriever,
         IMetadataFileGenerator metadataGenerator,
@@ -51,6 +53,7 @@ public class YoloWalletService : IYoloWalletService
         ITxSubmitter txSubmitter)
     {
         _logger = logger;
+        _instrumentor = instrumentor;
         _settings = settings;
         _utxoRetriever = utxoRetriever;
         _metadataGenerator = metadataGenerator;
@@ -95,10 +98,9 @@ public class YoloWalletService : IYoloWalletService
         await File.WriteAllTextAsync(skeyPath, JsonSerializer.Serialize(cliKeyObject)).ConfigureAwait(false);
         _logger.LogDebug($"Generated yolo signing key at {skeyPath} for {sourceAddress} after {sw.ElapsedMilliseconds}ms");
 
-        var sendAllConsolidatedUtxosCommand = new TxBuildCommand(
+        var txBuildCommand = new TxBuildCommand(
             utxosAtSourceAddress,
-            new[] {
-                    new TxBuildOutput(destinationAddress, combinedUtxoValues, IsFeeDeducted: true) },
+            new[] { new TxBuildOutput(destinationAddress, combinedUtxoValues, IsFeeDeducted: true) },
             Mint: Array.Empty<Value>(),
             MintingScriptPath: string.Empty,
             MetadataJsonPath: metadataJsonPath,
@@ -106,13 +108,21 @@ public class YoloWalletService : IYoloWalletService
             new[] { skeyPath });
 
         sw.Restart();
-        var submissionPayload = await _txBuilder.BuildTxAsync(sendAllConsolidatedUtxosCommand, ct).ConfigureAwait(false);
+        var submissionPayload = await _txBuilder.BuildTxAsync(txBuildCommand, ct).ConfigureAwait(false);
         _logger.LogDebug($"{_txBuilder.GetType()}{nameof(_txBuilder.BuildTxAsync)} completed after {sw.ElapsedMilliseconds}ms");
 
         sw.Restart();
         var txHash = await _txSubmitter.SubmitTxAsync(submissionPayload, ct).ConfigureAwait(false);
         _logger.LogDebug($"{_txSubmitter.GetType()}{nameof(_txSubmitter.SubmitTxAsync)} completed after {sw.ElapsedMilliseconds}ms");
-
+        _instrumentor.TrackDependency(
+            EventIds.PaymentElapsed,
+            sw.ElapsedMilliseconds,
+            DateTime.UtcNow,
+            nameof(YoloWalletService),
+            string.Empty,
+            nameof(SendAllAsync),
+            data: JsonSerializer.Serialize(txBuildCommand),
+            isSuccessful: true);
         return txHash;
     }
 
@@ -184,7 +194,15 @@ public class YoloWalletService : IYoloWalletService
         sw.Restart();
         var txHash = await _txSubmitter.SubmitTxAsync(submissionPayload, ct).ConfigureAwait(false);
         _logger.LogDebug($"{_txSubmitter.GetType()}{nameof(_txSubmitter.SubmitTxAsync)} completed after {sw.ElapsedMilliseconds}ms");
-
+        _instrumentor.TrackDependency(
+            EventIds.PaymentElapsed,
+            sw.ElapsedMilliseconds,
+            DateTime.UtcNow,
+            nameof(YoloWalletService),
+            string.Empty,
+            nameof(SendValuesAsync),
+            data: JsonSerializer.Serialize(txBuildCommand),
+            isSuccessful: true);
         return txHash;
     }
 

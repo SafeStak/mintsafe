@@ -13,14 +13,17 @@ namespace Mintsafe.Lib;
 public class CardanoCliTxSubmitter : ITxSubmitter
 {
     private readonly ILogger<CardanoCliTxSubmitter> _logger;
+    private readonly IInstrumentor _instrumentor;
     private readonly MintsafeAppSettings _settings;
     private readonly string _networkMagic;
 
     public CardanoCliTxSubmitter(
         ILogger<CardanoCliTxSubmitter> logger,
+        IInstrumentor instrumentor,
         MintsafeAppSettings settings)
     {
         _logger = logger;
+        _instrumentor = instrumentor;
         _settings = settings;
         _networkMagic = _settings.Network == Network.Mainnet
             ? "--mainnet"
@@ -33,8 +36,9 @@ public class CardanoCliTxSubmitter : ITxSubmitter
         var txSubmissionId = Guid.NewGuid();
         var txSignedJsonPath = Path.Combine(_settings.BasePath, $"{txSubmissionId}.txsigned");
         var txSignedJson = $"{{ \"type\": \"Tx MaryEra\", \"description\": \"\", \"cborHex\": \"{Convert.ToHexString(txSignedBinary)}\"}}";
-        await File.WriteAllTextAsync(txSignedJsonPath, txSignedJson).ConfigureAwait(false);
+        await File.WriteAllTextAsync(txSignedJsonPath, txSignedJson, ct).ConfigureAwait(false);
 
+        var isSuccessful = false;
         var sw = Stopwatch.StartNew();
         var txHash = string.Empty;
         try
@@ -52,6 +56,7 @@ public class CardanoCliTxSubmitter : ITxSubmitter
                     "transaction", "txid",
                     "--tx-file", txSignedJsonPath
                 ), noEcho: true, cancellationToken: ct);
+            isSuccessful = true;
 
             return txHash;
         }
@@ -65,7 +70,15 @@ public class CardanoCliTxSubmitter : ITxSubmitter
         }
         finally
         {
-            _logger.LogInformation($"Tx submitted after {sw.ElapsedMilliseconds}ms:{Environment.NewLine}{txHash}");
+            _logger.LogDebug($"Tx submitted after {sw.ElapsedMilliseconds}ms:{Environment.NewLine}{txHash}");
+            _instrumentor.TrackDependency(
+                EventIds.TxSubmissionElapsed,
+                sw.ElapsedMilliseconds,
+                DateTime.UtcNow,
+                nameof(CardanoCliTxSubmitter),
+                txSignedJsonPath, 
+                nameof(SubmitTxAsync),
+                isSuccessful: isSuccessful);
         }
     }
 }

@@ -51,14 +51,17 @@ public class CannotAllocateMoreThanMintableException : ApplicationException
 public class InsufficientPaymentException : ApplicationException
 {
     public long QuantityPerToken { get; }
+    public Guid SaleId { get; }
     public Utxo PurchaseAttemptUtxo { get; }
 
     public InsufficientPaymentException(
         string message,
+        Guid saleId,
         Utxo purchaseAttemptUtxo,
         long quantityPerToken) : base(message)
     {
         QuantityPerToken = quantityPerToken;
+        SaleId = saleId;
         PurchaseAttemptUtxo = purchaseAttemptUtxo;
     }
 }
@@ -67,16 +70,19 @@ public class MaxAllowedPurchaseQuantityExceededException : ApplicationException
 {
     public int MaxQuantity { get; }
     public int DerivedQuantity { get; }
+    public Guid SaleId { get; }
     public Utxo PurchaseAttemptUtxo { get; }
 
     public MaxAllowedPurchaseQuantityExceededException(
         string message,
+        Guid saleId,
         Utxo purchaseAttemptUtxo,
         int maxQuantity,
         int derivedQuantity) : base(message)
     {
         MaxQuantity = maxQuantity;
         DerivedQuantity = derivedQuantity;
+        SaleId = saleId;
         PurchaseAttemptUtxo = purchaseAttemptUtxo;
     }
 }
@@ -86,10 +92,12 @@ public class SalePeriodOutOfRangeException : ApplicationException
     public DateTime? SaleStartDateTime { get; }
     public DateTime? SaleEndDateTime { get; }
     public DateTime PurchaseAttemptedAt { get; }
+    public Guid SaleId { get; }
     public Utxo PurchaseAttemptUtxo { get; }
 
     public SalePeriodOutOfRangeException(
         string message,
+        Guid saleId,
         Utxo purchaseAttemptUtxo,
         DateTime? saleStartDateTime,
         DateTime? saleEndDateTime) : base(message)
@@ -97,6 +105,7 @@ public class SalePeriodOutOfRangeException : ApplicationException
         SaleStartDateTime = saleStartDateTime;
         SaleEndDateTime = saleEndDateTime;
         PurchaseAttemptedAt = DateTime.UtcNow;
+        SaleId = saleId;
         PurchaseAttemptUtxo = purchaseAttemptUtxo;
     }
 }
@@ -104,10 +113,30 @@ public class SalePeriodOutOfRangeException : ApplicationException
 public class SaleInactiveException : ApplicationException
 {
     public Utxo PurchaseAttemptUtxo { get; }
+    public Guid SaleId { get; }
 
     public SaleInactiveException(
-        string message, Utxo purchaseAttemptUtxo) : base(message)
+        string message,
+        Guid saleId,
+        Utxo purchaseAttemptUtxo) : base(message)
     {
+        SaleId = saleId;
+        PurchaseAttemptUtxo = purchaseAttemptUtxo;
+    }
+}
+
+public class FailedUtxoRefundException : ApplicationException
+{
+    public Utxo PurchaseAttemptUtxo { get; }
+    public Guid SaleId { get; }
+
+    public FailedUtxoRefundException(
+        string message,
+        Guid saleId,
+        Utxo purchaseAttemptUtxo,
+        Exception? innerException) : base(message, innerException)
+    {
+        SaleId = saleId;
         PurchaseAttemptUtxo = purchaseAttemptUtxo;
     }
 }

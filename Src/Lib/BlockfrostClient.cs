@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Mintsafe.Abstractions;
+using System;
 using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -13,6 +14,7 @@ namespace Mintsafe.Lib;
 public class BlockfrostClient : IBlockfrostClient
 {
     private readonly ILogger<BlockfrostClient> _logger;
+    private readonly IInstrumentor _instrumentor;
     private readonly MintsafeAppSettings _settings;
     private readonly HttpClient _httpClient;
 
@@ -24,10 +26,12 @@ public class BlockfrostClient : IBlockfrostClient
 
     public BlockfrostClient(
         ILogger<BlockfrostClient> logger,
+        IInstrumentor instrumentor,
         MintsafeAppSettings settings,
         HttpClient httpClient)
     {
         _logger = logger;
+        _instrumentor = instrumentor;
         _settings = settings;
         _httpClient = httpClient;
     }
@@ -36,6 +40,7 @@ public class BlockfrostClient : IBlockfrostClient
     {
         var relativePath = $"api/v0/addresses/{address}/utxos";
 
+        var isSuccessful = false;
         var responseCode = 0;
         var sw = Stopwatch.StartNew();
         try
@@ -47,7 +52,7 @@ public class BlockfrostClient : IBlockfrostClient
                 var responseBody = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
                 throw new BlockfrostResponseException($"Unsuccessful Blockfrost response:{responseBody}", (int)response.StatusCode);
             }
-
+            
             _logger.LogDebug($"{nameof(BlockfrostClient)}.{nameof(GetUtxosAtAddressAsync)} from {relativePath} reponse: {responseCode}");
             var bfResponse = await response.Content.ReadFromJsonAsync<BlockFrostAddressUtxo[]>(SerialiserOptions, ct).ConfigureAwait(false);
             if (bfResponse == null)
@@ -55,12 +60,19 @@ public class BlockfrostClient : IBlockfrostClient
                 var json = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
                 throw new BlockfrostResponseException($"BlockFrost response is null or cannot be deserialised {json}", responseCode);
             }
-
+            isSuccessful = true;
             return bfResponse;
         }
         finally
         {
-            _logger.LogInformation($"Finished getting response ({responseCode}) from {relativePath} after {sw.ElapsedMilliseconds}ms");
+            _instrumentor.TrackDependency(
+                EventIds.UtxoRetrievalElapsed,
+                sw.ElapsedMilliseconds,
+                DateTime.UtcNow,
+                nameof(BlockfrostClient),
+                relativePath, 
+                nameof(GetUtxosAtAddressAsync),
+                isSuccessful: isSuccessful);
         }
     }
 
@@ -68,6 +80,7 @@ public class BlockfrostClient : IBlockfrostClient
     {
         var relativePath = $"api/v0/txs/{txHash}/utxos";
 
+        var isSuccessful = false;
         var responseCode = 0;
         var sw = Stopwatch.StartNew();
         try
@@ -87,12 +100,18 @@ public class BlockfrostClient : IBlockfrostClient
                 var json = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
                 throw new BlockfrostResponseException($"BlockFrost response is null or cannot be deserialised {json}", responseCode);
             }
-
+            isSuccessful = true;
             return bfResponse;
         }
         finally
         {
-            _logger.LogInformation($"Finished getting response ({responseCode}) from {relativePath} after {sw.ElapsedMilliseconds}ms");
+            _instrumentor.TrackDependency(
+                EventIds.TxInfoRetrievalElapsed,
+                sw.ElapsedMilliseconds,
+                DateTime.UtcNow,
+                nameof(BlockfrostClient),
+                relativePath, nameof(GetTransactionAsync),
+                isSuccessful: isSuccessful);
         }
     }
 
@@ -100,6 +119,7 @@ public class BlockfrostClient : IBlockfrostClient
     {
         const string relativePath = "api/v0/tx/submit";
 
+        var isSuccessful = false;
         var responseCode = 0;
         var sw = Stopwatch.StartNew();
         try
@@ -116,12 +136,19 @@ public class BlockfrostClient : IBlockfrostClient
             }
 
             var txHash = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+            isSuccessful = true;
             _logger.LogDebug($"{nameof(BlockfrostClient)}.{nameof(SubmitTransactionAsync)} {relativePath} reponse: {txHash}");
             return txHash;
         }
         finally
         {
-            _logger.LogInformation($"Finished getting response ({responseCode}) from {relativePath} after {sw.ElapsedMilliseconds}ms");
+            _instrumentor.TrackDependency(
+                EventIds.TxSubmissionElapsed,
+                sw.ElapsedMilliseconds,
+                DateTime.UtcNow,
+                nameof(BlockfrostClient),
+                relativePath, nameof(SubmitTransactionAsync),
+                isSuccessful: isSuccessful);
         }
     }
 }

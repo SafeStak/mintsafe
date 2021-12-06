@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using Xunit;
+using static Mintsafe.Lib.UnitTests.FakeGenerator;
 
 namespace Mintsafe.Lib.UnitTests;
 
@@ -21,7 +22,8 @@ public class MetadataJsonBuilderShould
     {
         _metadataJsonBuilder = new MetadataJsonBuilder(
             NullLogger<MetadataJsonBuilder>.Instance,
-            FakeGenerator.GenerateSettings());
+            NullInstrumentor.Instance,
+            GenerateSettings());
     }
 
     [Theory]
@@ -30,8 +32,8 @@ public class MetadataJsonBuilderShould
     [InlineData(15)]
     public void Generate_The_Right_Json_With_Correct_Token_Metadata(int nftCount)
     {
-        var collection = FakeGenerator.GenerateCollection();
-        var tokens = FakeGenerator.GenerateTokens(nftCount).ToArray();
+        var collection = GenerateCollection();
+        var tokens = GenerateTokens(nftCount).ToArray();
 
         var json = _metadataJsonBuilder.GenerateNftStandardJson(
             tokens, collection);

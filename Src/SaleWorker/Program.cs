@@ -10,14 +10,15 @@ using System;
 IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureHostConfiguration(configHost =>
     {
-        configHost.AddJsonFile("hostsettings.json", optional: true);
+        configHost
+            .AddJsonFile("hostsettings.json", optional: true);
     })
     .ConfigureAppConfiguration((hostContext, config) =>
     {
         config
-        .AddJsonFile("appsettings.json", optional: true)
-        .AddJsonFile($"appsettings.{hostContext.HostingEnvironment.EnvironmentName}.json",
-            optional: true, reloadOnChange: true);
+            .AddJsonFile("appsettings.json", optional: true)
+            .AddJsonFile($"appsettings.{hostContext.HostingEnvironment.EnvironmentName}.json",
+                optional: true, reloadOnChange: true);
     })
     .ConfigureLogging((hostContext, logging) =>
     {
@@ -70,6 +71,11 @@ IHost host = Host.CreateDefaultBuilder(args)
         if (appInsightsConfig.Enabled && !string.IsNullOrWhiteSpace(appInsightsConfig.InstrumentationKey))
         {
             services.AddApplicationInsightsTelemetryWorkerService(appInsightsConfig.InstrumentationKey);
+            services.AddSingleton<IInstrumentor, AppInsightsInstrumentor>();
+        }
+        else
+        {
+            services.AddSingleton<IInstrumentor, LoggingInstrumentor>();
         }
 
         services.AddHttpClient<BlockfrostClient>(

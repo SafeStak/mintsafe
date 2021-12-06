@@ -53,13 +53,16 @@ namespace Mintsafe.Lib
         };
 
         private readonly ILogger<MetadataJsonBuilder> _logger;
+        private readonly IInstrumentor _instrumentor;
         private readonly MintsafeAppSettings _settings;
 
         public MetadataJsonBuilder(
             ILogger<MetadataJsonBuilder> logger,
+            IInstrumentor instrumentor,
             MintsafeAppSettings settings)
         {
             _logger = logger;
+            _instrumentor = instrumentor;
             _settings = settings;
         }
 
@@ -102,7 +105,7 @@ namespace Mintsafe.Lib
             nftStandard.Add(NftStandardKey, policyCnfts);
 
             var json = JsonSerializer.Serialize(nftStandard, SerialiserOptions);
-            _logger.LogInformation($"NFT Metadata JSON built after {sw.ElapsedMilliseconds}ms");
+            _logger.LogDebug($"NFT Metadata JSON built after {sw.ElapsedMilliseconds}ms");
 
             return json;
         }
@@ -126,7 +129,7 @@ namespace Mintsafe.Lib
             };
 
             var json = JsonSerializer.Serialize(metadataBody, SerialiserOptions);
-            _logger.LogInformation($"Message Metadata JSON built after {sw.ElapsedMilliseconds}ms");
+            _logger.LogDebug($"Message Metadata JSON built after {sw.ElapsedMilliseconds}ms");
 
             return json;
         }
