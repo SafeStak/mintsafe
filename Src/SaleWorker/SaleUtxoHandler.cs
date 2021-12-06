@@ -1,7 +1,10 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
+using Microsoft.Extensions.Logging;
 using Mintsafe.Abstractions;
 using Mintsafe.Lib;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,6 +25,7 @@ public class SaleUtxoHandler : ISaleUtxoHandler
 {
     private readonly ILogger<SaleUtxoHandler> _logger;
     private readonly MintsafeAppSettings _settings;
+    private readonly TelemetryClient _telemetryClient;
     private readonly INiftyAllocator _tokenAllocator;
     private readonly INiftyDistributor _tokenDistributor;
     private readonly IUtxoRefunder _utxoRefunder;
@@ -29,12 +33,14 @@ public class SaleUtxoHandler : ISaleUtxoHandler
     public SaleUtxoHandler(
         ILogger<SaleUtxoHandler> logger,
         MintsafeAppSettings settings,
+        TelemetryClient telemetryClient,
         INiftyAllocator tokenAllocator,
         INiftyDistributor tokenDistributor,
         IUtxoRefunder utxoRefunder)
     {
         _logger = logger;
         _settings = settings;
+        _telemetryClient = telemetryClient;
         _tokenAllocator = tokenAllocator;
         _tokenDistributor = tokenDistributor;
         _utxoRefunder = utxoRefunder;
@@ -49,20 +55,21 @@ public class SaleUtxoHandler : ISaleUtxoHandler
     {
         var shouldRefundUtxo = false;
         var refundReason = string.Empty;
+        var sw = Stopwatch.StartNew();
         try
         {
             var purchaseRequest = PurchaseAttemptGenerator.FromUtxo(saleUtxo, activeSale);
-            _logger.LogInformation($"Successfully built purchase request: {purchaseRequest.NiftyQuantityRequested} NFTs for {saleUtxo.Lovelaces} and {purchaseRequest.ChangeInLovelace} change");
+            _logger.LogDebug($"Successfully built purchase request: {purchaseRequest.NiftyQuantityRequested} NFTs for {saleUtxo.Lovelaces} and {purchaseRequest.ChangeInLovelace} change");
 
             var tokens = await _tokenAllocator.AllocateNiftiesForPurchaseAsync(
                 purchaseRequest, saleContext.AllocatedTokens, saleContext.MintableTokens, activeSale, ct);
-            _logger.LogInformation($"Successfully allocated {tokens.Length} tokens");
+            _logger.LogDebug($"Successfully allocated {tokens.Length} tokens");
 
             var distributionResult = await _tokenDistributor.DistributeNiftiesForSalePurchase(tokens, purchaseRequest, collection, activeSale, ct);
-            if (distributionResult.Outcome == NiftyDistributionOutcome.Successful 
+            if (distributionResult.Outcome == NiftyDistributionOutcome.Successful
                 || distributionResult.Outcome == NiftyDistributionOutcome.SuccessfulAfterRetry)
             {
-                _logger.LogInformation($"Successfully distributed {tokens.Length} tokens from Tx {distributionResult.MintTxHash}");
+                _logger.LogDebug($"Successfully distributed {tokens.Length} tokens from Tx {distributionResult.MintTxHash}");
                 saleContext.SuccessfulUtxos.Add(saleUtxo);
             }
             else

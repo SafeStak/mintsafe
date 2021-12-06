@@ -23,23 +23,25 @@ public class BlockfrostUtxoRetriever : IUtxoRetriever
         return bfResult.Select(MapBlockFrostUtxoToUtxo).ToArray();
     }
 
-    private static Utxo MapBlockFrostUtxoToUtxo(BlockFrostAddressUtxo b)
+    private static Utxo MapBlockFrostUtxoToUtxo(BlockFrostAddressUtxo bfUtxo)
     {
-        static Value MapValueFromAmount(BlockFrostValue ba)
+        static Value MapValueFromAmount(BlockFrostValue bfVal)
         {
-            if (ba.Quantity == null) throw new BlockfrostResponseException("Blockfrost response has null amount.quantity", 0);
+            if (bfVal.Quantity == null) 
+                throw new BlockfrostResponseException("Blockfrost response has null amount.quantity", 0);
 
             return new Value(
-                ba.Unit ?? throw new BlockfrostResponseException("Blockfrost response has null amount.unit", 0),
-                long.Parse(ba.Quantity));
+                bfVal.Unit ?? throw new BlockfrostResponseException("Blockfrost response has null amount.unit", 0),
+                long.Parse(bfVal.Quantity));
         }
 
-        if (b.Amount == null) throw new BlockfrostResponseException("Blockfrost response has null amount", 0);
+        if (bfUtxo.Amount == null) 
+            throw new BlockfrostResponseException("Blockfrost response has null amount", 0);
 
         return new Utxo(
-                b.Tx_hash ?? throw new BlockfrostResponseException("Blockfrost response has null tx_hash", 0),
-                b.Output_index,
-                b.Amount
-                    .Select(MapValueFromAmount).ToArray());
+            bfUtxo.Tx_hash ?? throw new BlockfrostResponseException("Blockfrost response has null tx_hash", 0),
+            bfUtxo.Output_index,
+            bfUtxo.Amount
+                .Select(MapValueFromAmount).ToArray());
     }
 }

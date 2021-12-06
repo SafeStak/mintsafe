@@ -51,7 +51,7 @@ public class CardanoCliUtxoRetriever : IUtxoRetriever
         }
         finally
         {
-            _logger.LogInformation($"UTxOs retrieved after {sw.ElapsedMilliseconds}ms:{Environment.NewLine}{rawUtxoResponse}");
+            _logger.LogDebug($"UTxOs retrieved after {sw.ElapsedMilliseconds}ms:{Environment.NewLine}{rawUtxoResponse}");
         }
 
         var lines = rawUtxoResponse.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);

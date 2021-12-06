@@ -7,15 +7,6 @@ using System.Threading.Tasks;
 
 namespace Mintsafe.WebApi.Controllers
 {
-    public class YoloPayment
-    {
-        public string? SourceAddress { get; set; }
-        public string? DestinationAddress { get; set; }
-        public Value[]? Values { get; set; }
-        public string[]? Message { get; set; }
-        public string? SigningKeyCborHex { get; set; }
-    }
-    
     [ApiController]
     [Route("[controller]")]
     public class YoloPaymentController : ControllerBase

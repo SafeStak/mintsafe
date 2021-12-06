@@ -9,12 +9,14 @@ public static class FakeGenerator
 {
     public static MintsafeAppSettings GenerateSettings()
     {
-        return new MintsafeAppSettings(
-            Network.Testnet,
-            PollingIntervalSeconds: 5,
-            BasePath: "~/nlp/",
-            BlockFrostApiKey: "testnetabc",
-            CollectionId: Guid.Parse("d5b35d3d-14cc-40ba-94f4-fe3b28bd52ae"));
+        return new MintsafeAppSettings
+        {
+            Network = Network.Testnet,
+            PollingIntervalSeconds = 5,
+            BasePath = "~/nlp/",
+            BlockFrostApiKey = "testnetabc",
+            CollectionId = Guid.Parse("d5b35d3d-14cc-40ba-94f4-fe3b28bd52ae")
+        };
     }
 
     public static NiftyCollection GenerateCollection(

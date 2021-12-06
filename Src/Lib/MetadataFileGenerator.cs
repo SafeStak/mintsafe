@@ -32,7 +32,7 @@ public class MetadataFileGenerator : IMetadataFileGenerator
         var json = _metadataJsonBuilder.GenerateNftStandardJson(nfts, collection);
         var sw = Stopwatch.StartNew();
         await File.WriteAllTextAsync(outputPath, json, ct).ConfigureAwait(false);
-        _logger.LogInformation($"NFT Metadata JSON file generated at {outputPath} after {sw.ElapsedMilliseconds}ms");
+        _logger.LogDebug($"NFT Metadata JSON file generated at {outputPath} after {sw.ElapsedMilliseconds}ms");
     }
 
     public async Task GenerateMessageMetadataJsonFile(
@@ -43,6 +43,6 @@ public class MetadataFileGenerator : IMetadataFileGenerator
         var json = _metadataJsonBuilder.GenerateMessageJson(message);
         var sw = Stopwatch.StartNew();
         await File.WriteAllTextAsync(outputPath, json, ct).ConfigureAwait(false);
-        _logger.LogInformation($"Message Metadata JSON file generated at {outputPath} after {sw.ElapsedMilliseconds}ms");
+        _logger.LogDebug($"Message Metadata JSON file generated at {outputPath} after {sw.ElapsedMilliseconds}ms");
     }
 }

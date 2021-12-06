@@ -69,7 +69,7 @@ public class YoloWalletService : IYoloWalletService
 
         var sw = Stopwatch.StartNew();
         var utxosAtSourceAddress = await _utxoRetriever.GetUtxosAtAddressAsync(sourceAddress, ct).ConfigureAwait(false);
-        _logger.LogInformation($"{nameof(_utxoRetriever.GetUtxosAtAddressAsync)} completed with {utxosAtSourceAddress.Length} after {sw.ElapsedMilliseconds}ms");
+        _logger.LogDebug($"{nameof(_utxoRetriever.GetUtxosAtAddressAsync)} completed with {utxosAtSourceAddress.Length} after {sw.ElapsedMilliseconds}ms");
 
         var combinedUtxoValues = utxosAtSourceAddress.SelectMany(u => u.Values)
             .GroupBy(uv => uv.Unit)
@@ -81,7 +81,7 @@ public class YoloWalletService : IYoloWalletService
         var metadataJsonFileName = $"metadata-payment-{paymentId}.json";
         var metadataJsonPath = Path.Combine(_settings.BasePath, metadataJsonFileName);
         await _metadataGenerator.GenerateMessageMetadataJsonFile(message, metadataJsonPath, ct).ConfigureAwait(false);
-        _logger.LogInformation($"{nameof(_metadataGenerator.GenerateMessageMetadataJsonFile)} generated at {metadataJsonPath} after {sw.ElapsedMilliseconds}ms");
+        _logger.LogDebug($"{nameof(_metadataGenerator.GenerateMessageMetadataJsonFile)} generated at {metadataJsonPath} after {sw.ElapsedMilliseconds}ms");
 
         // Generate signing key
         var skeyFileName = $"{paymentId}.skey";
@@ -93,7 +93,7 @@ public class YoloWalletService : IYoloWalletService
             cborHex = sourceAddressSigningkeyCborHex
         };
         await File.WriteAllTextAsync(skeyPath, JsonSerializer.Serialize(cliKeyObject)).ConfigureAwait(false);
-        _logger.LogInformation($"Generated yolo signing key at {skeyPath} for {sourceAddress} after {sw.ElapsedMilliseconds}ms");
+        _logger.LogDebug($"Generated yolo signing key at {skeyPath} for {sourceAddress} after {sw.ElapsedMilliseconds}ms");
 
         var sendAllConsolidatedUtxosCommand = new TxBuildCommand(
             utxosAtSourceAddress,
@@ -107,11 +107,11 @@ public class YoloWalletService : IYoloWalletService
 
         sw.Restart();
         var submissionPayload = await _txBuilder.BuildTxAsync(sendAllConsolidatedUtxosCommand, ct).ConfigureAwait(false);
-        _logger.LogInformation($"{_txBuilder.GetType()}{nameof(_txBuilder.BuildTxAsync)} completed after {sw.ElapsedMilliseconds}ms");
+        _logger.LogDebug($"{_txBuilder.GetType()}{nameof(_txBuilder.BuildTxAsync)} completed after {sw.ElapsedMilliseconds}ms");
 
         sw.Restart();
         var txHash = await _txSubmitter.SubmitTxAsync(submissionPayload, ct).ConfigureAwait(false);
-        _logger.LogInformation($"{_txSubmitter.GetType()}{nameof(_txSubmitter.SubmitTxAsync)} completed after {sw.ElapsedMilliseconds}ms");
+        _logger.LogDebug($"{_txSubmitter.GetType()}{nameof(_txSubmitter.SubmitTxAsync)} completed after {sw.ElapsedMilliseconds}ms");
 
         return txHash;
     }
@@ -128,7 +128,7 @@ public class YoloWalletService : IYoloWalletService
 
         var sw = Stopwatch.StartNew();
         var utxosAtSourceAddress = await _utxoRetriever.GetUtxosAtAddressAsync(sourceAddress, ct).ConfigureAwait(false);
-        _logger.LogInformation($"{nameof(_utxoRetriever.GetUtxosAtAddressAsync)} completed with {utxosAtSourceAddress.Length} after {sw.ElapsedMilliseconds}ms");
+        _logger.LogDebug($"{nameof(_utxoRetriever.GetUtxosAtAddressAsync)} completed with {utxosAtSourceAddress.Length} after {sw.ElapsedMilliseconds}ms");
 
         // Validate source address has the values
         var combinedAssetValues = utxosAtSourceAddress.SelectMany(u => u.Values)
@@ -149,7 +149,7 @@ public class YoloWalletService : IYoloWalletService
         var metadataJsonFileName = $"metadata-payment-{paymentId}.json";
         var metadataJsonPath = Path.Combine(_settings.BasePath, metadataJsonFileName);
         await _metadataGenerator.GenerateMessageMetadataJsonFile(message, metadataJsonPath, ct).ConfigureAwait(false);
-        _logger.LogInformation($"{nameof(_metadataGenerator.GenerateMessageMetadataJsonFile)} generated at {metadataJsonPath} after {sw.ElapsedMilliseconds}ms");
+        _logger.LogDebug($"{nameof(_metadataGenerator.GenerateMessageMetadataJsonFile)} generated at {metadataJsonPath} after {sw.ElapsedMilliseconds}ms");
 
         sw.Restart();
         var skeyFileName = $"{paymentId}.skey";
@@ -161,7 +161,7 @@ public class YoloWalletService : IYoloWalletService
             cborHex = sourceAddressSigningkeyCborHex
         };
         await File.WriteAllTextAsync(skeyPath, JsonSerializer.Serialize(cliKeyObject)).ConfigureAwait(false);
-        _logger.LogInformation($"Generated yolo signing key at {skeyPath} for {sourceAddress} after {sw.ElapsedMilliseconds}ms");
+        _logger.LogDebug($"Generated yolo signing key at {skeyPath} for {sourceAddress} after {sw.ElapsedMilliseconds}ms");
 
         // Determine change and build Tx
         var changeValues = combinedAssetValues.SubtractValues(values);
@@ -179,11 +179,11 @@ public class YoloWalletService : IYoloWalletService
 
         sw.Restart();
         var submissionPayload = await _txBuilder.BuildTxAsync(txBuildCommand, ct).ConfigureAwait(false);
-        _logger.LogInformation($"{_txBuilder.GetType()}{nameof(_txBuilder.BuildTxAsync)} completed after {sw.ElapsedMilliseconds}ms");
+        _logger.LogDebug($"{_txBuilder.GetType()}{nameof(_txBuilder.BuildTxAsync)} completed after {sw.ElapsedMilliseconds}ms");
 
         sw.Restart();
         var txHash = await _txSubmitter.SubmitTxAsync(submissionPayload, ct).ConfigureAwait(false);
-        _logger.LogInformation($"{_txSubmitter.GetType()}{nameof(_txSubmitter.SubmitTxAsync)} completed after {sw.ElapsedMilliseconds}ms");
+        _logger.LogDebug($"{_txSubmitter.GetType()}{nameof(_txSubmitter.SubmitTxAsync)} completed after {sw.ElapsedMilliseconds}ms");
 
         return txHash;
     }

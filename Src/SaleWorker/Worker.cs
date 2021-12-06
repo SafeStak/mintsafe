@@ -57,20 +57,20 @@ public class Worker : BackgroundService
         do
         {
             var saleUtxos = await _utxoRetriever.GetUtxosAtAddressAsync(activeSale.SaleAddress, ct);
-            _logger.LogInformation($"Querying SaleAddress UTxOs for sale {activeSale.Name} of {collection.Collection.Name} by {string.Join(",", collection.Collection.Publishers)}");
-            _logger.LogInformation($"Found {saleUtxos.Length} UTxOs at {activeSale.SaleAddress}");
+            _logger.LogDebug($"Querying SaleAddress UTxOs for sale {activeSale.Name} of {collection.Collection.Name} by {string.Join(",", collection.Collection.Publishers)}");
+            _logger.LogDebug($"Found {saleUtxos.Length} UTxOs at {activeSale.SaleAddress}");
             foreach (var saleUtxo in saleUtxos)
             {
                 if (saleContext.LockedUtxos.Contains(saleUtxo))
                 {
-                    _logger.LogInformation($"Utxo {saleUtxo.TxHash}[{saleUtxo.OutputIndex}]({saleUtxo.Lovelaces}) skipped (already locked)");
+                    _logger.LogDebug($"Utxo {saleUtxo.TxHash}[{saleUtxo.OutputIndex}]({saleUtxo.Lovelaces}) skipped (already locked)");
                     continue;
                 }
                 await _saleUtxoHandler.HandleAsync(saleUtxo, collection.Collection, activeSale, saleContext, ct);
             }
-            _logger.LogInformation(
+            _logger.LogDebug(
                 $"Successful: {saleContext.SuccessfulUtxos.Count} UTxOs | Refunded: {saleContext.RefundedUtxos.Count} | Locked: {saleContext.LockedUtxos.Count} UTxOs");
-            //_logger.LogInformation($"Allocated Tokens:\n{string.Join('\n', saleContext.AllocatedTokens.Select(t => t.AssetName))}");
+            //_logger.LogDebug($"Allocated Tokens:\n{string.Join('\n', saleContext.AllocatedTokens.Select(t => t.AssetName))}");
         } while (await timer.WaitForNextTickAsync(ct));
     }
 }

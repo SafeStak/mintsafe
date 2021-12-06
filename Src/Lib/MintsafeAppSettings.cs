@@ -2,11 +2,15 @@
 
 namespace Mintsafe.Lib;
 
-public record MintsafeAppSettings(
-    Network Network, 
-    int PollingIntervalSeconds,
-    string BasePath,
-    string BlockFrostApiKey,
-    Guid CollectionId);
-
 public enum Network { Mainnet, Testnet }
+
+public record MintsafeAppSettings
+{
+    public Network Network { get; init; }
+    public int PollingIntervalSeconds { get; init; }
+    public string? BasePath { get; init; }
+    public string? BlockFrostApiKey { get; init; }
+    public string? AppInsightsInstrumentationKey { get; init; }
+    public Guid CollectionId { get; init; }
+}
+

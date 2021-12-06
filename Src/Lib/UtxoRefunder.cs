@@ -39,7 +39,7 @@ public class UtxoRefunder : IUtxoRefunder
     public async Task<string> ProcessRefundForUtxo(
         Utxo utxo, string signingKeyFilePath, string reason, CancellationToken ct = default)
     {
-        _logger.LogInformation($"Processing refund for {utxo} with {utxo.Lovelaces}lovelaces ({reason})");
+        _logger.LogDebug($"Processing refund for {utxo} with {utxo.Lovelaces}lovelaces ({reason})");
 
         if (utxo.Lovelaces < MinLovelace)
         {
@@ -50,7 +50,7 @@ public class UtxoRefunder : IUtxoRefunder
         var sw = Stopwatch.StartNew();
         var txIo = await _txRetriever.GetTxInfoAsync(utxo.TxHash, ct).ConfigureAwait(false);
         var buyerAddress = txIo.Inputs.First().Address;
-        _logger.LogInformation($"{nameof(_txRetriever.GetTxInfoAsync)} completed after {sw.ElapsedMilliseconds}ms");
+        _logger.LogDebug($"{nameof(_txRetriever.GetTxInfoAsync)} completed after {sw.ElapsedMilliseconds}ms");
 
         // Generate refund message metadata 
         var metadataJsonFileName = $"metadata-refund-{utxo}.json";
@@ -63,7 +63,7 @@ public class UtxoRefunder : IUtxoRefunder
             };
         sw.Restart();
         await _metadataGenerator.GenerateMessageMetadataJsonFile(message, metadataJsonPath, ct).ConfigureAwait(false);
-        _logger.LogInformation($"{nameof(_metadataGenerator.GenerateMessageMetadataJsonFile)} generated at {metadataJsonPath} after {sw.ElapsedMilliseconds}ms");
+        _logger.LogDebug($"{nameof(_metadataGenerator.GenerateMessageMetadataJsonFile)} generated at {metadataJsonPath} after {sw.ElapsedMilliseconds}ms");
 
         var txRefundCommand = new TxBuildCommand(
             Inputs: new[] { utxo },
@@ -76,12 +76,12 @@ public class UtxoRefunder : IUtxoRefunder
 
         sw.Restart();
         var submissionPayload = await _txBuilder.BuildTxAsync(txRefundCommand, ct).ConfigureAwait(false);
-        _logger.LogInformation($"{nameof(_txBuilder.BuildTxAsync)} completed after {sw.ElapsedMilliseconds}ms");
+        _logger.LogDebug($"{nameof(_txBuilder.BuildTxAsync)} completed after {sw.ElapsedMilliseconds}ms");
 
         sw.Restart();
         var txHash = await _txSubmitter.SubmitTxAsync(submissionPayload, ct).ConfigureAwait(false);
-        _logger.LogInformation($"{nameof(_txSubmitter.SubmitTxAsync)} completed after {sw.ElapsedMilliseconds}ms");
-        _logger.LogInformation($"TxID:{txHash} Successfully refunded {utxo.Lovelaces} to {buyerAddress}");
+        _logger.LogDebug($"{nameof(_txSubmitter.SubmitTxAsync)} completed after {sw.ElapsedMilliseconds}ms");
+        _logger.LogDebug($"TxID:{txHash} Successfully refunded {utxo.Lovelaces} to {buyerAddress}");
 
         return txHash;
     }

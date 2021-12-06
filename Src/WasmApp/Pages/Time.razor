@@ -27,25 +27,19 @@ Testnet Slot: @TestnetSlotDerived
 </section>
 
 @code {
-
-	[CascadingParameter]
-	private Error Error { get; set; }
-
 	[Parameter]
 	public string DateTimeIso8601 { get; set; }
-
-	public DateTime? MainnetDateTimeUtcDerived { get; set; }
-
-	public DateTime? TestnetDateTimeUtcDerived { get; set; }
-
 	[Parameter]
 	public long? MainnetSlot { get; set; }
-
 	[Parameter]
 	public long? TestnetSlot { get; set; }
-
+	[CascadingParameter]
+	private Error Error { get; set; }
+	public DateTime? MainnetDateTimeUtcDerived { get; set; }
+	public DateTime? TestnetDateTimeUtcDerived { get; set; }
+	
+	
 	public long? MainnetSlotDerived { get; set; }
-
 	public long? TestnetSlotDerived { get; set; }
 
 	protected override void OnInitialized()

@@ -76,7 +76,7 @@ public class CardanoCliTxBuilder : ITxBuilder
                 feeCalculationTxBuildArgs,
                 noEcho: true,
                 cancellationToken: ct);
-            _logger.LogInformation($"Fee Tx built {feeCalculationTxBuildArgs}{Environment.NewLine}{feeTxBuildCliOutput}");
+            _logger.LogDebug($"Fee Tx built {feeCalculationTxBuildArgs}{Environment.NewLine}{feeTxBuildCliOutput}");
 
             var feeCalculationArgs = string.Join(" ",
                 "transaction", "calculate-min-fee",
@@ -93,7 +93,7 @@ public class CardanoCliTxBuilder : ITxBuilder
                 noEcho: true,
                 cancellationToken: ct);
             var feeLovelaceQuantity = long.Parse(feeCalculationCliOutput.Split(' ')[0]); // Parse "199469 Lovelace"
-            _logger.LogInformation($"Fee Calculated {feeCalculationArgs}{Environment.NewLine}{feeCalculationCliOutput}");
+            _logger.LogDebug($"Fee Calculated {feeCalculationArgs}{Environment.NewLine}{feeCalculationCliOutput}");
 
             var actualTxBodyOutputPath = Path.Combine(_settings.BasePath, $"{buildId}.txraw");
             var actualTxBuildArgs = string.Join(" ",
@@ -112,7 +112,7 @@ public class CardanoCliTxBuilder : ITxBuilder
                 actualTxBuildArgs,
                 noEcho: true,
                 cancellationToken: ct);
-            _logger.LogInformation($"Actual Tx built {actualTxBuildArgs}{Environment.NewLine}{actualTxBuildCliOutput}");
+            _logger.LogDebug($"Actual Tx built {actualTxBuildArgs}{Environment.NewLine}{actualTxBuildCliOutput}");
 
             var signedTxOutputPath = Path.Combine(_settings.BasePath, $"{buildId}.txsigned");
             var txSignatureArgs = string.Join(" ",
@@ -127,7 +127,7 @@ public class CardanoCliTxBuilder : ITxBuilder
                 txSignatureArgs,
                 noEcho: true,
                 cancellationToken: ct);
-            _logger.LogInformation($"Signed Tx built {txSignatureArgs}{Environment.NewLine}{txSignatureCliOutput}");
+            _logger.LogDebug($"Signed Tx built {txSignatureArgs}{Environment.NewLine}{txSignatureCliOutput}");
 
             // Extract bytes from cborHex field of JSON in signed tx file
             var cborJson = File.ReadAllText(signedTxOutputPath);
@@ -302,7 +302,7 @@ public class FakeTxBuilder : ITxBuilder
             "--fee", "0", $"{Environment.NewLine}",
             "--out-file", feeCalculationTxBodyPath
         );
-        _logger.LogInformation($"Building fee calculation tx from:{Environment.NewLine}{feeTxBuildArgs}");
+        _logger.LogDebug($"Building fee calculation tx from:{Environment.NewLine}{feeTxBuildArgs}");
 
         var feeCalculationArgs = string.Join(" ",
             "transaction", "calculate-min-fee", $"{Environment.NewLine}",
@@ -314,8 +314,8 @@ public class FakeTxBuilder : ITxBuilder
             "--protocol-params-file", protocolParamsPath
         );
 
-        _logger.LogInformation("Calculating fee using fee calculation tx (199469) from:");
-        _logger.LogInformation(feeCalculationArgs);
+        _logger.LogDebug("Calculating fee using fee calculation tx (199469) from:");
+        _logger.LogDebug(feeCalculationArgs);
         var feeLovelaceQuantity = 199469;
 
         var actualTxBodyPath = Path.Combine(_settings.BasePath, $"mint-{buildId}.txraw");
@@ -330,7 +330,7 @@ public class FakeTxBuilder : ITxBuilder
             "--fee", feeLovelaceQuantity, $"{Environment.NewLine}",
             "--out-file", actualTxBodyPath
         );
-        _logger.LogInformation($"Actual Tx built from command:{Environment.NewLine}{txBuildArgs}");
+        _logger.LogDebug($"Actual Tx built from command:{Environment.NewLine}{txBuildArgs}");
 
         var signedTxOutputPath = Path.Combine(_settings.BasePath, $"{buildId}.txsigned");
         var txSignatureArgs = string.Join(" ",
@@ -340,7 +340,7 @@ public class FakeTxBuilder : ITxBuilder
             _networkMagic, $"{Environment.NewLine}",
             "--out-file", signedTxOutputPath
         );
-        _logger.LogInformation($"Signed Tx from command:{Environment.NewLine}{txSignatureArgs}");
+        _logger.LogDebug($"Signed Tx from command:{Environment.NewLine}{txSignatureArgs}");
 
         return Array.Empty<byte>();
     }

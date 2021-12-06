@@ -1,12 +1,20 @@
 ﻿@page "/yolowallet"
+@page "/yolowallet/{SourceAddress}"
 @using Mintsafe.Abstractions
 @using Mintsafe.WasmApp.Services
 
 <PageTitle>YOLO Wallet</PageTitle>
 
-<input @bind="Address" placeholder="addr1..." style="width: 550px" />
+<input @bind="SourceAddress" placeholder="addr1..." style="width: 550px" />
 <button @onclick="QueryAddressUtxos">Query</button>
 @(Utxos?.Sum(u => u.Lovelaces)/1000000) ADA
+
+<input @bind="DestinationAddress" placeholder="addr1..." style="width: 550px" />
+<input @bind="Unit" placeholder="lovelace" />
+<input @bind="Quantity" placeholder="10000000" />
+<input @bind="Message" placeholder="" style="width: 550px" />
+<input @bind="SigningKeyCborHex" placeholder="5820..." style="width: 550px" />
+<button @onclick="SendPayment">Send</button>
 
 @if (Utxos != null)
 {
@@ -32,14 +40,20 @@
 }
 
 @code {
-
-	public string? Address { get; set; }
-
+	[Parameter]
+	public string? SourceAddress { get; set; }
+	public string? DestinationAddress { get; set; }
+	public string? Unit { get; set; }
+	public long? Quantity { get; set; }
+	public string? Message { get; set; }
+	public string? SigningKeyCborHex { get; set; }
 	[CascadingParameter]
 	private Error Error { get; set; }
 
 	[Inject]
 	private IAddressUtxoService AddressUtxoService { get; set; }
+	[Inject]
+	private IYoloPaymentService YoloPaymentService { get; set; }
 
 	private Utxo[]? Utxos { get; set; }
 
@@ -47,9 +61,9 @@
 	{
 		try
 		{
-			if (!string.IsNullOrWhiteSpace(Address))
+			if (!string.IsNullOrWhiteSpace(SourceAddress))
 			{
-				Utxos = await AddressUtxoService.Get(Address);
+				Utxos = await AddressUtxoService.Get(SourceAddress);
 			}
 		}
 		catch (Exception ex)
@@ -60,10 +74,43 @@
 
 	public async Task QueryAddressUtxos()
 	{
-		if (!string.IsNullOrWhiteSpace(Address))
+		if (!string.IsNullOrWhiteSpace(SourceAddress))
 		{
-			Utxos = await AddressUtxoService.Get(Address);
+			Utxos = await AddressUtxoService.Get(SourceAddress);
 		}
+	}
+
+	public async Task SendPayment()
+	{
+		// Validate fields	
+		if (string.IsNullOrWhiteSpace(SourceAddress))
+		{
+			
+		}
+
+		if (Message == null)
+		{
+			throw new ArgumentNullException(nameof(Message));
+		}
+		if (Unit == null)
+		{
+			throw new ArgumentNullException(nameof(Unit));
+		}
+		if (Quantity == null)
+		{
+			throw new ArgumentNullException(nameof(Quantity));
+		}
+
+		var payment = new YoloPayment
+			{
+				DestinationAddress = DestinationAddress,
+				SourceAddress = SourceAddress,
+				Message = new[] { Message },
+				SigningKeyCborHex = SigningKeyCborHex,
+				Values = new[] { new Value(Unit, Quantity.Value) } 
+			};
+
+		var txId = await YoloPaymentService.MakePaymentAsync(payment);
 	}
 
 }

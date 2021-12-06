@@ -23,9 +23,17 @@ public class BlockfrostTxInfoRetriever : ITxInfoRetriever
             throw new BlockfrostResponseException("BlockFrost response contains null fields", 200);
 
         return new TxInfo(
-                bfResult.Hash,
-                bfResult.Inputs.Select(r => new TxIo(r.Address, r.Output_Index, Array.Empty<Value>())).ToArray(),
-                bfResult.Outputs.Select(r => new TxIo(r.Address, r.Output_Index, Array.Empty<Value>())).ToArray());
+            bfResult.Hash,
+            bfResult.Inputs.Select(BlockFrostTransactionIoToTxIo).ToArray(),
+            bfResult.Outputs.Select(BlockFrostTransactionIoToTxIo).ToArray());
+    }
+
+    private TxIo BlockFrostTransactionIoToTxIo(BlockFrostTransactionIo bfTxIo)
+    {
+        if (bfTxIo.Address == null)
+            throw new BlockfrostResponseException("BlockFrost response contains null fields", 200);
+        // TODO: Map Values (not currently needed for address usecase)
+        return new TxIo(bfTxIo.Address, bfTxIo.Output_Index, Array.Empty<Value>());
     }
 }
 
