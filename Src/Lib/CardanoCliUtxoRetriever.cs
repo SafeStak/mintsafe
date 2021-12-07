@@ -46,6 +46,10 @@ public class CardanoCliUtxoRetriever : IUtxoRetriever
                 ), noEcho: true, cancellationToken: ct);
             isSuccessful = true;
         }
+        catch (FormatException ex)
+        {
+            throw new CardanoCliException("cardano-cli returned an invalid response", ex, _settings.Network.ToString());
+        }
         catch (Win32Exception ex)
         {
             throw new CardanoCliException("cardano-cli does not exist", ex, _settings.Network.ToString());
