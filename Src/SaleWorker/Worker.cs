@@ -12,6 +12,7 @@ namespace Mintsafe.SaleWorker;
 
 public class Worker : BackgroundService
 {
+    private readonly IHostApplicationLifetime _hostApplicationLifetime;
     private readonly ILogger<Worker> _logger;
     private readonly MintsafeAppSettings _settings;
     private readonly INiftyDataService _niftyDataService;
@@ -20,12 +21,14 @@ public class Worker : BackgroundService
     private readonly Guid _workerId;
 
     public Worker(
+        IHostApplicationLifetime hostApplicationLifetime,
         ILogger<Worker> logger,
         MintsafeAppSettings settings,
         INiftyDataService niftyDataService,
         IUtxoRetriever utxoRetriever,
         ISaleUtxoHandler saleUtxoHandler)
     {
+        _hostApplicationLifetime = hostApplicationLifetime;
         _logger = logger;
         _settings = settings;
         _niftyDataService = niftyDataService;
@@ -41,7 +44,7 @@ public class Worker : BackgroundService
         if (collection.ActiveSales.Length == 0)
         {
             _logger.LogWarning(EventIds.HostedServiceWarning, $"{collection.Collection.Name} with {collection.Tokens.Length} mintable tokens has no active sales!");
-            await base.StopAsync(ct);
+            _hostApplicationLifetime.StopApplication();
             return;
         }
 
@@ -51,7 +54,7 @@ public class Worker : BackgroundService
         if (mintableTokens.Count < activeSale.TotalReleaseQuantity)
         {
             _logger.LogWarning(EventIds.HostedServiceWarning, $"{collection.Collection.Name} has {mintableTokens.Count} mintable tokens which is less than {activeSale.TotalReleaseQuantity} sale release quantity.");
-            await base.StopAsync(ct);
+            _hostApplicationLifetime.StopApplication();
             return;
         }
         _logger.LogInformation(EventIds.HostedServiceInfo, $"SaleWorker({_workerId}) {collection.Collection.Name} has an active sale '{activeSale.Name}' for {activeSale.TotalReleaseQuantity} nifties (out of {mintableTokens.Count} total mintable) at {activeSale.SaleAddress}{Environment.NewLine}{activeSale.LovelacesPerToken} lovelaces per NFT ({activeSale.LovelacesPerToken / 1000000} ADA) and {activeSale.MaxAllowedPurchaseQuantity} max allowed");

@@ -95,15 +95,15 @@ IHost host = Host.CreateDefaultBuilder(args)
 
         // Fakes
         services.AddSingleton<INiftyDataService, LocalNiftyDataService>();
-        //services.AddSingleton<IUtxoRetriever, FakeUtxoRetriever>();
-        //services.AddSingleton<ITxInfoRetriever, FakeTxIoRetriever>();
+        services.AddSingleton<IUtxoRetriever, FakeUtxoRetriever>();
+        services.AddSingleton<ITxInfoRetriever, FakeTxIoRetriever>();
         services.AddSingleton<ITxBuilder, FakeTxBuilder>();
         services.AddSingleton<ITxSubmitter, FakeTxSubmitter>();
 
         //// Reals
         //services.AddSingleton<IUtxoRetriever, CardanoCliUtxoRetriever>();
-        services.AddSingleton<IUtxoRetriever, BlockfrostUtxoRetriever>();
-        services.AddSingleton<ITxInfoRetriever, BlockfrostTxInfoRetriever>();
+        //services.AddSingleton<IUtxoRetriever, BlockfrostUtxoRetriever>();
+        //services.AddSingleton<ITxInfoRetriever, BlockfrostTxInfoRetriever>();
         //services.AddSingleton<ITxBuilder, CardanoCliTxBuilder>();
         //services.AddSingleton<ITxSubmitter, CardanoCliTxSubmitter>();
     })

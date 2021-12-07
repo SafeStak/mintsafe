@@ -42,7 +42,7 @@ public class LocalNiftyDataService : INiftyDataService
             Description: "Limited 150 item launch",
             LovelacesPerToken: 1500000,
             Start: new DateTime(2021, 9, 4, 0, 0, 0, DateTimeKind.Utc),
-            End: new DateTime(2021, 12, 15, 0, 0, 0, DateTimeKind.Utc),
+            End: new DateTime(2021, 12, 8, 0, 0, 0, DateTimeKind.Utc),
             SaleAddress: "addr_test1vzfxanc8hxjt33khh36u4ac593c2llv4n4e4ew6c5y64p0gmag2uh",
             ProceedsAddress: "addr_test1vzfdtkpwalx23xg979phx8efeju36f9at4pdsvvkd4cu02gmrfyvh",
             TotalReleaseQuantity: 150,

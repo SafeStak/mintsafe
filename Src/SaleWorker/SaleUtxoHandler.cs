@@ -13,10 +13,7 @@ namespace Mintsafe.SaleWorker;
 
 public interface ISaleUtxoHandler
 {
-    Task HandleAsync(
-        Utxo saleUtxo,
-        SaleContext saleContext,
-        CancellationToken ct);
+    Task HandleAsync(Utxo saleUtxo, SaleContext saleContext, CancellationToken ct);
 }
 
 public class SaleUtxoHandler : ISaleUtxoHandler
