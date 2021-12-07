@@ -1,3 +1,4 @@
+using Microsoft.ApplicationInsights.WorkerService;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -70,7 +71,12 @@ IHost host = Host.CreateDefaultBuilder(args)
             .Get<ApplicationInsightsConfig>();
         if (appInsightsConfig.Enabled && !string.IsNullOrWhiteSpace(appInsightsConfig.InstrumentationKey))
         {
-            services.AddApplicationInsightsTelemetryWorkerService(appInsightsConfig.InstrumentationKey);
+            var aiOptions = new ApplicationInsightsServiceOptions
+            {
+                InstrumentationKey = appInsightsConfig.InstrumentationKey,
+                EnableDependencyTrackingTelemetryModule = false,
+            };
+            services.AddApplicationInsightsTelemetryWorkerService(aiOptions);
             services.AddSingleton<IInstrumentor, AppInsightsInstrumentor>();
         }
         else
@@ -102,8 +108,8 @@ IHost host = Host.CreateDefaultBuilder(args)
 
         //// Reals
         //services.AddSingleton<IUtxoRetriever, CardanoCliUtxoRetriever>();
-        //services.AddSingleton<IUtxoRetriever, BlockfrostUtxoRetriever>();
-        //services.AddSingleton<ITxInfoRetriever, BlockfrostTxInfoRetriever>();
+        services.AddSingleton<IUtxoRetriever, BlockfrostUtxoRetriever>();
+        services.AddSingleton<ITxInfoRetriever, BlockfrostTxInfoRetriever>();
         //services.AddSingleton<ITxBuilder, CardanoCliTxBuilder>();
         //services.AddSingleton<ITxSubmitter, CardanoCliTxSubmitter>();
     })
