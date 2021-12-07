@@ -91,8 +91,9 @@ public class CardanoCliUtxoRetriever : IUtxoRetriever
         yield return lovelaceValue;
 
         var currentSegmentIndex = 4; // 4 comes frrom skipping [0]{txHash} [1]{txOutputIndex} [2]{txOutputLovelaceValue} [3]lovelace
-        while (utxoLineSegments[currentSegmentIndex] == "+" && utxoLineSegments[currentSegmentIndex + 1] != "TxOutDatumHashNone")
+        while (utxoLineSegments[currentSegmentIndex] == "+" && utxoLineSegments[currentSegmentIndex + 1] != "TxOutDatumNone")
         {
+            //_logger.LogDebug($"FOUND {utxoLineSegments[currentSegmentIndex]} AND {utxoLineSegments[currentSegmentIndex + 1]}");
             var quantity = long.Parse(utxoLineSegments[currentSegmentIndex + 1]);
             var unit = utxoLineSegments[currentSegmentIndex + 2];
             yield return new Value(unit, quantity);
