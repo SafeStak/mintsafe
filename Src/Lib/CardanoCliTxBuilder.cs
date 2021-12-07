@@ -54,6 +54,7 @@ public class CardanoCliTxBuilder : ITxBuilder
         CancellationToken ct = default)
     {
         var buildId = Guid.NewGuid();
+        var actualTxBuildArgs = string.Empty;
         var isSuccessful = false;
         var sw = Stopwatch.StartNew();
         try
@@ -105,7 +106,7 @@ public class CardanoCliTxBuilder : ITxBuilder
             _logger.LogDebug($"Fee Calculated {feeCalculationArgs}{Environment.NewLine}{feeCalculationCliOutput}");
 
             var actualTxBodyOutputPath = Path.Combine(_settings.BasePath, $"{buildId}.txraw");
-            var actualTxBuildArgs = string.Join(" ",
+            actualTxBuildArgs = string.Join(" ",
                 "transaction", "build-raw",
                 GetTxInArgs(buildCommand),
                 GetTxOutArgs(buildCommand, feeLovelaceQuantity),
@@ -154,11 +155,11 @@ public class CardanoCliTxBuilder : ITxBuilder
         }
         catch (Win32Exception ex)
         {
-            throw new CardanoCliException("cardano-cli does not exist", ex, _settings.Network.ToString());
+            throw new CardanoCliException("cardano-cli does not exist", ex, _settings.Network.ToString(), actualTxBuildArgs);
         }
         catch (Exception ex)
         {
-            throw new CardanoCliException($"Unhandled exception in {nameof(CardanoCliTxBuilder)}", ex, _settings.Network.ToString());
+            throw new CardanoCliException($"Unhandled exception in {nameof(CardanoCliTxBuilder)}", ex, _settings.Network.ToString(), actualTxBuildArgs);
         }
         finally
         {

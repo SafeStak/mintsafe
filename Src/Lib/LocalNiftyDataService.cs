@@ -20,7 +20,7 @@ public class LocalNiftyDataService : INiftyDataService
         var fakeCollectionId = Guid.Parse(FakeCollectionId);
         var collection = new NiftyCollection(
             Id: fakeCollectionId,
-            PolicyId: "a0af7759ce5662ca897a936ede99ca47ef5a3bfc74d104ee268ccc6c",
+            PolicyId: "fbd42bedfcf8d5de2381dd572676dd5e85fd09b2a45ba80358d20fea",
             Name: "cryptoquokkas",
             Description: "Creations from TOP_SECRET_PROJECT",
             IsActive: true,
@@ -31,7 +31,7 @@ public class LocalNiftyDataService : INiftyDataService
             SlotExpiry: 46021186); // testnet christmas 
 
         var tokens = GenerateTokens(
-            1000,
+            3000,
             FakeCollectionId);
 
         var sale = new Sale(
@@ -40,13 +40,13 @@ public class LocalNiftyDataService : INiftyDataService
             IsActive: true,
             Name: "Preview Launch #1",
             Description: "Limited 150 item launch",
-            LovelacesPerToken: 1500000,
+            LovelacesPerToken: 36000000,
             Start: new DateTime(2021, 9, 4, 0, 0, 0, DateTimeKind.Utc),
             End: new DateTime(2021, 12, 8, 0, 0, 0, DateTimeKind.Utc),
-            SaleAddress: "addr_test1vzfxanc8hxjt33khh36u4ac593c2llv4n4e4ew6c5y64p0gmag2uh",
-            ProceedsAddress: "addr_test1vzfdtkpwalx23xg979phx8efeju36f9at4pdsvvkd4cu02gmrfyvh",
-            TotalReleaseQuantity: 150,
-            MaxAllowedPurchaseQuantity: 10);
+            SaleAddress: "addr_test1vqgh0dutf08aynjcvhwa8jeaclpxs29fpjtsunlw2056pycjut5w7",
+            ProceedsAddress: "addr_test1vp92pf7y6mk9qgqs2474mxvjh9u3e5h885v6hy8c8qp3wdcddsldj",
+            TotalReleaseQuantity: 3000,
+            MaxAllowedPurchaseQuantity: 4);
 
         var activeSales = collection.IsActive && IsSaleOpen(sale) ? new[] { sale } : Array.Empty<Sale>();
 

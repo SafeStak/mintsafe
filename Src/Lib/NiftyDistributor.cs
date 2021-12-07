@@ -97,6 +97,14 @@ public class NiftyDistributor : INiftyDistributor
             txSubmissionBody = await _txBuilder.BuildTxAsync(txBuildCommand, ct).ConfigureAwait(false);
             _logger.LogDebug($"{nameof(_txBuilder.BuildTxAsync)} completed after {sw.ElapsedMilliseconds}ms");
         }
+        catch (CardanoCliException ex)
+        {
+            return new NiftyDistributionResult(
+                NiftyDistributionOutcome.FailureTxBuild,
+                purchaseAttempt,
+                JsonSerializer.Serialize(txBuildCommand) + " | " + ex.Args,
+                Exception: ex);
+        }
         catch (Exception ex)
         {
             return new NiftyDistributionResult(

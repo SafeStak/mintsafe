@@ -87,35 +87,35 @@ public class SaleUtxoHandler : ISaleUtxoHandler
         }
         catch (InsufficientPaymentException ex)
         {
-            _logger.LogError(LogEventIds.InsufficientPayment, ex, "Insufficient payment received for sale");
+            _logger.LogError(LogEventIds.InsufficientPayment, ex, $"Insufficient payment received for sale {ex.PurchaseAttemptUtxo.Lovelaces}");
             shouldRefundUtxo = true;
             refundReason = "salepaymentinsufficient";
         }
         catch (MaxAllowedPurchaseQuantityExceededException ex)
         {
-            _logger.LogError(LogEventIds.MaxAllowedPurchaseQuantityExceeded, ex, "Payment attempted to purchase too many for sale");
+            _logger.LogError(LogEventIds.MaxAllowedPurchaseQuantityExceeded, ex, $"Payment attempted to purchase too many for sale {ex.DerivedQuantity} vs {ex.MaxQuantity}");
             shouldRefundUtxo = true;
             refundReason = "salemaxallowedexceeded";
         }
         catch (CannotAllocateMoreThanSaleReleaseException ex)
         {
-            _logger.LogError(LogEventIds.CannotAllocateMoreThanSaleRelease, ex, "Sale allocation exceeded release");
+            _logger.LogError(LogEventIds.CannotAllocateMoreThanSaleRelease, ex, $"Sale allocation exceeded release {ex.RequestedQuantity} vs {ex.SaleAllocatedQuantity}/{ex.SaleReleaseQuantity}");
             shouldRefundUtxo = true;
             refundReason = "salefullyallocated";
         }
         catch (CannotAllocateMoreThanMintableException ex)
         {
-            _logger.LogError(LogEventIds.CannotAllocateMoreThanSaleRelease, ex, "Sale allocation exceeded mintable");
+            _logger.LogError(LogEventIds.CannotAllocateMoreThanSaleRelease, ex, $"Sale allocation exceeded mintable {ex.RequestedQuantity} vs {ex.MintableQuantity}");
             shouldRefundUtxo = true;
             refundReason = "collectionfullyminted";
         }
         catch (BlockfrostResponseException ex)
         {
-            _logger.LogError(LogEventIds.BlockfrostServerErrorResponse, ex, "Blockfrost API response error");
+            _logger.LogError(LogEventIds.BlockfrostServerErrorResponse, ex, $"Blockfrost API response error {ex.ResponseContent}");
         }
         catch (CardanoCliException ex)
         {
-            _logger.LogError(LogEventIds.CardanoCliUnhandledError, ex, "cardano-cli Error");
+            _logger.LogError(LogEventIds.CardanoCliUnhandledError, ex, $"cardano-cli Error (args: {ex.Args})");
         }
         catch (Exception ex)
         {
