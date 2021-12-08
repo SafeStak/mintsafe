@@ -3,6 +3,7 @@ using Microsoft.Extensions.Azure;
 using Mintsafe.DataAccess.Extensions;
 using Mintsafe.DataAccess.Models;
 using Mintsafe.DataAccess.Supporting;
+using MoreLinq.Extensions;
 
 namespace Mintsafe.DataAccess.Repositories
 {
@@ -49,9 +50,12 @@ namespace Mintsafe.DataAccess.Repositories
 
         public async Task InsertManyAsync(IEnumerable<Nifty> nifties, CancellationToken ct)
         {
-            List<TableTransactionAction> addEntitiesBatch = new List<TableTransactionAction>();
-            addEntitiesBatch.AddRange(nifties.Select(nfc => new TableTransactionAction(TableTransactionActionType.Add, nfc)));
-            await _niftyClient.SubmitTransactionAsync(addEntitiesBatch, ct).ConfigureAwait(false);
+            foreach (var batch in nifties.Batch(100))
+            {
+                List<TableTransactionAction> addEntitiesBatch = new List<TableTransactionAction>();
+                addEntitiesBatch.AddRange(batch.Select(nfc => new TableTransactionAction(TableTransactionActionType.Add, nfc)));
+                await _niftyClient.SubmitTransactionAsync(addEntitiesBatch, ct).ConfigureAwait(false);
+            }
         }
     }
 }

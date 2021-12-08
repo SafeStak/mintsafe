@@ -33,6 +33,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mintsafe.DataAccess", "Src\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mintsafe.DataAccess.UnitTests", "Tests\DataAccess.UnitTests\Mintsafe.DataAccess.UnitTests.csproj", "{8E37B547-1136-4AE6-BA1C-D73118B3F901}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{610719E3-EC63-449E-81FD-AFB0A2957F46}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mintsafe.DataImporter", "Src\DataImporter\Mintsafe.DataImporter.csproj", "{BF3C0082-4D79-4307-9988-FD4D513D028A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -75,6 +79,10 @@ Global
 		{8E37B547-1136-4AE6-BA1C-D73118B3F901}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8E37B547-1136-4AE6-BA1C-D73118B3F901}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8E37B547-1136-4AE6-BA1C-D73118B3F901}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF3C0082-4D79-4307-9988-FD4D513D028A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF3C0082-4D79-4307-9988-FD4D513D028A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF3C0082-4D79-4307-9988-FD4D513D028A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF3C0082-4D79-4307-9988-FD4D513D028A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -89,6 +97,7 @@ Global
 		{32FF48AD-0196-43CA-A8A0-D4825E6C35A5} = {7992D038-DC74-4731-8B1F-32D94C0ABA6D}
 		{17444AD8-5FC4-498B-AA15-33C5F05BEF5D} = {7992D038-DC74-4731-8B1F-32D94C0ABA6D}
 		{8E37B547-1136-4AE6-BA1C-D73118B3F901} = {24B34FCE-D2B8-4FBB-AE33-CE56C7DA8F0E}
+		{BF3C0082-4D79-4307-9988-FD4D513D028A} = {610719E3-EC63-449E-81FD-AFB0A2957F46}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7099AD34-99D7-4D3A-8E94-770478C1751A}
