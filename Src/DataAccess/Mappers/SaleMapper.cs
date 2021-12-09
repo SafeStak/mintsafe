@@ -18,7 +18,7 @@ namespace Mintsafe.DataAccess.Mappers
                 ProceedsAddress = sale.ProceedsAddress,
                 TotalReleaseQuantity = sale.TotalReleaseQuantity,
                 MaxAllowedPurchaseQuantity = sale.MaxAllowedPurchaseQuantity,
-                Start = sale.Start?.ToUniversalTime(),
+                Start = sale.Start.ToUniversalTime(),
                 End = sale.End?.ToUniversalTime()
             };
         }
@@ -33,7 +33,9 @@ namespace Mintsafe.DataAccess.Mappers
                 saleDto.Description,
                 saleDto.LovelacesPerToken,
                 saleDto.SaleAddress,
+                saleDto.CreatorAddress,
                 saleDto.ProceedsAddress,
+                saleDto.PostPurchaseMargin,
                 saleDto.TotalReleaseQuantity,
                 saleDto.MaxAllowedPurchaseQuantity,
                 saleDto.Start,

@@ -59,7 +59,7 @@ public class NiftyDistributor : INiftyDistributor
         var buyerAddress = txIo.Inputs.First().Address;
         _logger.LogDebug($"{nameof(_txRetriever.GetTxInfoAsync)} completed after {sw.ElapsedMilliseconds}ms");
 
-        // Map UtxoValues for new tokens
+        /// Map UtxoValues for new tokens
         var tokenMintUtxoValues = nfts.Select(n => new Value($"{collection.PolicyId}.{n.AssetName}", 1)).ToArray();
         // Chicken-and-egg bit to calculate the minimum output lovelace value after building the tx output back to the buyer
         // Then mutating the lovelace value quantity with the calculated minLovelaceUtxo
@@ -67,8 +67,12 @@ public class NiftyDistributor : INiftyDistributor
         var minLovelaceUtxo = TxUtils.CalculateMinUtxoLovelace(buyerOutputUtxoValues);
         long buyerLovelacesReturned = minLovelaceUtxo + purchaseAttempt.ChangeInLovelace;
         buyerOutputUtxoValues[0].Quantity = buyerLovelacesReturned;
-        var proceedsAddressLovelaces = purchaseAttempt.Utxo.Lovelaces - buyerLovelacesReturned;
-        var proceedsAddressUtxoValues = new[] { new Value(Assets.LovelaceUnit, proceedsAddressLovelaces) };
+        // Calculate proceeds of ADA from sale to creator and mintsafe's cut
+        var saleLovelaces = purchaseAttempt.Utxo.Lovelaces - buyerLovelacesReturned;
+        var mintsafeCutLovelaces = (int)(saleLovelaces * sale.PostPurchaseMargin);
+        var creatorCutLovelaces = saleLovelaces - mintsafeCutLovelaces;
+        var creatorAddressUtxoValues = new[] { new Value(Assets.LovelaceUnit, creatorCutLovelaces) };
+        var proceedsAddressUtxoValues = new[] { new Value(Assets.LovelaceUnit, mintsafeCutLovelaces) };
 
         var policyScriptFilename = $"{collection.PolicyId}.policy.script";
         var policyScriptPath = Path.Combine(_settings.BasePath, policyScriptFilename);
@@ -82,18 +86,24 @@ public class NiftyDistributor : INiftyDistributor
         var txBuildCommand = new TxBuildCommand(
             new[] { purchaseAttempt.Utxo },
             new[] {
-                    new TxBuildOutput(buyerAddress, buyerOutputUtxoValues),
-                    new TxBuildOutput(sale.ProceedsAddress, proceedsAddressUtxoValues, IsFeeDeducted: true) },
+                new TxBuildOutput(buyerAddress, buyerOutputUtxoValues),
+                new TxBuildOutput(sale.CreatorAddress, creatorAddressUtxoValues, IsFeeDeducted: true),
+                new TxBuildOutput(sale.ProceedsAddress, proceedsAddressUtxoValues)
+            },
             tokenMintUtxoValues,
             policyScriptPath,
             metadataJsonPath,
             slotExpiry,
             signingKeyFilePaths);
+        // TODO: Make it unit-testable by making new abstraction ISaleContextStorage
         var saleFolder = Path.Combine(_settings.BasePath, sale.Id.ToString()[..8]);
         var saleUtxosFolder = Path.Combine(saleFolder, "utxos");
         var utxoFolderPath = Path.Combine(saleUtxosFolder, purchaseAttempt.Utxo.ToString());
-        var utxoPurchasePath = Path.Combine(utxoFolderPath, "mint_tx.json");
-        File.WriteAllText(utxoPurchasePath, JsonSerializer.Serialize(txBuildCommand));
+        if (File.Exists(utxoFolderPath))
+        {
+            var utxoPurchasePath = Path.Combine(utxoFolderPath, "mint_tx.json");
+            File.WriteAllText(utxoPurchasePath, JsonSerializer.Serialize(txBuildCommand));
+        }
 
         var txSubmissionBody = Array.Empty<byte>();
         sw.Restart();

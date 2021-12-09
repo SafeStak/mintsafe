@@ -56,10 +56,12 @@ public record Sale(
     string Description,
     long LovelacesPerToken,
     string SaleAddress,
+    string CreatorAddress,
     string ProceedsAddress,
+    decimal PostPurchaseMargin,
     int TotalReleaseQuantity,
     int MaxAllowedPurchaseQuantity,
-    DateTime? Start = null,
+    DateTime Start,
     DateTime? End = null);
 
 public record PurchaseAttempt(

@@ -46,7 +46,8 @@ namespace Mintsafe.WebApi.Controllers
                     new("b", "c")
                 });
 
-            var sale = new Sale(Guid.NewGuid(), collectionId, true, "Jacob Test", string.Empty, 5, "hash", "hash2", 5, 10);
+            var sale = new Sale(
+                Guid.NewGuid(), collectionId, true, "Jacob Test", string.Empty, 5, "hash", "hash2", "hash3", 0.1m, 5, 10, DateTime.UtcNow);
 
             var aggregate = new CollectionAggregate(niftyCollection, new[] {nifty}, new []{sale});
 

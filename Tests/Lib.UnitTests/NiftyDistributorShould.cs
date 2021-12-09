@@ -142,15 +142,17 @@ public class NiftyDistributorShould
     }
 
     [Theory]
-    [InlineData("addr_test1vpjvftua27afux73wpjz8089d2fsdu097apcuhdewyxmfssj0dlty", 10000000, 0, 1)]
-    [InlineData("addr_test1vzze0x09pe5v80sxtzz06uvt7gdmdpp9z4m5xndacy4044g8err8c", 10000000, 2000000, 3)]
-    public async Task Build_Correct_Tx_Output_For_Proceeds_Address_Given_Active_Sale_When_Purchase_Is_Valid(
-        string proceedsAddress, long purchaseLovelaces, int changeInLovelace, int niftyCount)
+    [InlineData("addr_test1vpjvftua27afux73wpjz8089d2fsdu097apcuhdewyxmfssj0dlty", 0.1, "addr_test1qrup2zgu69knkts7m3y3ghhwdzmgaus5u3s28vcsdegajr9wv6zerpdre7qdyvf68dcjyslazq0tfj5rq80v02tm5mysd3xc2u", 10000000, 0, 1)]
+    [InlineData("addr_test1vzze0x09pe5v80sxtzz06uvt7gdmdpp9z4m5xndacy4044g8err8c", 0.078, "addr_test1qp06h7um737tlp2s5um8fvwef5rmx6jh7auchrcwgct3w43w7gtapvad5hzgkvr3ksnzpu6a2ejaew5ypeurygknqs5qhjuvf6", 36000000, 2000000, 3)]
+    [InlineData("addr_test1vrfxxeuzqfuknfz4hu0ym4fe4l3axvqd7t5agd6pfzml59q30qc4x", 0.0088, "addr_test1vrldgv89yh0edkuwrvkkhc3yx4npfccdvtz7dfkn85a78rsu9nkm4", 50500000, 2500000, 5)]
+    public async Task Build_Correct_Tx_Output_For_Creator_Address_Given_Active_Sale_When_Purchase_Is_Valid(
+        string creatorAddress, double margin, string buyerAddress, long purchaseLovelaces, int changeInLovelace, int niftyCount)
     {
         var buildTxOutputBytes = new byte[] { 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20 };
+        var txInfo = GenerateTxIoAggregate(inputAddress: buyerAddress);
         _mockTxIoRetriever
             .Setup(t => t.GetTxInfoAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(GenerateTxIoAggregate());
+            .ReturnsAsync(txInfo);
         _mockTxBuilder
             .Setup(t => t.BuildTxAsync(It.IsAny<TxBuildCommand>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(buildTxOutputBytes);
@@ -164,13 +166,51 @@ public class NiftyDistributorShould
             purchaseAttempt: new PurchaseAttempt(
                 Guid.NewGuid(), Guid.NewGuid(), GenerateUtxos(1, purchaseLovelaces).First(), niftyCount, changeInLovelace),
             collection: GenerateCollection(),
-            sale: GenerateSale(proceedsAddress: proceedsAddress));
+            sale: GenerateSale(creatorAddress: creatorAddress, postPurchaseMargin: (decimal)margin));
 
         _mockTxBuilder
             .Verify(
                 t => t.BuildTxAsync(
                     It.Is<TxBuildCommand>(
-                        b => IsProceedsOutputCorrect(b, proceedsAddress, purchaseLovelaces, changeInLovelace)),
+                        b => IsCreatorOutputCorrect(b, creatorAddress, margin, buyerAddress, purchaseLovelaces, changeInLovelace)),
+                    It.IsAny<CancellationToken>()),
+                Times.Once,
+                "Output should have proceeds address and correct lovelace value");
+    }
+
+    [Theory]
+    [InlineData("addr_test1vpjvftua27afux73wpjz8089d2fsdu097apcuhdewyxmfssj0dlty", 0.1, "addr_test1qrup2zgu69knkts7m3y3ghhwdzmgaus5u3s28vcsdegajr9wv6zerpdre7qdyvf68dcjyslazq0tfj5rq80v02tm5mysd3xc2u", 10000000, 0, 1)]
+    [InlineData("addr_test1vzze0x09pe5v80sxtzz06uvt7gdmdpp9z4m5xndacy4044g8err8c", 0.078,"addr_test1qp06h7um737tlp2s5um8fvwef5rmx6jh7auchrcwgct3w43w7gtapvad5hzgkvr3ksnzpu6a2ejaew5ypeurygknqs5qhjuvf6", 36000000, 2000000, 3)]
+    [InlineData("addr_test1vrfxxeuzqfuknfz4hu0ym4fe4l3axvqd7t5agd6pfzml59q30qc4x", 0.0088, "addr_test1vrldgv89yh0edkuwrvkkhc3yx4npfccdvtz7dfkn85a78rsu9nkm4", 50500000, 2500000, 5)]
+    public async Task Build_Correct_Tx_Output_For_Proceeds_Address_Given_Active_Sale_When_Purchase_Is_Valid(
+        string proceedsAddress, double margin, string buyerAddress, long purchaseLovelaces, int changeInLovelace, int niftyCount)
+    {
+        var buildTxOutputBytes = new byte[] { 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20 };
+        var txInfo = GenerateTxIoAggregate(inputAddress: buyerAddress);
+        _mockTxIoRetriever
+            .Setup(t => t.GetTxInfoAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(txInfo);
+        _mockTxBuilder
+            .Setup(t => t.BuildTxAsync(It.IsAny<TxBuildCommand>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(buildTxOutputBytes);
+        _mockTxSubmitter
+            .Setup(t => t.SubmitTxAsync(It.Is<byte[]>(b => b == buildTxOutputBytes), It.IsAny<CancellationToken>()))
+            .ReturnsAsync("01daae688d236601109d9fc1bc11d7380a7617e6835eddca6527738963a87279");
+        var allocatedNifties = GenerateTokens(niftyCount).ToArray();
+        var sale = GenerateSale(proceedsAddress: proceedsAddress, postPurchaseMargin: (decimal)margin);
+
+        var txHash = await _distributor.DistributeNiftiesForSalePurchase(
+            nfts: allocatedNifties,
+            purchaseAttempt: new PurchaseAttempt(
+                Guid.NewGuid(), Guid.NewGuid(), GenerateUtxos(1, purchaseLovelaces).First(), niftyCount, changeInLovelace),
+            collection: GenerateCollection(),
+            sale: sale);
+
+        _mockTxBuilder
+            .Verify(
+                t => t.BuildTxAsync(
+                    It.Is<TxBuildCommand>(
+                        b => IsProceedsOutputCorrect(b, proceedsAddress, margin, buyerAddress, purchaseLovelaces, changeInLovelace)),
                     It.IsAny<CancellationToken>()),
                 Times.Once,
                 "Output should have proceeds address and correct lovelace value");
@@ -231,15 +271,39 @@ public class NiftyDistributorShould
     private static bool IsProceedsOutputCorrect(
         TxBuildCommand buildCommand,
         string proceedsAddress,
+        double margin,
+        string buyerAddress,
         long purchaseLovelaces,
         long changeInLovelace)
     {
-        var buyerOutput = buildCommand.Outputs.First(output => output.Address != proceedsAddress);
+        var buyerOutput = buildCommand.Outputs.First(output => output.Address == buyerAddress);
         var proceedsOutput = buildCommand.Outputs.First(output => output.Address == proceedsAddress);
-        var outputLovelace = proceedsOutput.Values.First(v => v.Unit == Assets.LovelaceUnit).Quantity;
-        var minUtxoLovelaceQuantity = TxUtils.CalculateMinUtxoLovelace(buyerOutput.Values);
+        var proceedsOutputLovelaces = proceedsOutput.Values.First(v => v.Unit == Assets.LovelaceUnit).Quantity;
+        var minUtxoLovelaces = TxUtils.CalculateMinUtxoLovelace(buyerOutput.Values);
 
-        return outputLovelace == purchaseLovelaces - changeInLovelace - minUtxoLovelaceQuantity;
+        var saleLovelaces = purchaseLovelaces - changeInLovelace - minUtxoLovelaces;
+        var proceedsCutLovelaces = (int)(saleLovelaces * margin);
+
+        return proceedsOutputLovelaces == proceedsCutLovelaces;
+    }
+
+    private static bool IsCreatorOutputCorrect(
+        TxBuildCommand buildCommand,
+        string creatorAddress,
+        double margin,
+        string buyerAddress,
+        long purchaseLovelaces,
+        long changeInLovelace)
+    {
+        var buyerOutput = buildCommand.Outputs.First(output => output.Address == buyerAddress);
+        var creatorOutput = buildCommand.Outputs.First(output => output.Address == creatorAddress);
+        var creatorOutputLovelaces = creatorOutput.Values.First(v => v.Unit == Assets.LovelaceUnit).Quantity;
+        var minUtxoLovelaces = TxUtils.CalculateMinUtxoLovelace(buyerOutput.Values);
+
+        var saleLovelaces = purchaseLovelaces - changeInLovelace - minUtxoLovelaces;
+        var proceedsCutLovelaces = (int)(saleLovelaces * margin);
+
+        return creatorOutputLovelaces == saleLovelaces - proceedsCutLovelaces;
     }
 
     private static bool IsMintCorrect(

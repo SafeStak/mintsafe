@@ -13,7 +13,7 @@ public class LocalNiftyDataService : INiftyDataService
     public const string FakeCollectionId = "4f03062a-460b-4946-a66a-be481cd8788f";
     public const string FakeSaleId = "7ca72580-4285-43f4-a7bb-5a465a9bdf85";
 
-    public Task<CollectionAggregate> GetCollectionAggregateAsync(
+    public Task<CollectionAggregate?> GetCollectionAggregateAsync(
         Guid collectionId, CancellationToken ct = default)
     {
         // Retrieve {Collection * ActiveSales * MintableTokens} from db
@@ -44,7 +44,9 @@ public class LocalNiftyDataService : INiftyDataService
             Start: new DateTime(2021, 9, 4, 0, 0, 0, DateTimeKind.Utc),
             End: new DateTime(2021, 12, 10, 0, 0, 0, DateTimeKind.Utc),
             SaleAddress: "addr_test1vqgh0dutf08aynjcvhwa8jeaclpxs29fpjtsunlw2056pycjut5w7",
+            CreatorAddress: "addr_test1vp92pf7y6mk9qgqs2474mxvjh9u3e5h885v6hy8c8qp3wdcddsldj",
             ProceedsAddress: "addr_test1vp92pf7y6mk9qgqs2474mxvjh9u3e5h885v6hy8c8qp3wdcddsldj",
+            PostPurchaseMargin: 0.1m,
             TotalReleaseQuantity: 3000,
             MaxAllowedPurchaseQuantity: 5);
 
@@ -61,7 +63,7 @@ public class LocalNiftyDataService : INiftyDataService
     private static bool IsSaleOpen(Sale sale)
     {
         if (!sale.IsActive
-            || (sale.Start.HasValue && sale.Start > DateTime.UtcNow)
+            || (sale.Start > DateTime.UtcNow)
             || (sale.End.HasValue && sale.End < DateTime.UtcNow))
             return false;
 
