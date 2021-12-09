@@ -3,6 +3,8 @@ using Mintsafe.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -68,15 +70,34 @@ public class NiftyAllocator : INiftyAllocator
             saleMintableNfts.RemoveAt(randomIndex);
         }
         _instrumentor.TrackDependency(
-            EventIds.AllocatorElapsed,
+            EventIds.AllocatorAllocateElapsed,
             sw.ElapsedMilliseconds,
             DateTime.UtcNow,
             nameof(NiftyAllocator),
             string.Empty,
             nameof(AllocateNiftiesForPurchaseAsync),
+            isSuccessful: true,
+            customProperties: new Dictionary<string, object>
+            {
+                { "SaleId", sale.Id },
+                { "Utxo", request.Utxo.ToString() },
+                { "AllocatedCount", purchaseAllocated.Count },
+            });
+        _logger.LogDebug(EventIds.AllocatorAllocateElapsed, $"{nameof(AllocateNiftiesForPurchaseAsync)} completed with {purchaseAllocated.Count} tokens after {sw.ElapsedMilliseconds}ms");
+
+        var saleFolder = Path.Combine(_settings.BasePath, sale.Id.ToString()[..8]);
+        var allocatedNftIdsPath = Path.Combine(saleFolder, "allocatedNftIds.csv");
+        sw.Restart();
+        File.AppendAllLines(allocatedNftIdsPath, purchaseAllocated.Select(n => n.Id.ToString()));
+        _instrumentor.TrackDependency(
+            EventIds.AllocatorUpdateStateElapsed,
+            sw.ElapsedMilliseconds,
+            DateTime.UtcNow,
+            nameof(NiftyAllocator),
+            allocatedNftIdsPath,
+            "AppendAllocatedNifties",
             isSuccessful: true);
-        _logger.LogDebug(EventIds.AllocatorElapsed, $"{nameof(AllocateNiftiesForPurchaseAsync)} completed with {purchaseAllocated.Count} tokens after {sw.ElapsedMilliseconds}ms");
-        
+
         return Task.FromResult(purchaseAllocated.ToArray());
     }
 }

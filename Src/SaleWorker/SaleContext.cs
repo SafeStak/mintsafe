@@ -6,6 +6,8 @@ namespace Mintsafe.SaleWorker;
 public record SaleContext
 (
     Guid SaleWorkerId,
+    string SalePath,
+    string SaleUtxosPath,
     Sale Sale,
     NiftyCollection Collection,
     List<Nifty> MintableTokens,

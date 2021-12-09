@@ -4,6 +4,8 @@ using Mintsafe.Abstractions;
 using Mintsafe.Lib;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +16,7 @@ public class Worker : BackgroundService
 {
     private readonly IHostApplicationLifetime _hostApplicationLifetime;
     private readonly ILogger<Worker> _logger;
+    private readonly IInstrumentor _instrumentor;
     private readonly MintsafeAppSettings _settings;
     private readonly INiftyDataService _niftyDataService;
     private readonly IUtxoRetriever _utxoRetriever;
@@ -23,6 +26,7 @@ public class Worker : BackgroundService
     public Worker(
         IHostApplicationLifetime hostApplicationLifetime,
         ILogger<Worker> logger,
+        IInstrumentor instrumentor,
         MintsafeAppSettings settings,
         INiftyDataService niftyDataService,
         IUtxoRetriever utxoRetriever,
@@ -30,6 +34,7 @@ public class Worker : BackgroundService
     {
         _hostApplicationLifetime = hostApplicationLifetime;
         _logger = logger;
+        _instrumentor = instrumentor;
         _settings = settings;
         _niftyDataService = niftyDataService;
         _utxoRetriever = utxoRetriever;
@@ -59,8 +64,8 @@ public class Worker : BackgroundService
         }
         _logger.LogInformation(EventIds.HostedServiceInfo, $"SaleWorker({_workerId}) {collection.Collection.Name} has an active sale '{activeSale.Name}' for {activeSale.TotalReleaseQuantity} nifties (out of {mintableTokens.Count} total mintable) at {activeSale.SaleAddress}{Environment.NewLine}{activeSale.LovelacesPerToken} lovelaces per NFT ({activeSale.LovelacesPerToken / 1000000} ADA) and {activeSale.MaxAllowedPurchaseQuantity} max allowed");
 
-        // TODO: Move away from single-threaded mutable saleContext 
-        var saleContext = GetSaleContext(mintableTokens, activeSale, collection.Collection);
+        // TODO: Move away from single-threaded mutable saleContext that isn't crash tolerant
+        var saleContext = GetOrRestoreSaleContext(mintableTokens, activeSale, collection.Collection);
         var timer = new PeriodicTimer(TimeSpan.FromSeconds(_settings.PollingIntervalSeconds));
         do
         {
@@ -90,15 +95,71 @@ public class Worker : BackgroundService
         await base.StopAsync(stoppingToken);
     }
 
-    private SaleContext GetSaleContext(
+    private SaleContext GetOrRestoreSaleContext(
         List<Nifty> mintableTokens, Sale sale,  NiftyCollection collection)
     {
+        var saleFolder = Path.Combine(_settings.BasePath, sale.Id.ToString()[..8]);
+        var saleUtxosFolder = Path.Combine(saleFolder, "utxos");
+        var mintableNftIdsSnapshotPath = Path.Combine(saleFolder, "mintableNftIds.csv");
+        var allocatedNftIdsPath = Path.Combine(saleFolder, "allocatedNftIds.csv");
+        var sw = new Stopwatch();
+        // Brand new sale for worker
+        if (!Directory.Exists(saleFolder))
+        {
+            Directory.CreateDirectory(saleFolder);
+            Directory.CreateDirectory(saleUtxosFolder);
+            sw.Start();
+            File.WriteAllLines(mintableNftIdsSnapshotPath, mintableTokens.Select(n => n.Id.ToString()));
+            File.WriteAllText(allocatedNftIdsPath, string.Empty);
+            _instrumentor.TrackDependency(
+                EventIds.SaleContextWriteElapsed,
+                sw.ElapsedMilliseconds,
+                DateTime.UtcNow,
+                nameof(Worker),
+                mintableNftIdsSnapshotPath,
+                "WriteSaleContextMintable",
+                isSuccessful: true);
+            return new SaleContext(
+                _workerId,
+                saleFolder,
+                saleUtxosFolder,
+                sale,
+                collection,
+                mintableTokens,
+                new List<Nifty>(),
+                new HashSet<Utxo>(),
+                new HashSet<Utxo>(),
+                new HashSet<Utxo>());
+        }
+        // Restore sale context from previous execution - starting with snapshot of all mintable NFTs at start of sale
+        sw.Restart();
+        var allocatedNftIds = new HashSet<string>(File.ReadAllLines(allocatedNftIdsPath));
+        _instrumentor.TrackDependency(
+            EventIds.SaleContextRestoreElapsed,
+            sw.ElapsedMilliseconds,
+            DateTime.UtcNow,
+            nameof(Worker),
+            allocatedNftIdsPath,
+            "ReadSaleContextAllocated",
+            isSuccessful: true);
+        var revisedMintableNfts = new List<Nifty>();
+        var allocatedNfts = new List<Nifty>();
+        foreach (var nft in mintableTokens)
+        {
+            if (allocatedNftIds.Contains(nft.Id.ToString()))
+                allocatedNfts.Add(nft);
+            else
+                revisedMintableNfts.Add(nft);
+        }
+
         var saleContext = new SaleContext(
             _workerId,
+            saleFolder,
+            saleUtxosFolder,
             sale,
             collection,
-            mintableTokens, 
-            new List<Nifty>(), 
+            revisedMintableNfts,
+            allocatedNfts, 
             new HashSet<Utxo>(), 
             new HashSet<Utxo>(), 
             new HashSet<Utxo>());

@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -52,15 +54,24 @@ public class SaleUtxoHandler : ISaleUtxoHandler
         var sw = Stopwatch.StartNew();
         try
         {
-            var purchaseRequest = PurchaseAttemptGenerator.FromUtxo(saleUtxo, saleContext.Sale);
-            _logger.LogDebug($"Successfully built purchase request: {purchaseRequest.NiftyQuantityRequested} NFTs for {saleUtxo.Lovelaces} and {purchaseRequest.ChangeInLovelace} change");
+            var purchase = PurchaseAttemptGenerator.FromUtxo(saleUtxo, saleContext.Sale);
+            _logger.LogDebug($"Successfully built purchase request: {purchase.NiftyQuantityRequested} NFTs for {saleUtxo.Lovelaces} and {purchase.ChangeInLovelace} change");
+            // Write to file system
+            var utxoFolderPath = Path.Combine(saleContext.SaleUtxosPath, saleUtxo.ToString());
+            Directory.CreateDirectory(utxoFolderPath);
+            var utxoPurchasePath = Path.Combine(utxoFolderPath, "purchase.json");
+            File.WriteAllText(utxoPurchasePath, JsonSerializer.Serialize(purchase));
 
             var tokens = await _tokenAllocator.AllocateNiftiesForPurchaseAsync(
-                purchaseRequest, saleContext.AllocatedTokens, saleContext.MintableTokens, saleContext.Sale, ct);
+                purchase, saleContext.AllocatedTokens, saleContext.MintableTokens, saleContext.Sale, ct);
             _logger.LogDebug($"Successfully allocated {tokens.Length} tokens");
+            var utxoAllocatedPath = Path.Combine(utxoFolderPath, "allocated.csv");
+            File.WriteAllLines(utxoAllocatedPath, tokens.Select(n => n.Id.ToString()));
 
             var distributionResult = await _tokenDistributor.DistributeNiftiesForSalePurchase(
-                tokens, purchaseRequest, saleContext.Collection, saleContext.Sale, ct);
+                tokens, purchase, saleContext.Collection, saleContext.Sale, ct);
+            var utxoDistributionPath = Path.Combine(utxoFolderPath, "distributed.json");
+            File.WriteAllText(utxoDistributionPath, JsonSerializer.Serialize(distributionResult));
             if (distributionResult.Outcome == NiftyDistributionOutcome.Successful
                 || distributionResult.Outcome == NiftyDistributionOutcome.SuccessfulAfterRetry)
             {
