@@ -27,6 +27,11 @@ public class ApplicationInsightsConfig
     public string? InstrumentationKey { get; init; }
 }
 
+public class StorageConfig
+{
+    public string? ConnectionString { get; init; }
+}
+
 public class MintSafeConfigException : ApplicationException
 {
     public string? Path { get; init; }

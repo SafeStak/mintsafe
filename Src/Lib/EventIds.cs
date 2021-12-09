@@ -13,6 +13,8 @@
         public const int HostedServiceWarning = 110003;
         public const int HostedServiceStarted = 110011;
         public const int HostedServiceFinished = 110012;
+        public const int DataServiceRetrievalError = 120000;
+        public const int DataServiceRetrievalWarning = 120003;
         public const int DataServiceRetrievalElapsed = 120004;
         public const int UtxoRetrievalElapsed = 130004;
         public const int SaleHandlerElapsed = 140004;

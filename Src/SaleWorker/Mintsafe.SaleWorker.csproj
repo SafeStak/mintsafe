@@ -14,6 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DataAccess\Mintsafe.DataAccess.csproj" />
     <ProjectReference Include="..\Lib\Mintsafe.Lib.csproj" />
   </ItemGroup>
 </Project>

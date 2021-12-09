@@ -1,9 +1,15 @@
 using Microsoft.ApplicationInsights.WorkerService;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Mintsafe.Abstractions;
+using Mintsafe.DataAccess;
+using Mintsafe.DataAccess.Composers;
+using Mintsafe.DataAccess.Extensions;
+using Mintsafe.DataAccess.Repositories;
+using Mintsafe.DataAccess.Supporting;
 using Mintsafe.Lib;
 using Mintsafe.SaleWorker;
 using System;
@@ -100,18 +106,33 @@ IHost host = Host.CreateDefaultBuilder(args)
         services.AddSingleton<IUtxoRefunder, UtxoRefunder>();
 
         // Fakes
-        services.AddSingleton<INiftyDataService, LocalNiftyDataService>();
+        //services.AddSingleton<INiftyDataService, LocalNiftyDataService>();
         //services.AddSingleton<IUtxoRetriever, FakeUtxoRetriever>();
         //services.AddSingleton<ITxInfoRetriever, FakeTxIoRetriever>();
-        //services.AddSingleton<ITxBuilder, FakeTxBuilder>();
+        services.AddSingleton<ITxBuilder, FakeTxBuilder>();
         services.AddSingleton<ITxSubmitter, FakeTxSubmitter>();
 
         //// Reals
-        services.AddSingleton<IUtxoRetriever, CardanoCliUtxoRetriever>();
-        //services.AddSingleton<IUtxoRetriever, BlockfrostUtxoRetriever>();
+        //services.AddSingleton<IUtxoRetriever, CardanoCliUtxoRetriever>();
+        services.AddSingleton<IUtxoRetriever, BlockfrostUtxoRetriever>();
         services.AddSingleton<ITxInfoRetriever, BlockfrostTxInfoRetriever>();
-        services.AddSingleton<ITxBuilder, CardanoCliTxBuilder>();
+        //services.AddSingleton<ITxBuilder, CardanoCliTxBuilder>();
         //services.AddSingleton<ITxSubmitter, CardanoCliTxSubmitter>();
+        services.AddSingleton<INiftyDataService, TableStorageDataService>();
+        services.AddAzureClients(clientBuilder =>
+        {
+            var connectionString = hostContext.Configuration.GetSection("Storage:ConnectionString").Value;
+            clientBuilder.AddTableClient(connectionString, Constants.TableNames.NiftyCollection);
+            clientBuilder.AddTableClient(connectionString, Constants.TableNames.Nifty);
+            clientBuilder.AddTableClient(connectionString, Constants.TableNames.Sale);
+            clientBuilder.AddTableClient(connectionString, Constants.TableNames.NiftyFile);
+        });
+        services.AddSingleton<INiftyDataService, TableStorageDataService>();
+        services.AddSingleton<ICollectionAggregateComposer, CollectionAggregateComposer>();
+        services.AddSingleton<INiftyCollectionRepository, NiftyCollectionRepository>();
+        services.AddSingleton<INiftyRepository, NiftyRepository>();
+        services.AddSingleton<ISaleRepository, SaleRepository>();
+        services.AddSingleton<INiftyFileRepository, NiftyFileRepository>();
     })
     .Build();
 
