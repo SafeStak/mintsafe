@@ -10,8 +10,8 @@ namespace Mintsafe.Lib;
 
 public class LocalNiftyDataService : INiftyDataService
 {
-    public const string FakeCollectionId = "d5b35d3d-14cc-40ba-94f4-fe3b28bd52ae";
-    public const string FakeSaleId = "d91b937f-00fc-4094-957c-629fe3e2e776";
+    public const string FakeCollectionId = "4f03062a-460b-4946-a66a-be481cd8788f";
+    public const string FakeSaleId = "7ca72580-4285-43f4-a7bb-5a465a9bdf85";
 
     public Task<CollectionAggregate> GetCollectionAggregateAsync(
         Guid collectionId, CancellationToken ct = default)
@@ -21,14 +21,14 @@ public class LocalNiftyDataService : INiftyDataService
         var collection = new NiftyCollection(
             Id: fakeCollectionId,
             PolicyId: "fbd42bedfcf8d5de2381dd572676dd5e85fd09b2a45ba80358d20fea",
-            Name: "cryptoquokkas",
-            Description: "Creations from TOP_SECRET_PROJECT",
+            Name: "cardadeer",
+            Description: "cardadeer.com",
             IsActive: true,
-            Publishers: new[] { "cryptoquokkas.io", "mintsafe.io" },
-            BrandImage: "ipfs://cid",
+            Publishers: new[] { "cardadeer.com", "mintsafe.io" },
+            BrandImage: "",
             CreatedAt: new DateTime(2021, 9, 4, 0, 0, 0, DateTimeKind.Utc),
             LockedAt: new DateTime(2022, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-            SlotExpiry: 46021186); // testnet christmas 
+            SlotExpiry: 49027186); // testnet christmas 
 
         var tokens = GenerateTokens(
             3000,
@@ -38,15 +38,15 @@ public class LocalNiftyDataService : INiftyDataService
             Id: Guid.Parse(FakeSaleId),
             CollectionId: fakeCollectionId,
             IsActive: true,
-            Name: "Preview Launch #1",
-            Description: "Limited 150 item launch",
+            Name: "Launch #1",
+            Description: "Limited 3000 item launch",
             LovelacesPerToken: 36000000,
             Start: new DateTime(2021, 9, 4, 0, 0, 0, DateTimeKind.Utc),
-            End: new DateTime(2021, 12, 8, 0, 0, 0, DateTimeKind.Utc),
+            End: new DateTime(2021, 12, 10, 0, 0, 0, DateTimeKind.Utc),
             SaleAddress: "addr_test1vqgh0dutf08aynjcvhwa8jeaclpxs29fpjtsunlw2056pycjut5w7",
             ProceedsAddress: "addr_test1vp92pf7y6mk9qgqs2474mxvjh9u3e5h885v6hy8c8qp3wdcddsldj",
             TotalReleaseQuantity: 3000,
-            MaxAllowedPurchaseQuantity: 4);
+            MaxAllowedPurchaseQuantity: 5);
 
         var activeSales = collection.IsActive && IsSaleOpen(sale) ? new[] { sale } : Array.Empty<Sale>();
 

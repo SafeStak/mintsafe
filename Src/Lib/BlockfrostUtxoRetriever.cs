@@ -1,4 +1,6 @@
-﻿using Mintsafe.Abstractions;
+﻿using Microsoft.Extensions.Logging;
+using Mintsafe.Abstractions;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,18 +9,32 @@ namespace Mintsafe.Lib;
 
 public class BlockfrostUtxoRetriever : IUtxoRetriever
 {
+    private readonly ILogger<BlockfrostUtxoRetriever> _logger;
     private readonly BlockfrostClient _blockFrostClient;
+    
 
-    public BlockfrostUtxoRetriever(BlockfrostClient blockFrostClient)
+    public BlockfrostUtxoRetriever(
+        ILogger<BlockfrostUtxoRetriever> logger,
+        BlockfrostClient blockFrostClient)
     {
+        _logger = logger;
         _blockFrostClient = blockFrostClient;
     }
 
     public async Task<Utxo[]> GetUtxosAtAddressAsync(string address, CancellationToken ct = default)
     {
-        var bfResult = await _blockFrostClient.GetUtxosAtAddressAsync(address, ct).ConfigureAwait(false);
-        if (bfResult == null)
-            throw new BlockfrostResponseException($"BlockFrost response for {nameof(GetUtxosAtAddressAsync)} is null", 200);
+        var bfResult = Array.Empty<BlockFrostAddressUtxo>();
+        try
+        {
+            bfResult = await _blockFrostClient.GetUtxosAtAddressAsync(address, ct).ConfigureAwait(false);
+            if (bfResult == null)
+                throw new BlockfrostResponseException($"BlockFrost response for {nameof(GetUtxosAtAddressAsync)} is null", 200);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(EventIds.UtxoRetrievalError, ex, "Unhandled exception from the BlockfrostClient");
+            return Array.Empty<Utxo>();
+        }
 
         return bfResult.Select(MapBlockFrostUtxoToUtxo).ToArray();
     }

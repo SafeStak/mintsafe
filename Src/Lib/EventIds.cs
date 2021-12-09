@@ -14,9 +14,13 @@
         public const int HostedServiceStarted = 110011;
         public const int HostedServiceFinished = 110012;
         public const int DataServiceRetrievalElapsed = 120004;
+        public const int SaleContextWriteElapsed = 120005;
+        public const int SaleContextRestoreElapsed = 120006;
+        public const int UtxoRetrievalError = 130000;
         public const int UtxoRetrievalElapsed = 130004;
         public const int SaleHandlerElapsed = 140004;
-        public const int AllocatorElapsed = 150004;
+        public const int AllocatorAllocateElapsed = 150004;
+        public const int AllocatorUpdateStateElapsed = 150005;
         public const int MetadataFileElapsed = 160004;
         public const int TxInfoRetrievalElapsed = 170004;
         public const int TxBuilderElapsed = 180004;

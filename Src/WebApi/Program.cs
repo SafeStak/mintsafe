@@ -10,6 +10,7 @@ using Mintsafe.DataAccess.Composers;
 using Mintsafe.DataAccess.Extensions;
 using Mintsafe.DataAccess.Repositories;
 using Mintsafe.DataAccess.Supporting;
+using Mintsafe.WebApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,6 +48,7 @@ builder.Services.AddHttpClient<BlockfrostClient>(nameof(BlockfrostClient), (s, c
         : new Uri("https://cardano-testnet.blockfrost.io");
 });
 
+builder.Services.AddSingleton<IInstrumentor, LoggingInstrumentor>();
 builder.Services.AddSingleton<INiftyAllocator, NiftyAllocator>();
 builder.Services.AddSingleton<IMetadataFileGenerator, MetadataFileGenerator>();
 builder.Services.AddSingleton<IMetadataJsonBuilder, MetadataJsonBuilder>();

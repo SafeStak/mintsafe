@@ -89,6 +89,11 @@ public class NiftyDistributor : INiftyDistributor
             metadataJsonPath,
             slotExpiry,
             signingKeyFilePaths);
+        var saleFolder = Path.Combine(_settings.BasePath, sale.Id.ToString()[..8]);
+        var saleUtxosFolder = Path.Combine(saleFolder, "utxos");
+        var utxoFolderPath = Path.Combine(saleUtxosFolder, purchaseAttempt.Utxo.ToString());
+        var utxoPurchasePath = Path.Combine(utxoFolderPath, "mint_tx.json");
+        File.WriteAllText(utxoPurchasePath, JsonSerializer.Serialize(txBuildCommand));
 
         var txSubmissionBody = Array.Empty<byte>();
         sw.Restart();

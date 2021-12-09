@@ -47,6 +47,13 @@ public class BlockfrostClient : IBlockfrostClient
         {
             var response = await _httpClient.GetAsync(relativePath, ct).ConfigureAwait(false);
             responseCode = (int)response.StatusCode;
+            // Blockfrost returns a 404 for a valid address with zero utxos
+            if (responseCode == 404)
+            {
+                isSuccessful = true;
+                return Array.Empty<BlockFrostAddressUtxo>();
+            }
+            // Other unsuccessful responses
             if (!response.IsSuccessStatusCode)
             {
                 var responseBody = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
