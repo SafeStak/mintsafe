@@ -71,7 +71,7 @@ public class SaleUtxoHandler : ISaleUtxoHandler
             var distributionResult = await _tokenDistributor.DistributeNiftiesForSalePurchase(
                 tokens, purchase, saleContext.Collection, saleContext.Sale, ct);
             var utxoDistributionPath = Path.Combine(utxoFolderPath, "distributed.json");
-            File.WriteAllText(utxoDistributionPath, JsonSerializer.Serialize(distributionResult));
+            File.WriteAllText(utxoDistributionPath, JsonSerializer.Serialize(new { distributionResult.Outcome, distributionResult.MintTxHash, distributionResult.NiftiesDistributed }));
             if (distributionResult.Outcome == NiftyDistributionOutcome.Successful
                 || distributionResult.Outcome == NiftyDistributionOutcome.SuccessfulAfterRetry)
             {

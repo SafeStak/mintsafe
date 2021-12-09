@@ -66,7 +66,6 @@ IHost host = Host.CreateDefaultBuilder(args)
             Network = cardanoNetworkConfig.Network == "Mainnet" ? Network.Mainnet : Network.Testnet,
             BlockFrostApiKey = blockfrostApiConfig.ApiKey,
             BasePath = mintsafeWorkerConfig.MintBasePath,
-            //BasePath = "/home/knut/testnet-node/kc/mintsafe03/",
             PollingIntervalSeconds = mintsafeWorkerConfig.PollingIntervalSeconds.HasValue ? mintsafeWorkerConfig.PollingIntervalSeconds.Value : 10,
             CollectionId = Guid.Parse(mintsafeWorkerConfig.CollectionId)
         };
@@ -109,15 +108,15 @@ IHost host = Host.CreateDefaultBuilder(args)
         //services.AddSingleton<INiftyDataService, LocalNiftyDataService>();
         //services.AddSingleton<IUtxoRetriever, FakeUtxoRetriever>();
         //services.AddSingleton<ITxInfoRetriever, FakeTxIoRetriever>();
-        services.AddSingleton<ITxBuilder, FakeTxBuilder>();
-        services.AddSingleton<ITxSubmitter, FakeTxSubmitter>();
+        //services.AddSingleton<ITxBuilder, FakeTxBuilder>();
+        //services.AddSingleton<ITxSubmitter, FakeTxSubmitter>();
 
         //// Reals
         //services.AddSingleton<IUtxoRetriever, CardanoCliUtxoRetriever>();
         services.AddSingleton<IUtxoRetriever, BlockfrostUtxoRetriever>();
         services.AddSingleton<ITxInfoRetriever, BlockfrostTxInfoRetriever>();
-        //services.AddSingleton<ITxBuilder, CardanoCliTxBuilder>();
-        //services.AddSingleton<ITxSubmitter, CardanoCliTxSubmitter>();
+        services.AddSingleton<ITxBuilder, CardanoCliTxBuilder>();
+        services.AddSingleton<ITxSubmitter, BlockfrostTxSubmitter>();
         services.AddSingleton<INiftyDataService, TableStorageDataService>();
         services.AddAzureClients(clientBuilder =>
         {
