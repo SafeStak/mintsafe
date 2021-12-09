@@ -33,15 +33,11 @@ using IHost host = Host.CreateDefaultBuilder(args)
     })
     .Build();
 
-var pickupDirPath = $"../../../pickup/";
+var pickupDirPath = $"C:\\ws\\temp\\cardadeer";
 
 var collection = await LoadJsonFromFileAsync<NiftyCollection>(Path.Combine(pickupDirPath, "collection.json"));
 var sale = await LoadJsonFromFileAsync<Sale>(Path.Combine(pickupDirPath, "sale.json"));
-
-var nifties = await LoadDynamicJsonFromDirAsync(Path.Combine(pickupDirPath, "cardadeer/json"));
-var rares = await LoadDynamicJsonFromDirAsync(Path.Combine(pickupDirPath, "rarejson"));
-
-nifties.AddRange(rares); //TODO can rares just be merged and added in the same way?
+var nifties = await LoadDynamicJsonFromDirAsync(Path.Combine(pickupDirPath, "json")); // Assuming rares are also in here
 
 BuildModelsAndInsertAsync(host.Services, collection, sale, nifties);
 
@@ -49,53 +45,44 @@ Console.WriteLine("Done");
 
 await host.RunAsync();
 
-async void BuildModelsAndInsertAsync(IServiceProvider services, NiftyCollection niftyCollection, Sale sale, IList<JsonNode> niftyJson)
+async void BuildModelsAndInsertAsync(
+    IServiceProvider services, 
+    NiftyCollection niftyCollection, 
+    Sale sale, 
+    IList<JsonNode> niftyJson)
 {
     using IServiceScope serviceScope = services.CreateScope();
     IServiceProvider provider = serviceScope.ServiceProvider;
     var dataService = provider.GetRequiredService<INiftyDataService>();
 
-    //TODO collection CreatedAt and LockedAt must be UTC
-
     var collectionId = niftyCollection.Id;
-
     var nifties = new List<Nifty>();
     foreach (var jsonObject in niftyJson)
     {
         var niftyId = Guid.NewGuid();
-
-        var niftyFile = new NiftyFile(
-            Guid.NewGuid(), 
-            niftyId, 
-            (string)jsonObject["name"],
-            "image", //TODO Mime type?
-            (string)jsonObject["image"],
-            "hash"); //hash ourselves or dna?
-
         var jsonArray = (JsonArray)jsonObject["attributes"];
         var jsonObjects = jsonArray.Cast<JsonObject>();
         var attributes =
             jsonObjects.Select(x => new KeyValuePair<string, string>((string) x["key"], (string) x["value"])).ToList();
 
         var nifty = new Nifty(
-            niftyId,
-            collectionId,
-            true,
-            niftyFile.Name,
-            niftyFile.Name,
-            (string)jsonObject["description"],
-            new[] { "cardadeer.com" },
-            string.Empty, //TODO use the actual file value?
-            string.Empty,  //TODO use the actual file value?
-            new[] { niftyFile },
-            DateTime.UtcNow, //TODO date?
-            new Royalty(1, ""), //TODO their address
-            "1", //TODO version?
-            attributes);
+            Id: niftyId,
+            CollectionId: collectionId,
+            IsMintable: true,
+            AssetName: $"Cardadeer{(int)jsonObject["edition"]}",
+            Name: (string)jsonObject["name"],
+            Description: (string)jsonObject["description"],
+            Creators: new[] { "cardadeer.com" },
+            Image: (string)jsonObject["image"],
+            MediaType: "image/png",
+            Files: Array.Empty<NiftyFile>(),
+            CreatedAt: DateTimeOffset.FromUnixTimeMilliseconds((long)jsonObject["date"]).UtcDateTime,
+            Royalty: new Royalty(0, ""), 
+            Version: "1", 
+            Attributes: attributes);
 
         nifties.Add(nifty);
     }
-
 
     var aggregate = new CollectionAggregate(niftyCollection, nifties.ToArray(), new[] { sale });
 
