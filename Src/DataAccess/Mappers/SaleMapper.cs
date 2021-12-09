@@ -35,7 +35,7 @@ namespace Mintsafe.DataAccess.Mappers
                 saleDto.SaleAddress,
                 saleDto.CreatorAddress,
                 saleDto.ProceedsAddress,
-                saleDto.PostPurchaseMargin,
+                (decimal)saleDto.PostPurchaseMargin,
                 saleDto.TotalReleaseQuantity,
                 saleDto.MaxAllowedPurchaseQuantity,
                 saleDto.Start,

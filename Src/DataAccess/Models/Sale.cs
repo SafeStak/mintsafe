@@ -15,7 +15,7 @@ namespace Mintsafe.DataAccess.Models
         public string SaleAddress { get; set; }
         public string CreatorAddress { get; set; }
         public string ProceedsAddress { get; set; }
-        public decimal PostPurchaseMargin { get; set; }
+        public double PostPurchaseMargin { get; set; }
         public int TotalReleaseQuantity { get; set; }
         public int MaxAllowedPurchaseQuantity { get; set; }
         public DateTime Start { get; set; }
