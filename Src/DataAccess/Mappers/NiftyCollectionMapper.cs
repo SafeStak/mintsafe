@@ -15,8 +15,8 @@ namespace Mintsafe.DataAccess.Mappers
                 IsActive = niftyCollection.IsActive,
                 BrandImage = niftyCollection.BrandImage,
                 Publishers = niftyCollection.Publishers,
-                CreatedAt = niftyCollection.CreatedAt,
-                LockedAt = niftyCollection.LockedAt,
+                CreatedAt = niftyCollection.CreatedAt.ToUniversalTime(),
+                LockedAt = niftyCollection.LockedAt.ToUniversalTime(),
                 SlotExpiry = niftyCollection.SlotExpiry
             };
         }
