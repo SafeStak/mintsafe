@@ -17,7 +17,7 @@ namespace Mintsafe.DataAccess.Mappers
                 Creators = nifty.Creators,
                 Image = nifty.Image,
                 MediaType = nifty.MediaType,
-                CreatedAt = nifty.CreatedAt,
+                CreatedAt = nifty.CreatedAt.ToUniversalTime(),
                 Version = nifty.Version,
                 RoyaltyAddress = nifty.Royalty.Address,
                 RoyaltyPortion = nifty.Royalty.PortionOfSale,

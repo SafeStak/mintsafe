@@ -29,7 +29,7 @@ namespace Mintsafe.DataAccess
             _logger = logger ?? throw new NullReferenceException(nameof(logger));
         }
 
-        public async Task<CollectionAggregate> GetCollectionAggregateAsync(Guid collectionId, CancellationToken ct = default)
+        public async Task<CollectionAggregate?> GetCollectionAggregateAsync(Guid collectionId, CancellationToken ct = default)
         {
             var sw = Stopwatch.StartNew();
 
@@ -59,6 +59,8 @@ namespace Mintsafe.DataAccess
                 _logger.LogError(Constants.EventIds.FailedToRetrieve, e, $"Failed to retrieve entities from table storage for collectionId: {collectionId}");
                 throw;
             }
+            // No collection exists - no easy way to represent this apart from nullable aggregate
+            if (niftyCollection == null) return null;
 
             return _collectionAggregateComposer.Build(niftyCollection, nifties, sales, niftyFiles);
         }

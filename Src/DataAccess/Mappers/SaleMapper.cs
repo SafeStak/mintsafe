@@ -18,8 +18,8 @@ namespace Mintsafe.DataAccess.Mappers
                 ProceedsAddress = sale.ProceedsAddress,
                 TotalReleaseQuantity = sale.TotalReleaseQuantity,
                 MaxAllowedPurchaseQuantity = sale.MaxAllowedPurchaseQuantity,
-                Start = sale.Start,
-                End = sale.End
+                Start = sale.Start?.ToUniversalTime(),
+                End = sale.End?.ToUniversalTime()
             };
         }
 

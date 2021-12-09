@@ -46,9 +46,9 @@ public class Worker : BackgroundService
     {
         _logger.LogInformation(EventIds.HostedServiceStarted, $"SaleWorker({_workerId}) started for Id: {_settings.CollectionId}");
         var collection = await _niftyDataService.GetCollectionAggregateAsync(_settings.CollectionId, ct);
-        if (collection.ActiveSales.Length == 0)
+        if (collection == null || collection.ActiveSales.Length == 0)
         {
-            _logger.LogWarning(EventIds.HostedServiceWarning, $"{collection.Collection.Name} with {collection.Tokens.Length} mintable tokens has no active sales!");
+            _logger.LogWarning(EventIds.DataServiceRetrievalWarning, $"Collection does not exist or there are no active sales!");
             _hostApplicationLifetime.StopApplication();
             return;
         }
@@ -65,7 +65,6 @@ public class Worker : BackgroundService
         _logger.LogInformation(EventIds.HostedServiceInfo, $"SaleWorker({_workerId}) {collection.Collection.Name} has an active sale '{activeSale.Name}' for {activeSale.TotalReleaseQuantity} nifties (out of {mintableTokens.Count} total mintable) at {activeSale.SaleAddress}{Environment.NewLine}{activeSale.LovelacesPerToken} lovelaces per NFT ({activeSale.LovelacesPerToken / 1000000} ADA) and {activeSale.MaxAllowedPurchaseQuantity} max allowed");
 
         // TODO: Move away from single-threaded mutable saleContext that isn't crash tolerant
-        // In other words, we need to persist the state after every allocation and read it when the worker runs
         var saleContext = GetOrRestoreSaleContext(mintableTokens, activeSale, collection.Collection);
         var timer = new PeriodicTimer(TimeSpan.FromSeconds(_settings.PollingIntervalSeconds));
         do
