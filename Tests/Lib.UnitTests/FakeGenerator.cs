@@ -76,8 +76,10 @@ public static class FakeGenerator
         int maxAllowedPurchaseQuantity = 10,
         bool isActive = true,
         long lovelacesPerToken = 15000000,
+        string creatorAddress = "addr_test1vz0hx28mmdz0ey3pzqe5nxg08urjhzydpvvmcx4v4we5mvg6733n5",
         string proceedsAddress = "addr_test1vzj4c522pr5n6texvcl24kl9enntr4knl4ucecd7pkt24mglna4pz",
         DateTime? start = null,
+        decimal postPurchaseMargin = 0.1m,
         DateTime? end = null)
     {
         return new Sale(
@@ -88,10 +90,12 @@ public static class FakeGenerator
             Description: "Limited 100 item launch",
             LovelacesPerToken: lovelacesPerToken,
             SaleAddress: "addr_test1vz0hx28mmdz0ey3pzqe5nxg08urjhzydpvvmcx4v4we5mvg6733n5",
+            CreatorAddress: creatorAddress,
             ProceedsAddress: proceedsAddress,
+            PostPurchaseMargin: postPurchaseMargin,
             TotalReleaseQuantity: totalReleaseQuantity,
             MaxAllowedPurchaseQuantity: maxAllowedPurchaseQuantity,
-            Start: start,
+            Start: start ?? DateTime.UtcNow,
             End: end);
     }
 

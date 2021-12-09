@@ -10,7 +10,7 @@ public static class PurchaseAttemptGenerator
         if (!sale.IsActive)
             throw new SaleInactiveException("Sale is inactive", sale.Id, utxo);
 
-        if (sale.Start.HasValue && sale.Start > DateTime.UtcNow)
+        if (sale.Start > DateTime.UtcNow)
             throw new SalePeriodOutOfRangeException("Sale has not started", sale.Id, utxo, sale.Start, sale.End);
 
         if (sale.End.HasValue && sale.End < DateTime.UtcNow)

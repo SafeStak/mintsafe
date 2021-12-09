@@ -23,7 +23,9 @@ namespace Mintsafe.DataAccess.Composers
 
         private static bool IsSaleOpen(Models.Sale sale)
         {
-            return sale.IsActive && (!sale.Start.HasValue || !(sale.Start > DateTime.UtcNow)) && (!sale.End.HasValue || !(sale.End < DateTime.UtcNow));
+            return sale.IsActive 
+                && (sale.Start <= DateTime.UtcNow) 
+                && (!sale.End.HasValue || (sale.End.HasValue && sale.End > DateTime.UtcNow));
         }
 
         private Nifty[] HydrateNifties(IEnumerable<Models.Nifty> nifties, IEnumerable<Models.NiftyFile> allFiles)

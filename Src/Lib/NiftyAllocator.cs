@@ -85,10 +85,14 @@ public class NiftyAllocator : INiftyAllocator
             });
         _logger.LogDebug(EventIds.AllocatorAllocateElapsed, $"{nameof(AllocateNiftiesForPurchaseAsync)} completed with {purchaseAllocated.Count} tokens after {sw.ElapsedMilliseconds}ms");
 
+        // TODO: Make it unit-testable by making new abstraction ISaleContextStorage
         var saleFolder = Path.Combine(_settings.BasePath, sale.Id.ToString()[..8]);
         var allocatedNftIdsPath = Path.Combine(saleFolder, "allocatedNftIds.csv");
-        sw.Restart();
-        File.AppendAllLines(allocatedNftIdsPath, purchaseAllocated.Select(n => n.Id.ToString()));
+        if (File.Exists(allocatedNftIdsPath))
+        {
+            sw.Restart();
+            File.AppendAllLines(allocatedNftIdsPath, purchaseAllocated.Select(n => n.Id.ToString()));
+        }
         _instrumentor.TrackDependency(
             EventIds.AllocatorUpdateStateElapsed,
             sw.ElapsedMilliseconds,
