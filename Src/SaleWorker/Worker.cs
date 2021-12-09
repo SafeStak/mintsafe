@@ -83,7 +83,7 @@ public class Worker : BackgroundService
             }
             _logger.LogDebug(
                 $"Successful: {saleContext.SuccessfulUtxos.Count} UTxOs | Refunded: {saleContext.RefundedUtxos.Count} | Locked: {saleContext.LockedUtxos.Count} UTxOs");
-            _logger.LogDebug($"Allocated Tokens:\n{string.Join('\n', saleContext.AllocatedTokens.Select(t => t.AssetName))}");
+            _logger.LogDebug($"Allocated Tokens:\n\t\t{string.Join("\n\t\t", saleContext.AllocatedTokens.Select(t => t.AssetName))}");
         } while (await timer.WaitForNextTickAsync(ct));
     }
 
