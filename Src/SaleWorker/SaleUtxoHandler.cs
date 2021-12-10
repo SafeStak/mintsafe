@@ -48,6 +48,7 @@ public class SaleUtxoHandler : ISaleUtxoHandler
         CancellationToken ct)
     {
         var isSuccessful = false;
+        var distributionOutcome = NiftyDistributionOutcome.FailureUnknown;
         var shouldRefundUtxo = false;
         var refundReason = string.Empty;
         var sw = Stopwatch.StartNew();
@@ -71,6 +72,7 @@ public class SaleUtxoHandler : ISaleUtxoHandler
             var utxoDistributionPath = Path.Combine(utxoFolderPath, "distributed.json");
             File.WriteAllText(utxoDistributionPath, JsonSerializer.Serialize(
                 new { distributionResult.Outcome, distributionResult.MintTxHash, distributionResult.NiftiesDistributed }));
+            distributionOutcome = distributionResult.Outcome;
             if (distributionResult.Outcome == NiftyDistributionOutcome.Successful
                 || distributionResult.Outcome == NiftyDistributionOutcome.SuccessfulAfterRetry)
             {
@@ -80,47 +82,55 @@ public class SaleUtxoHandler : ISaleUtxoHandler
             }
             else
             {
+                saleContext.FailedUtxos.Add(saleUtxo);
                 _logger.LogWarning($"Failed distribution of {tokens.Length} tokens for {distributionResult.PurchaseAttempt.Utxo}\n{distributionResult.Exception}\n{distributionResult.MintTxBodyJson}");
             }
         }
         catch (SaleInactiveException ex)
         {
             _logger.LogError(LogEventIds.SaleInactive, ex, "Sale is Inactive (flagged by publisher)");
+            distributionOutcome = NiftyDistributionOutcome.FailurePurchaseAttempt;
             shouldRefundUtxo = true;
             refundReason = "saleinactive";
         }
         catch (SalePeriodOutOfRangeException ex)
         {
             _logger.LogError(LogEventIds.SalePeriodOutOfRange, ex, "Sale is Inactive (outside start/end period)");
+            distributionOutcome = NiftyDistributionOutcome.FailurePurchaseAttempt;
             shouldRefundUtxo = true;
             refundReason = "saleperiodout";
         }
         catch (InsufficientPaymentException ex)
         {
             _logger.LogError(LogEventIds.InsufficientPayment, ex, $"Insufficient payment received for sale {ex.PurchaseAttemptUtxo.Lovelaces}");
+            distributionOutcome = NiftyDistributionOutcome.FailurePurchaseAttempt;
             shouldRefundUtxo = true;
             refundReason = "salepaymentinsufficient";
         }
         catch (MaxAllowedPurchaseQuantityExceededException ex)
         {
             _logger.LogError(LogEventIds.MaxAllowedPurchaseQuantityExceeded, ex, $"Payment attempted to purchase too many for sale {ex.DerivedQuantity} vs {ex.MaxQuantity}");
+            distributionOutcome = NiftyDistributionOutcome.FailurePurchaseAttempt;
             shouldRefundUtxo = true;
             refundReason = "salemaxallowedexceeded";
         }
         catch (PurchaseQuantityHardLimitException ex)
         {
             _logger.LogError(LogEventIds.PurchaseQuantityHardLimitExceeded, ex, $"Purchase quantity {ex.RequestedQuantity} greater than hard limit");
+            distributionOutcome = NiftyDistributionOutcome.FailurePurchaseAttempt;
             shouldRefundUtxo = true;
             refundReason = "purchasequantityhardlimit";
         }
         catch (CannotAllocateMoreThanSaleReleaseException ex)
         {
+            distributionOutcome = NiftyDistributionOutcome.FailurePurchaseAttempt;
             _logger.LogError(LogEventIds.CannotAllocateMoreThanSaleRelease, ex, $"Sale allocation exceeded release {ex.RequestedQuantity} vs {ex.SaleAllocatedQuantity}/{ex.SaleReleaseQuantity}");
             shouldRefundUtxo = true;
             refundReason = "salefullyallocated";
         }
         catch (CannotAllocateMoreThanMintableException ex)
         {
+            distributionOutcome = NiftyDistributionOutcome.FailurePurchaseAttempt;
             _logger.LogError(LogEventIds.CannotAllocateMoreThanSaleRelease, ex, $"Sale allocation exceeded mintable {ex.RequestedQuantity} vs {ex.MintableQuantity}");
             shouldRefundUtxo = true;
             refundReason = "collectionfullyminted";
@@ -160,6 +170,7 @@ public class SaleUtxoHandler : ISaleUtxoHandler
                     { "SaleId", saleContext.Sale.Id },
                     { "CollectionId", saleContext.Collection.Id },
                     { "Utxo", saleUtxo.ToString() },
+                    { "Outcome", distributionOutcome.ToString() },
                     { "SaleContext.AllocatedTokens", saleContext.AllocatedTokens.Count },
                     { "SaleContext.MintableTokens", saleContext.MintableTokens.Count },
                     { "SaleContext.RefundedUtxos", saleContext.RefundedUtxos.Count },

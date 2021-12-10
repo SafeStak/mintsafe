@@ -94,7 +94,7 @@ public class NiftyDistributor : INiftyDistributor
         var signingKeyFilePaths = new[]
             {
                 Path.Combine(_settings.BasePath, $"{saleContext.Collection.PolicyId}.policy.skey"),
-                Path.Combine(_settings.BasePath, $"{saleContext.Sale.Id}.saleContext.Sale.skey")
+                Path.Combine(_settings.BasePath, $"{saleContext.Sale.Id}.sale.skey")
             };
 
         var txBuildCommand = new TxBuildCommand(

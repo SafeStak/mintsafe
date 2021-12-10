@@ -64,7 +64,7 @@ namespace Mintsafe.Lib
                 foreach (var nifty in allocated)
                 {
                     var successfulFileRelease = allocatedNftIds.Remove(nifty.Id.ToString());
-                    if (successfulFileRelease)
+                    if (!successfulFileRelease)
                     {
                         _logger.LogWarning(EventIds.GeneralWarning, $"Cannot fully release allocation for ID {nifty.Id} - not found in file");
                     }

@@ -153,16 +153,18 @@ public class CardanoCliTxBuilder : ITxBuilder
             isSuccessful = true;
             return signedTxCborBytes;
         }
-        catch (Win32Exception ex)
-        {
-            throw new CardanoCliException("cardano-cli does not exist", ex, _settings.Network.ToString(), actualTxBuildArgs);
-        }
         catch (Exception ex)
         {
+            
             throw new CardanoCliException($"Unhandled exception in {nameof(CardanoCliTxBuilder)}", ex, _settings.Network.ToString(), actualTxBuildArgs);
         }
         finally
         {
+            TryCleanupTempFiles(
+                Path.Combine(_settings.BasePath, $"fee-{buildId}.txraw"),
+                Path.Combine(_settings.BasePath, $"{buildId}.txraw"),
+                Path.Combine(_settings.BasePath, $"{buildId}.txsigned"),
+                buildCommand.MetadataJsonPath);
             _instrumentor.TrackDependency(
                 EventIds.TxBuilderElapsed,
                 sw.ElapsedMilliseconds,
@@ -282,6 +284,17 @@ public class CardanoCliTxBuilder : ITxBuilder
         }
 
         return arr;
+    }
+
+    private void TryCleanupTempFiles(params string[] filePaths)
+    {
+        foreach (var filePath in filePaths)
+        {
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+        }
     }
 }
 

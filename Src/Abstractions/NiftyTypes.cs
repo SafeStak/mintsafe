@@ -87,7 +87,13 @@ public record PurchaseAttempt(
     long ChangeInLovelace);
 
 public enum NiftyDistributionOutcome { 
-    Successful = 1, SuccessfulAfterRetry, FailureTxInfo, FailureTxBuild, FailureTxSubmit, FailureUnknown };
+    Successful = 1, 
+    SuccessfulAfterRetry, 
+    FailurePurchaseAttempt, 
+    FailureTxInfo, 
+    FailureTxBuild, 
+    FailureTxSubmit, 
+    FailureUnknown };
 
 public record NiftyDistributionResult(
     NiftyDistributionOutcome Outcome,

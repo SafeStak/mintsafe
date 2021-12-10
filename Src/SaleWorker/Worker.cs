@@ -82,8 +82,8 @@ public class Worker : BackgroundService
                 await _saleUtxoHandler.HandleAsync(saleUtxo, saleContext, ct);
             }
             _logger.LogDebug(
-                $"Successful: {saleContext.SuccessfulUtxos.Count} UTxOs | Refunded: {saleContext.RefundedUtxos.Count} | Locked: {saleContext.LockedUtxos.Count} UTxOs");
-            _logger.LogDebug($"Allocated Tokens:\n\t\t{string.Join("\n\t\t", saleContext.AllocatedTokens.Select(t => t.AssetName))}");
+                $"Successful: {saleContext.SuccessfulUtxos.Count} UTxOs | Refunded: {saleContext.RefundedUtxos.Count} | Failed: {saleContext.FailedUtxos.Count} UTxOs | Locked: {saleContext.LockedUtxos.Count} UTxOs");
+            //_logger.LogDebug($"Allocated Tokens:\n\t\t{string.Join("\n\t\t", saleContext.AllocatedTokens.Select(t => t.AssetName))}");
         } while (await timer.WaitForNextTickAsync(ct));
     }
 
