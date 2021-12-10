@@ -3,8 +3,6 @@ using Mintsafe.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,59 +13,61 @@ public class NiftyAllocator : INiftyAllocator
     private readonly ILogger<NiftyAllocator> _logger;
     private readonly IInstrumentor _instrumentor;
     private readonly MintsafeAppSettings _settings;
+    private readonly ISaleContextDataStorage _saleContextStore;
     private readonly Random _random;
 
     public NiftyAllocator(
         ILogger<NiftyAllocator> logger,
         IInstrumentor instrumentor,
-        MintsafeAppSettings settings)
+        MintsafeAppSettings settings,
+        ISaleContextDataStorage saleContextStore)
     {
         _logger = logger;
         _instrumentor = instrumentor;
         _settings = settings;
+        _saleContextStore = saleContextStore;
         _random = new Random();
     }
 
-    public Task<Nifty[]> AllocateNiftiesForPurchaseAsync(
+    public async Task<Nifty[]> AllocateNiftiesForPurchaseAsync(
         PurchaseAttempt request,
-        IList<Nifty> saleAllocatedNfts,
-        IList<Nifty> saleMintableNfts,
-        Sale sale,
+        SaleContext saleContext,
         CancellationToken ct = default)
     {
         if (request.NiftyQuantityRequested <= 0)
         {
             throw new ArgumentException("Cannot request zero or negative token allocation", nameof(request));
         }
-        if (request.NiftyQuantityRequested > saleMintableNfts.Count)
+        if (request.NiftyQuantityRequested > saleContext.MintableTokens.Count)
         {
             throw new CannotAllocateMoreThanMintableException(
-                $"Could not allocate {request.NiftyQuantityRequested} tokens with {saleMintableNfts.Count} mintable nifties",
+                $"Could not allocate {request.NiftyQuantityRequested} tokens with {saleContext.MintableTokens.Count} mintable nifties",
                 request.Utxo,
-                sale.Id,
+                saleContext.Sale.Id,
                 request.NiftyQuantityRequested,
-                saleMintableNfts.Count);
+                saleContext.MintableTokens.Count);
         }
-        if (request.NiftyQuantityRequested + saleAllocatedNfts.Count > sale.TotalReleaseQuantity)
+        if (request.NiftyQuantityRequested + saleContext.AllocatedTokens.Count > saleContext.Sale.TotalReleaseQuantity)
         {
             throw new CannotAllocateMoreThanSaleReleaseException(
                 "Cannot allocate tokens beyond sale realease quantity",
                 request.Utxo,
-                sale.Id,
-                sale.TotalReleaseQuantity,
-                saleAllocatedNfts.Count,
+                saleContext.Sale.Id,
+                saleContext.Sale.TotalReleaseQuantity,
+                saleContext.AllocatedTokens.Count,
                 request.NiftyQuantityRequested);
         }
 
         var sw = Stopwatch.StartNew();
+        // TODO: threadsafe implementation 
         var purchaseAllocated = new List<Nifty>(request.NiftyQuantityRequested);
         while (purchaseAllocated.Count < request.NiftyQuantityRequested)
         {
-            var randomIndex = _random.Next(0, saleMintableNfts.Count);
-            var tokenAllocated = saleMintableNfts[randomIndex];
+            var randomIndex = _random.Next(0, saleContext.MintableTokens.Count);
+            var tokenAllocated = saleContext.MintableTokens[randomIndex];
             purchaseAllocated.Add(tokenAllocated);
-            saleAllocatedNfts.Add(tokenAllocated);
-            saleMintableNfts.RemoveAt(randomIndex);
+            saleContext.AllocatedTokens.Add(tokenAllocated);
+            saleContext.MintableTokens.RemoveAt(randomIndex);
         }
         _instrumentor.TrackDependency(
             EventIds.AllocatorAllocateElapsed,
@@ -79,29 +79,14 @@ public class NiftyAllocator : INiftyAllocator
             isSuccessful: true,
             customProperties: new Dictionary<string, object>
             {
-                { "SaleId", sale.Id },
+                { "SaleId", saleContext.Sale.Id },
                 { "Utxo", request.Utxo.ToString() },
                 { "AllocatedCount", purchaseAllocated.Count },
             });
         _logger.LogDebug(EventIds.AllocatorAllocateElapsed, $"{nameof(AllocateNiftiesForPurchaseAsync)} completed with {purchaseAllocated.Count} tokens after {sw.ElapsedMilliseconds}ms");
 
-        // TODO: Make it unit-testable by making new abstraction ISaleContextStorage
-        var saleFolder = Path.Combine(_settings.BasePath, sale.Id.ToString()[..8]);
-        var allocatedNftIdsPath = Path.Combine(saleFolder, "allocatedNftIds.csv");
-        if (File.Exists(allocatedNftIdsPath))
-        {
-            sw.Restart();
-            File.AppendAllLines(allocatedNftIdsPath, purchaseAllocated.Select(n => n.Id.ToString()));
-        }
-        _instrumentor.TrackDependency(
-            EventIds.AllocatorUpdateStateElapsed,
-            sw.ElapsedMilliseconds,
-            DateTime.UtcNow,
-            nameof(NiftyAllocator),
-            allocatedNftIdsPath,
-            "AppendAllocatedNifties",
-            isSuccessful: true);
+        await _saleContextStore.AddAllocationAsync(purchaseAllocated, saleContext, ct).ConfigureAwait(false);
 
-        return Task.FromResult(purchaseAllocated.ToArray());
+        return purchaseAllocated.ToArray();
     }
 }

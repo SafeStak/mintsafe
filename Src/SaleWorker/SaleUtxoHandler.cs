@@ -1,5 +1,4 @@
-﻿using Microsoft.ApplicationInsights;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Mintsafe.Abstractions;
 using Mintsafe.Lib;
 using System;
@@ -62,16 +61,16 @@ public class SaleUtxoHandler : ISaleUtxoHandler
             var utxoPurchasePath = Path.Combine(utxoFolderPath, "purchase.json");
             File.WriteAllText(utxoPurchasePath, JsonSerializer.Serialize(purchase));
 
-            var tokens = await _tokenAllocator.AllocateNiftiesForPurchaseAsync(
-                purchase, saleContext.AllocatedTokens, saleContext.MintableTokens, saleContext.Sale, ct);
+            var tokens = await _tokenAllocator.AllocateNiftiesForPurchaseAsync(purchase, saleContext, ct);
             _logger.LogDebug($"Successfully allocated {tokens.Length} tokens");
             var utxoAllocatedPath = Path.Combine(utxoFolderPath, "allocated.csv");
             File.WriteAllLines(utxoAllocatedPath, tokens.Select(n => n.Id.ToString()));
 
             var distributionResult = await _tokenDistributor.DistributeNiftiesForSalePurchase(
-                tokens, purchase, saleContext.Collection, saleContext.Sale, ct);
+                tokens, purchase, saleContext, ct);
             var utxoDistributionPath = Path.Combine(utxoFolderPath, "distributed.json");
-            File.WriteAllText(utxoDistributionPath, JsonSerializer.Serialize(new { distributionResult.Outcome, distributionResult.MintTxHash, distributionResult.NiftiesDistributed }));
+            File.WriteAllText(utxoDistributionPath, JsonSerializer.Serialize(
+                new { distributionResult.Outcome, distributionResult.MintTxHash, distributionResult.NiftiesDistributed }));
             if (distributionResult.Outcome == NiftyDistributionOutcome.Successful
                 || distributionResult.Outcome == NiftyDistributionOutcome.SuccessfulAfterRetry)
             {
@@ -108,6 +107,12 @@ public class SaleUtxoHandler : ISaleUtxoHandler
             shouldRefundUtxo = true;
             refundReason = "salemaxallowedexceeded";
         }
+        catch (PurchaseQuantityHardLimitException ex)
+        {
+            _logger.LogError(LogEventIds.PurchaseQuantityHardLimitExceeded, ex, $"Purchase quantity {ex.RequestedQuantity} greater than hard limit");
+            shouldRefundUtxo = true;
+            refundReason = "purchasequantityhardlimit";
+        }
         catch (CannotAllocateMoreThanSaleReleaseException ex)
         {
             _logger.LogError(LogEventIds.CannotAllocateMoreThanSaleRelease, ex, $"Sale allocation exceeded release {ex.RequestedQuantity} vs {ex.SaleAllocatedQuantity}/{ex.SaleReleaseQuantity}");
@@ -122,14 +127,17 @@ public class SaleUtxoHandler : ISaleUtxoHandler
         }
         catch (BlockfrostResponseException ex)
         {
+            saleContext.FailedUtxos.Add(saleUtxo);
             _logger.LogError(LogEventIds.BlockfrostServerErrorResponse, ex, $"Blockfrost API response error {ex.ResponseContent}");
         }
         catch (CardanoCliException ex)
         {
+            saleContext.FailedUtxos.Add(saleUtxo);
             _logger.LogError(LogEventIds.CardanoCliUnhandledError, ex, $"cardano-cli Error (args: {ex.Args})");
         }
         catch (Exception ex)
         {
+            saleContext.FailedUtxos.Add(saleUtxo);
             _logger.LogError(LogEventIds.UnhandledError, ex, "Unhandled exception");
         }
         finally
@@ -156,6 +164,7 @@ public class SaleUtxoHandler : ISaleUtxoHandler
                     { "SaleContext.MintableTokens", saleContext.MintableTokens.Count },
                     { "SaleContext.RefundedUtxos", saleContext.RefundedUtxos.Count },
                     { "SaleContext.SuccessfulUtxos", saleContext.SuccessfulUtxos.Count },
+                    { "SaleContext.FailedUtxos", saleContext.FailedUtxos.Count },
                     { "SaleContext.LockedUtxos", saleContext.LockedUtxos.Count },
                 });
         }

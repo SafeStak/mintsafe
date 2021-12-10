@@ -5,6 +5,8 @@ namespace Mintsafe.Lib;
 
 public static class PurchaseAttemptGenerator
 {
+    private const int QuantityHardLimit = 64; // Rough guess based on 16KB Tx limit
+
     public static PurchaseAttempt FromUtxo(Utxo utxo, Sale sale)
     {
         if (!sale.IsActive)
@@ -23,6 +25,9 @@ public static class PurchaseAttemptGenerator
         var quantity = (int)(lovelaceValue / sale.LovelacesPerToken);
         if (quantity > sale.MaxAllowedPurchaseQuantity)
             throw new MaxAllowedPurchaseQuantityExceededException($"Max allowed purchase quantity exceeded", sale.Id, utxo, sale.MaxAllowedPurchaseQuantity, quantity);
+
+        if (quantity > QuantityHardLimit)
+            throw new PurchaseQuantityHardLimitException($"Could not purchase {quantity} due to hard limit of {QuantityHardLimit}", utxo, sale.Id, quantity);
 
         var change = lovelaceValue % sale.LovelacesPerToken;
 

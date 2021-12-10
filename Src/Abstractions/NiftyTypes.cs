@@ -64,6 +64,21 @@ public record Sale(
     DateTime Start,
     DateTime? End = null);
 
+public record SaleContext
+(
+    Guid SaleWorkerId,
+    string SalePath,
+    string SaleUtxosPath,
+    Sale Sale,
+    NiftyCollection Collection,
+    List<Nifty> MintableTokens,
+    List<Nifty> AllocatedTokens,
+    HashSet<Utxo> LockedUtxos,
+    HashSet<Utxo> SuccessfulUtxos,
+    HashSet<Utxo> RefundedUtxos,
+    HashSet<Utxo> FailedUtxos
+);
+
 public record PurchaseAttempt(
     Guid Id,
     Guid SaleId,
@@ -72,7 +87,7 @@ public record PurchaseAttempt(
     long ChangeInLovelace);
 
 public enum NiftyDistributionOutcome { 
-    Successful = 1, SuccessfulAfterRetry, FailureTxBuild, FailureTxSubmit, FailureUnknown };
+    Successful = 1, SuccessfulAfterRetry, FailureTxInfo, FailureTxBuild, FailureTxSubmit, FailureUnknown };
 
 public record NiftyDistributionResult(
     NiftyDistributionOutcome Outcome,

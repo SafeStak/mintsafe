@@ -103,6 +103,7 @@ IHost host = Host.CreateDefaultBuilder(args)
         services.AddSingleton<IMetadataJsonBuilder, MetadataJsonBuilder>();
         services.AddSingleton<INiftyDistributor, NiftyDistributor>();
         services.AddSingleton<IUtxoRefunder, UtxoRefunder>();
+        services.AddSingleton<ISaleContextDataStorage, SaleContextFileStorage>();
 
         // Fakes
         //services.AddSingleton<INiftyDataService, LocalNiftyDataService>();

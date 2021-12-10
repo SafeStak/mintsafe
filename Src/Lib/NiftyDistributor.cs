@@ -19,6 +19,7 @@ public class NiftyDistributor : INiftyDistributor
     private readonly ITxInfoRetriever _txRetriever;
     private readonly ITxBuilder _txBuilder;
     private readonly ITxSubmitter _txSubmitter;
+    private readonly ISaleContextDataStorage _saleContextStore;
 
     public NiftyDistributor(
         ILogger<NiftyDistributor> logger,
@@ -27,7 +28,8 @@ public class NiftyDistributor : INiftyDistributor
         IMetadataFileGenerator metadataGenerator,
         ITxInfoRetriever txRetriever,
         ITxBuilder txBuilder,
-        ITxSubmitter txSubmitter)
+        ITxSubmitter txSubmitter,
+        ISaleContextDataStorage saleContextStore)
     {
         _logger = logger;
         _instrumentor = instrumentor;
@@ -36,13 +38,13 @@ public class NiftyDistributor : INiftyDistributor
         _txRetriever = txRetriever;
         _txBuilder = txBuilder;
         _txSubmitter = txSubmitter;
+        _saleContextStore = saleContextStore;
     }
 
     public async Task<NiftyDistributionResult> DistributeNiftiesForSalePurchase(
         Nifty[] nfts,
         PurchaseAttempt purchaseAttempt,
-        NiftyCollection collection,
-        Sale sale,
+        SaleContext saleContext,
         CancellationToken ct = default)
     {
         var swTotal = Stopwatch.StartNew();
@@ -50,55 +52,64 @@ public class NiftyDistributor : INiftyDistributor
         // Generate metadata file
         var metadataJsonFileName = $"metadata-mint-{purchaseAttempt.Utxo}.json";
         var metadataJsonPath = Path.Combine(_settings.BasePath, metadataJsonFileName);
-        await _metadataGenerator.GenerateNftStandardMetadataJsonFile(nfts, collection, metadataJsonPath, ct).ConfigureAwait(false);
+        await _metadataGenerator.GenerateNftStandardMetadataJsonFile(nfts, saleContext.Collection, metadataJsonPath, ct).ConfigureAwait(false);
         _logger.LogDebug($"{nameof(_metadataGenerator.GenerateNftStandardMetadataJsonFile)} generated at {metadataJsonPath} after {sw.ElapsedMilliseconds}ms");
 
         // Derive buyer address after getting source UTxO details 
         sw.Restart();
-        var txIo = await _txRetriever.GetTxInfoAsync(purchaseAttempt.Utxo.TxHash, ct).ConfigureAwait(false);
-        var buyerAddress = txIo.Inputs.First().Address;
-        _logger.LogDebug($"{nameof(_txRetriever.GetTxInfoAsync)} completed after {sw.ElapsedMilliseconds}ms");
+        var buyerAddress = string.Empty;
+        try
+        {
+            var txIo = await _txRetriever.GetTxInfoAsync(purchaseAttempt.Utxo.TxHash, ct).ConfigureAwait(false);
+            buyerAddress = txIo.Inputs.First().Address;
+        }
+        catch (Exception ex)
+        {
+            await _saleContextStore.ReleaseAllocationAsync(nfts, saleContext, ct).ConfigureAwait(false);
+            return new NiftyDistributionResult(
+                NiftyDistributionOutcome.FailureTxInfo,
+                purchaseAttempt,
+                string.Empty,
+                Exception: ex);
+        }
 
         /// Map UtxoValues for new tokens
-        var tokenMintUtxoValues = nfts.Select(n => new Value($"{collection.PolicyId}.{n.AssetName}", 1)).ToArray();
+        var tokenMintUtxoValues = nfts.Select(n => new Value($"{saleContext.Collection.PolicyId}.{n.AssetName}", 1)).ToArray();
         // Chicken-and-egg bit to calculate the minimum output lovelace value after building the tx output back to the buyer
         // Then mutating the lovelace value quantity with the calculated minLovelaceUtxo
         var buyerOutputUtxoValues = GetBuyerTxOutputUtxoValues(tokenMintUtxoValues, lovelacesReturned: 0);
         var minLovelaceUtxo = TxUtils.CalculateMinUtxoLovelace(buyerOutputUtxoValues);
         long buyerLovelacesReturned = minLovelaceUtxo + purchaseAttempt.ChangeInLovelace;
         buyerOutputUtxoValues[0].Quantity = buyerLovelacesReturned;
-        // Calculate proceeds of ADA from sale to creator and mintsafe's cut
+        // Calculate proceeds of ADA from saleContext.Sale to creator and mintsafe's cut
         var saleLovelaces = purchaseAttempt.Utxo.Lovelaces - buyerLovelacesReturned;
-        var mintsafeCutLovelaces = (int)(saleLovelaces * sale.PostPurchaseMargin);
+        var mintsafeCutLovelaces = (int)(saleLovelaces * saleContext.Sale.PostPurchaseMargin);
         var creatorCutLovelaces = saleLovelaces - mintsafeCutLovelaces;
         var creatorAddressUtxoValues = new[] { new Value(Assets.LovelaceUnit, creatorCutLovelaces) };
         var proceedsAddressUtxoValues = new[] { new Value(Assets.LovelaceUnit, mintsafeCutLovelaces) };
 
-        var policyScriptFilename = $"{collection.PolicyId}.policy.script";
+        var policyScriptFilename = $"{saleContext.Collection.PolicyId}.policy.script";
         var policyScriptPath = Path.Combine(_settings.BasePath, policyScriptFilename);
-        var slotExpiry = GetUtxoSlotExpiry(collection, _settings.Network);
+        var slotExpiry = GetUtxoSlotExpiry(saleContext.Collection, _settings.Network);
         var signingKeyFilePaths = new[]
             {
-                Path.Combine(_settings.BasePath, $"{collection.PolicyId}.policy.skey"),
-                Path.Combine(_settings.BasePath, $"{sale.Id}.sale.skey")
+                Path.Combine(_settings.BasePath, $"{saleContext.Collection.PolicyId}.policy.skey"),
+                Path.Combine(_settings.BasePath, $"{saleContext.Sale.Id}.saleContext.Sale.skey")
             };
 
         var txBuildCommand = new TxBuildCommand(
             new[] { purchaseAttempt.Utxo },
             new[] {
                 new TxBuildOutput(buyerAddress, buyerOutputUtxoValues),
-                new TxBuildOutput(sale.CreatorAddress, creatorAddressUtxoValues, IsFeeDeducted: true),
-                new TxBuildOutput(sale.ProceedsAddress, proceedsAddressUtxoValues)
+                new TxBuildOutput(saleContext.Sale.CreatorAddress, creatorAddressUtxoValues, IsFeeDeducted: true),
+                new TxBuildOutput(saleContext.Sale.ProceedsAddress, proceedsAddressUtxoValues)
             },
             tokenMintUtxoValues,
             policyScriptPath,
             metadataJsonPath,
             slotExpiry,
             signingKeyFilePaths);
-        // TODO: Make it unit-testable by making new abstraction ISaleContextStorage
-        var saleFolder = Path.Combine(_settings.BasePath, sale.Id.ToString()[..8]);
-        var saleUtxosFolder = Path.Combine(saleFolder, "utxos");
-        var utxoFolderPath = Path.Combine(saleUtxosFolder, purchaseAttempt.Utxo.ToString());
+        var utxoFolderPath = Path.Combine(saleContext.SaleUtxosPath, purchaseAttempt.Utxo.ToString());
         if (File.Exists(utxoFolderPath))
         {
             var utxoPurchasePath = Path.Combine(utxoFolderPath, "mint_tx.json");
@@ -114,6 +125,7 @@ public class NiftyDistributor : INiftyDistributor
         }
         catch (CardanoCliException ex)
         {
+            await _saleContextStore.ReleaseAllocationAsync(nfts, saleContext, ct).ConfigureAwait(false);
             return new NiftyDistributionResult(
                 NiftyDistributionOutcome.FailureTxBuild,
                 purchaseAttempt,
@@ -122,6 +134,7 @@ public class NiftyDistributor : INiftyDistributor
         }
         catch (Exception ex)
         {
+            await _saleContextStore.ReleaseAllocationAsync(nfts, saleContext, ct).ConfigureAwait(false);
             return new NiftyDistributionResult(
                 NiftyDistributionOutcome.FailureTxBuild,
                 purchaseAttempt,
@@ -138,6 +151,7 @@ public class NiftyDistributor : INiftyDistributor
         }
         catch (Exception ex)
         {
+            await _saleContextStore.ReleaseAllocationAsync(nfts, saleContext, ct).ConfigureAwait(false);
             return new NiftyDistributionResult(
                 NiftyDistributionOutcome.FailureTxSubmit,
                 purchaseAttempt,

@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Mintsafe.Abstractions;
+using Moq;
 using System;
 using System.Threading.Tasks;
 using Xunit;
@@ -11,13 +12,16 @@ namespace Mintsafe.Lib.UnitTests;
 public class NiftyAllocatorShould
 {
     private readonly NiftyAllocator _allocator;
+    private readonly Mock<ISaleContextDataStorage> _mockSaleContextStore;
 
     public NiftyAllocatorShould()
     {
+        _mockSaleContextStore = new Mock<ISaleContextDataStorage>();
         _allocator = new NiftyAllocator(
             NullLogger<NiftyAllocator>.Instance,
             NullInstrumentor.Instance,
-            GenerateSettings());
+            GenerateSettings(),
+            _mockSaleContextStore.Object);
     }
 
     [Theory]
@@ -36,8 +40,10 @@ public class NiftyAllocatorShould
         int expectedAllocatedQuantity)
     {
         var sale = GenerateSale(totalReleaseQuantity: saleReleaseQuantity);
+        var collection = GenerateCollection();
         var mintableTokens = GenerateTokens(saleMintableCount);
         var allocatedTokens = GenerateTokens(saleAllocatedCount);
+        var saleContext = GenerateSaleContext(sale, collection, mintableTokens, allocatedTokens);
         var request = new PurchaseAttempt(
             Guid.NewGuid(),
             Guid.NewGuid(),
@@ -46,7 +52,7 @@ public class NiftyAllocatorShould
             0);
 
         var allocated = await _allocator.AllocateNiftiesForPurchaseAsync(
-            request, allocatedTokens, mintableTokens, sale);
+            request, saleContext);
 
         allocated.Length.Should().Be(expectedAllocatedQuantity);
     }
@@ -64,8 +70,10 @@ public class NiftyAllocatorShould
         int saleReleaseQuantity)
     {
         var sale = GenerateSale(totalReleaseQuantity: saleReleaseQuantity);
+        var collection = GenerateCollection();
         var mintableTokens = GenerateTokens(saleMintableCount);
         var allocatedTokens = GenerateTokens(saleAllocatedCount);
+        var saleContext = GenerateSaleContext(sale, collection, mintableTokens, allocatedTokens);
         var request = new PurchaseAttempt(
             Guid.NewGuid(),
             Guid.NewGuid(),
@@ -76,7 +84,7 @@ public class NiftyAllocatorShould
         Func<Task> asyncTask = async () =>
         {
             var allocated = await _allocator.AllocateNiftiesForPurchaseAsync(
-                request, allocatedTokens, mintableTokens, sale);
+                request, saleContext);
         };
 
         await asyncTask.Should().ThrowAsync<CannotAllocateMoreThanSaleReleaseException>();
@@ -93,8 +101,10 @@ public class NiftyAllocatorShould
         int saleReleaseQuantity)
     {
         var sale = GenerateSale(totalReleaseQuantity: saleReleaseQuantity);
+        var collection = GenerateCollection();
         var mintableTokens = GenerateTokens(saleMintableCount);
         var allocatedTokens = GenerateTokens(saleAllocatedCount);
+        var saleContext = GenerateSaleContext(sale, collection, mintableTokens, allocatedTokens);
         var request = new PurchaseAttempt(
             Guid.NewGuid(),
             Guid.NewGuid(),
@@ -105,7 +115,7 @@ public class NiftyAllocatorShould
         Func<Task> asyncTask = async () =>
         {
             var allocated = await _allocator.AllocateNiftiesForPurchaseAsync(
-                request, allocatedTokens, mintableTokens, sale);
+                request, saleContext);
         };
 
         await asyncTask.Should().ThrowAsync<CannotAllocateMoreThanMintableException>();
@@ -123,8 +133,10 @@ public class NiftyAllocatorShould
         int saleReleaseQuantity)
     {
         var sale = GenerateSale(totalReleaseQuantity: saleReleaseQuantity);
+        var collection = GenerateCollection();
         var allocatedTokens = GenerateTokens(saleAllocatedCount);
         var mintableTokens = GenerateTokens(saleMintableCount);
+        var saleContext = GenerateSaleContext(sale, collection, mintableTokens, allocatedTokens);
         var request = new PurchaseAttempt(
             Guid.NewGuid(),
             Guid.NewGuid(),
@@ -135,7 +147,7 @@ public class NiftyAllocatorShould
         Func<Task> asyncTask = async () =>
         {
             var allocated = await _allocator.AllocateNiftiesForPurchaseAsync(
-                request, allocatedTokens, mintableTokens, sale);
+                request, saleContext);
         };
 
         await asyncTask.Should().ThrowAsync<ArgumentException>();

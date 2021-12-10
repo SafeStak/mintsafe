@@ -18,6 +18,7 @@ public class NiftyDistributorShould
     private readonly Mock<ITxInfoRetriever> _mockTxIoRetriever;
     private readonly Mock<ITxBuilder> _mockTxBuilder;
     private readonly Mock<ITxSubmitter> _mockTxSubmitter;
+    private readonly Mock<ISaleContextDataStorage> _mockSaleContextStore;
 
     public NiftyDistributorShould()
     {
@@ -25,6 +26,7 @@ public class NiftyDistributorShould
         _mockTxIoRetriever = new Mock<ITxInfoRetriever>();
         _mockTxBuilder = new Mock<ITxBuilder>();
         _mockTxSubmitter = new Mock<ITxSubmitter>();
+        _mockSaleContextStore = new Mock<ISaleContextDataStorage>();
         _distributor = new NiftyDistributor(
             NullLogger<NiftyDistributor>.Instance,
             NullInstrumentor.Instance,
@@ -32,7 +34,8 @@ public class NiftyDistributorShould
             _mockMetadataGenerator.Object,
             _mockTxIoRetriever.Object,
             _mockTxBuilder.Object,
-            _mockTxSubmitter.Object);
+            _mockTxSubmitter.Object,
+            _mockSaleContextStore.Object);
     }
 
     [Theory]
@@ -57,8 +60,7 @@ public class NiftyDistributorShould
         var distributionResult = await _distributor.DistributeNiftiesForSalePurchase(
             nfts: allocatedNifties,
             purchaseAttempt: purchaseAttempt,
-            collection: GenerateCollection(),
-            sale: GenerateSale());
+            saleContext: GenerateSaleContext());
 
         distributionResult.Outcome.Should().Be(NiftyDistributionOutcome.Successful);
         distributionResult.PurchaseAttempt.Should().Be(purchaseAttempt);
@@ -97,8 +99,7 @@ public class NiftyDistributorShould
         var txHash = await _distributor.DistributeNiftiesForSalePurchase(
             nfts: GenerateTokens(3).ToArray(),
             purchaseAttempt: new PurchaseAttempt(Guid.NewGuid(), Guid.NewGuid(), purchaseUtxo, 3, 0),
-            collection: GenerateCollection(),
-            sale: GenerateSale());
+            saleContext: GenerateSaleContext());
 
         _mockTxBuilder
             .Verify(
@@ -129,8 +130,7 @@ public class NiftyDistributorShould
             nfts: nifties,
             purchaseAttempt: new PurchaseAttempt(
                 Guid.NewGuid(), Guid.NewGuid(), GenerateUtxos(1, 10000000).First(), niftyCount, changeInLovelace),
-            collection: GenerateCollection(policyId: policyId),
-            sale: GenerateSale());
+            saleContext: GenerateSaleContext(collection: GenerateCollection(policyId: policyId)));
 
         _mockTxBuilder
             .Verify(
@@ -165,8 +165,8 @@ public class NiftyDistributorShould
             nfts: nifties,
             purchaseAttempt: new PurchaseAttempt(
                 Guid.NewGuid(), Guid.NewGuid(), GenerateUtxos(1, purchaseLovelaces).First(), niftyCount, changeInLovelace),
-            collection: GenerateCollection(),
-            sale: GenerateSale(creatorAddress: creatorAddress, postPurchaseMargin: (decimal)margin));
+            saleContext: GenerateSaleContext(
+                sale: GenerateSale(creatorAddress: creatorAddress, postPurchaseMargin: (decimal)margin)));
 
         _mockTxBuilder
             .Verify(
@@ -203,8 +203,7 @@ public class NiftyDistributorShould
             nfts: allocatedNifties,
             purchaseAttempt: new PurchaseAttempt(
                 Guid.NewGuid(), Guid.NewGuid(), GenerateUtxos(1, purchaseLovelaces).First(), niftyCount, changeInLovelace),
-            collection: GenerateCollection(),
-            sale: sale);
+            saleContext: GenerateSaleContext(sale: sale));
 
         _mockTxBuilder
             .Verify(
@@ -238,8 +237,7 @@ public class NiftyDistributorShould
             nfts: nifties,
             purchaseAttempt: new PurchaseAttempt(
                 Guid.NewGuid(), Guid.NewGuid(), GenerateUtxos(1, 1000000).First(), 3, 0),
-            collection: GenerateCollection(policyId: policyId),
-            sale: GenerateSale());
+            saleContext: GenerateSaleContext(collection: GenerateCollection(policyId: policyId)));
 
         _mockTxBuilder
             .Verify(

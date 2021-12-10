@@ -8,7 +8,6 @@ public interface INiftyDistributor
     Task<NiftyDistributionResult> DistributeNiftiesForSalePurchase(
         Nifty[] allocatedNfts,
         PurchaseAttempt purchaseRequest,
-        NiftyCollection collection,
-        Sale sale,
+        SaleContext saleContext,
         CancellationToken ct = default);
 }

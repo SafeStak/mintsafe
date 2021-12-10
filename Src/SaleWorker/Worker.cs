@@ -64,7 +64,7 @@ public class Worker : BackgroundService
         }
         _logger.LogInformation(EventIds.HostedServiceInfo, $"SaleWorker({_workerId}) {collection.Collection.Name} has an active sale '{activeSale.Name}' for {activeSale.TotalReleaseQuantity} nifties (out of {mintableTokens.Count} total mintable) at {activeSale.SaleAddress}{Environment.NewLine}{activeSale.LovelacesPerToken} lovelaces per NFT ({activeSale.LovelacesPerToken / 1000000} ADA) and {activeSale.MaxAllowedPurchaseQuantity} max allowed");
 
-        // TODO: Move away from single-threaded mutable saleContext that isn't crash tolerant
+        // TODO: Move away from single-threaded mutable saleContext 
         var saleContext = GetOrRestoreSaleContext(mintableTokens, activeSale, collection.Collection);
         var timer = new PeriodicTimer(TimeSpan.FromSeconds(_settings.PollingIntervalSeconds));
         do
@@ -129,6 +129,7 @@ public class Worker : BackgroundService
                 new List<Nifty>(),
                 new HashSet<Utxo>(),
                 new HashSet<Utxo>(),
+                new HashSet<Utxo>(),
                 new HashSet<Utxo>());
         }
         // Restore sale context from previous execution - starting with snapshot of all mintable NFTs at start of sale
@@ -162,6 +163,7 @@ public class Worker : BackgroundService
             allocatedNfts, 
             new HashSet<Utxo>(), 
             new HashSet<Utxo>(), 
+            new HashSet<Utxo>(),
             new HashSet<Utxo>());
 
         return saleContext;

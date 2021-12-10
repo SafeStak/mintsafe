@@ -66,6 +66,24 @@ public class InsufficientPaymentException : ApplicationException
     }
 }
 
+public class PurchaseQuantityHardLimitException : ApplicationException
+{
+    public long RequestedQuantity { get; }
+    public Guid SaleId { get; }
+    public Utxo PurchaseAttemptUtxo { get; }
+
+    public PurchaseQuantityHardLimitException(
+        string message,
+        Utxo purchaseAttemptUtxo,
+        Guid saleId,
+        int requestedQuantity) : base(message)
+    {
+        RequestedQuantity = requestedQuantity;
+        SaleId = saleId;
+        PurchaseAttemptUtxo = purchaseAttemptUtxo;
+    }
+}
+
 public class MaxAllowedPurchaseQuantityExceededException : ApplicationException
 {
     public int MaxQuantity { get; }

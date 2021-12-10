@@ -8,6 +8,7 @@ public static class LogEventIds
     public const int MaxAllowedPurchaseQuantityExceeded = 20004;
     public const int CannotAllocateMoreThanSaleRelease = 20005;
     public const int CannotAllocateMoreThanMintable = 20006;
+    public const int PurchaseQuantityHardLimitExceeded = 20007;
     public const int BlockfrostServerErrorResponse = 30001;
     public const int BlockfrostBadRequestResponse = 30002;
     public const int BlockfrostTooManyRequestsResponse = 30003;

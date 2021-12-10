@@ -99,6 +99,23 @@ public static class FakeGenerator
             End: end);
     }
 
+    public static SaleContext GenerateSaleContext(
+        Sale? sale = null, NiftyCollection? collection = null, 
+        List<Nifty>? mintableTokens = null, List<Nifty>? allocatedTokens = null)
+    {
+        var context = new SaleContext(
+            Guid.NewGuid(), 
+            "fakesalepath", 
+            "fakeutxopath", 
+            sale ?? GenerateSale(), 
+            collection ?? GenerateCollection(), 
+            mintableTokens ?? GenerateTokens(10), 
+            allocatedTokens ?? new List<Nifty>(),
+            new HashSet<Utxo>(), new HashSet<Utxo>(), new HashSet<Utxo>(), new HashSet<Utxo>());
+
+        return context;
+    }
+
     public static TxInfo GenerateTxIoAggregate(
         string txHash = "01daae688d236601109d9fc1bc11d7380a7617e6835eddca6527738963a87279",
         string inputAddress = "addr_test1vrfxxeuzqfuknfz4hu0ym4fe4l3axvqd7t5agd6pfzml59q30qc4x",
