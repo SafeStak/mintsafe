@@ -110,7 +110,7 @@ public class NiftyDistributor : INiftyDistributor
             slotExpiry,
             signingKeyFilePaths);
         var utxoFolderPath = Path.Combine(saleContext.SaleUtxosPath, purchaseAttempt.Utxo.ToString());
-        if (File.Exists(utxoFolderPath))
+        if (Directory.Exists(utxoFolderPath))
         {
             var utxoPurchasePath = Path.Combine(utxoFolderPath, "mint_tx.json");
             File.WriteAllText(utxoPurchasePath, JsonSerializer.Serialize(txBuildCommand));

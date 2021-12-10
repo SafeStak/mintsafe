@@ -104,9 +104,9 @@ public static class FakeGenerator
         List<Nifty>? mintableTokens = null, List<Nifty>? allocatedTokens = null)
     {
         var context = new SaleContext(
-            Guid.NewGuid(), 
-            "fakesalepath", 
-            "fakeutxopath", 
+            Guid.NewGuid(),
+            "C:\\temp\\mintsafe\\sale", 
+            "C:\\temp\\mintsafe\\tests", 
             sale ?? GenerateSale(), 
             collection ?? GenerateCollection(), 
             mintableTokens ?? GenerateTokens(10), 
