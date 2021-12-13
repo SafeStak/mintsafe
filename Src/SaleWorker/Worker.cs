@@ -19,6 +19,7 @@ public class Worker : BackgroundService
     private readonly IInstrumentor _instrumentor;
     private readonly MintsafeAppSettings _settings;
     private readonly INiftyDataService _niftyDataService;
+    private readonly ISaleAllocationStore _saleContextDataStorage;
     private readonly IUtxoRetriever _utxoRetriever;
     private readonly ISaleUtxoHandler _saleUtxoHandler;
     private readonly Guid _workerId;
@@ -29,6 +30,7 @@ public class Worker : BackgroundService
         IInstrumentor instrumentor,
         MintsafeAppSettings settings,
         INiftyDataService niftyDataService,
+        ISaleAllocationStore saleContextDataStorage,
         IUtxoRetriever utxoRetriever,
         ISaleUtxoHandler saleUtxoHandler)
     {
@@ -37,6 +39,7 @@ public class Worker : BackgroundService
         _instrumentor = instrumentor;
         _settings = settings;
         _niftyDataService = niftyDataService;
+        _saleContextDataStorage = saleContextDataStorage;
         _utxoRetriever = utxoRetriever;
         _saleUtxoHandler = saleUtxoHandler;
         _workerId = Guid.NewGuid();
@@ -54,24 +57,23 @@ public class Worker : BackgroundService
         }
 
         // TODO: Move from CollectionId to SaleId in MintsafeAppSettings and tie Worker to a Sale
-        var activeSale = collection.ActiveSales[0];
-        var mintableTokens = collection.Tokens.Where(t => t.IsMintable).ToList();
-        if (mintableTokens.Count < activeSale.TotalReleaseQuantity)
+        var saleContext = await _saleContextDataStorage.GetOrRestoreSaleContextAsync(collection, _workerId, ct);
+        var totalNftsInRelease = saleContext.MintableTokens.Count + saleContext.AllocatedTokens.Count;
+        if (totalNftsInRelease < saleContext.Sale.TotalReleaseQuantity)
         {
-            _logger.LogWarning(EventIds.HostedServiceWarning, $"{collection.Collection.Name} has {mintableTokens.Count} mintable tokens which is less than {activeSale.TotalReleaseQuantity} sale release quantity.");
+            _logger.LogWarning(EventIds.HostedServiceWarning, $"{collection.Collection.Name} has {totalNftsInRelease} total tokens which is less than {saleContext.Sale.TotalReleaseQuantity} sale release quantity.");
             _hostApplicationLifetime.StopApplication();
             return;
         }
-        _logger.LogInformation(EventIds.HostedServiceInfo, $"SaleWorker({_workerId}) {collection.Collection.Name} has an active sale '{activeSale.Name}' for {activeSale.TotalReleaseQuantity} nifties (out of {mintableTokens.Count} total mintable) at {activeSale.SaleAddress}{Environment.NewLine}{activeSale.LovelacesPerToken} lovelaces per NFT ({activeSale.LovelacesPerToken / 1000000} ADA) and {activeSale.MaxAllowedPurchaseQuantity} max allowed");
+        _logger.LogInformation(EventIds.HostedServiceInfo, $"SaleWorker({_workerId}) {collection.Collection.Name} has an active sale '{saleContext.Sale.Name}' for {saleContext.Sale.TotalReleaseQuantity} nifties (out of {totalNftsInRelease} total mintable and {saleContext.AllocatedTokens.Count} allocated) at {saleContext.Sale.SaleAddress}{Environment.NewLine}{saleContext.Sale.LovelacesPerToken} lovelaces per NFT ({saleContext.Sale.LovelacesPerToken / 1000000} ADA) and {saleContext.Sale.MaxAllowedPurchaseQuantity} max allowed");
 
         // TODO: Move away from single-threaded mutable saleContext 
-        var saleContext = GetOrRestoreSaleContext(mintableTokens, activeSale, collection.Collection);
         var timer = new PeriodicTimer(TimeSpan.FromSeconds(_settings.PollingIntervalSeconds));
         do
         {
-            var saleUtxos = await _utxoRetriever.GetUtxosAtAddressAsync(activeSale.SaleAddress, ct);
-            _logger.LogDebug($"Querying SaleAddress UTxOs for sale {activeSale.Name} of {collection.Collection.Name} by {string.Join(",", collection.Collection.Publishers)}");
-            _logger.LogDebug($"Found {saleUtxos.Length} UTxOs at {activeSale.SaleAddress}");
+            var saleUtxos = await _utxoRetriever.GetUtxosAtAddressAsync(saleContext.Sale.SaleAddress, ct);
+            _logger.LogDebug($"Querying SaleAddress UTxOs for sale {saleContext.Sale.Name} of {collection.Collection.Name} by {string.Join(",", collection.Collection.Publishers)}");
+            _logger.LogDebug($"Found {saleUtxos.Length} UTxOs at {saleContext.Sale.SaleAddress}");
             foreach (var saleUtxo in saleUtxos)
             {
                 if (saleContext.LockedUtxos.Contains(saleUtxo))
@@ -82,7 +84,7 @@ public class Worker : BackgroundService
                 await _saleUtxoHandler.HandleAsync(saleUtxo, saleContext, ct);
             }
             _logger.LogDebug(
-                $"Successful: {saleContext.SuccessfulUtxos.Count} UTxOs | Refunded: {saleContext.RefundedUtxos.Count} | Failed: {saleContext.FailedUtxos.Count} UTxOs | Locked: {saleContext.LockedUtxos.Count} UTxOs");
+                $"Successful: {saleContext.SuccessfulUtxos.Count} UTxOs | Refunded: {saleContext.RefundedUtxos.Count} UTxOs | Failed: {saleContext.FailedUtxos.Count} UTxOs | Locked: {saleContext.LockedUtxos.Count} UTxOs");
             //_logger.LogDebug($"Allocated Tokens:\n\t\t{string.Join("\n\t\t", saleContext.AllocatedTokens.Select(t => t.AssetName))}");
         } while (await timer.WaitForNextTickAsync(ct));
     }
@@ -93,79 +95,5 @@ public class Worker : BackgroundService
             EventIds.HostedServiceFinished, $"SaleWorker({_workerId}) BackgroundService is stopping");
 
         await base.StopAsync(stoppingToken);
-    }
-
-    private SaleContext GetOrRestoreSaleContext(
-        List<Nifty> mintableTokens, Sale sale,  NiftyCollection collection)
-    {
-        var saleFolder = Path.Combine(_settings.BasePath, sale.Id.ToString()[..8]);
-        var saleUtxosFolder = Path.Combine(saleFolder, "utxos");
-        var mintableNftIdsSnapshotPath = Path.Combine(saleFolder, "mintableNftIds.csv");
-        var allocatedNftIdsPath = Path.Combine(saleFolder, "allocatedNftIds.csv");
-        var sw = new Stopwatch();
-        // Brand new sale for worker
-        if (!Directory.Exists(saleFolder))
-        {
-            Directory.CreateDirectory(saleFolder);
-            Directory.CreateDirectory(saleUtxosFolder);
-            sw.Start();
-            File.WriteAllLines(mintableNftIdsSnapshotPath, mintableTokens.Select(n => n.Id.ToString()));
-            File.WriteAllText(allocatedNftIdsPath, string.Empty);
-            _instrumentor.TrackDependency(
-                EventIds.SaleContextWriteElapsed,
-                sw.ElapsedMilliseconds,
-                DateTime.UtcNow,
-                nameof(Worker),
-                mintableNftIdsSnapshotPath,
-                "WriteSaleContextMintable",
-                isSuccessful: true);
-            return new SaleContext(
-                _workerId,
-                saleFolder,
-                saleUtxosFolder,
-                sale,
-                collection,
-                mintableTokens,
-                new List<Nifty>(),
-                new HashSet<Utxo>(),
-                new HashSet<Utxo>(),
-                new HashSet<Utxo>(),
-                new HashSet<Utxo>());
-        }
-        // Restore sale context from previous execution - starting with snapshot of all mintable NFTs at start of sale
-        sw.Restart();
-        var allocatedNftIds = new HashSet<string>(File.ReadAllLines(allocatedNftIdsPath));
-        _instrumentor.TrackDependency(
-            EventIds.SaleContextRestoreElapsed,
-            sw.ElapsedMilliseconds,
-            DateTime.UtcNow,
-            nameof(Worker),
-            allocatedNftIdsPath,
-            "ReadSaleContextAllocated",
-            isSuccessful: true);
-        var revisedMintableNfts = new List<Nifty>();
-        var allocatedNfts = new List<Nifty>();
-        foreach (var nft in mintableTokens)
-        {
-            if (allocatedNftIds.Contains(nft.Id.ToString()))
-                allocatedNfts.Add(nft);
-            else
-                revisedMintableNfts.Add(nft);
-        }
-
-        var saleContext = new SaleContext(
-            _workerId,
-            saleFolder,
-            saleUtxosFolder,
-            sale,
-            collection,
-            revisedMintableNfts,
-            allocatedNfts, 
-            new HashSet<Utxo>(), 
-            new HashSet<Utxo>(), 
-            new HashSet<Utxo>(),
-            new HashSet<Utxo>());
-
-        return saleContext;
     }
 }

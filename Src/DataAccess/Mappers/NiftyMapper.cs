@@ -41,7 +41,7 @@ namespace Mintsafe.DataAccess.Mappers
                 dtoNifty.CreatedAt,
                 new Royalty(dtoNifty.RoyaltyPortion, dtoNifty.RoyaltyAddress),
                 dtoNifty.Version,
-                dtoNifty.Attributes
+                dtoNifty.Attributes.ToArray()
                 );
         }
     }

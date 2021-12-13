@@ -18,7 +18,7 @@ public class NiftyDistributorShould
     private readonly Mock<ITxInfoRetriever> _mockTxIoRetriever;
     private readonly Mock<ITxBuilder> _mockTxBuilder;
     private readonly Mock<ITxSubmitter> _mockTxSubmitter;
-    private readonly Mock<ISaleContextDataStorage> _mockSaleContextStore;
+    private readonly Mock<ISaleAllocationStore> _mockSaleContextStore;
 
     public NiftyDistributorShould()
     {
@@ -26,7 +26,7 @@ public class NiftyDistributorShould
         _mockTxIoRetriever = new Mock<ITxInfoRetriever>();
         _mockTxBuilder = new Mock<ITxBuilder>();
         _mockTxSubmitter = new Mock<ITxSubmitter>();
-        _mockSaleContextStore = new Mock<ISaleContextDataStorage>();
+        _mockSaleContextStore = new Mock<ISaleAllocationStore>();
         _distributor = new NiftyDistributor(
             NullLogger<NiftyDistributor>.Instance,
             NullInstrumentor.Instance,

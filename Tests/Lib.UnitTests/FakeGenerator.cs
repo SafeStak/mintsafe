@@ -53,7 +53,7 @@ public static class FakeGenerator
                 DateTime.UtcNow,
                 new Royalty(0, string.Empty),
                 "1.0",
-                new Dictionary<string, string>()))
+                Array.Empty<KeyValuePair<string, string>>()))
             .ToList();
     }
 

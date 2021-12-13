@@ -64,11 +64,11 @@ public class CardanoCliUtxoRetriever : IUtxoRetriever
                 EventIds.UtxoRetrievalElapsed,
                 sw.ElapsedMilliseconds,
                 DateTime.UtcNow,
-                nameof(BlockfrostClient),
-                string.Empty,
                 nameof(CardanoCliUtxoRetriever),
+                address,
+                nameof(GetUtxosAtAddressAsync),
                 isSuccessful: isSuccessful);
-            _logger.LogDebug($"UTxOs retrieved after {sw.ElapsedMilliseconds}ms:{Environment.NewLine}{rawUtxoResponse}");
+            _logger.LogDebug($"UTxOs retrieval finished after {sw.ElapsedMilliseconds}ms:{Environment.NewLine}{rawUtxoResponse}");
         }
 
         var lines = rawUtxoResponse.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);

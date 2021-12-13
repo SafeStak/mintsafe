@@ -27,27 +27,6 @@ public class CannotAllocateMoreThanSaleReleaseException : ApplicationException
     }
 }
 
-public class CannotAllocateMoreThanMintableException : ApplicationException
-{
-    public long RequestedQuantity { get; }
-    public long MintableQuantity { get; }
-    public Guid SaleId { get; }
-    public Utxo PurchaseAttemptUtxo { get; }
-
-    public CannotAllocateMoreThanMintableException(
-        string message,
-        Utxo purchaseAttemptUtxo,
-        Guid saleId,
-        int requestedQuantity,
-        int mintableQuantity) : base(message)
-    {
-        RequestedQuantity = requestedQuantity;
-        MintableQuantity = mintableQuantity;
-        SaleId = saleId;
-        PurchaseAttemptUtxo = purchaseAttemptUtxo;
-    }
-}
-
 public class InsufficientPaymentException : ApplicationException
 {
     public long QuantityPerToken { get; }

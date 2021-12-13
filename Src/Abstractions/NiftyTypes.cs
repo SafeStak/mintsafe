@@ -34,7 +34,7 @@ public record Nifty(
     DateTime CreatedAt,
     Royalty Royalty,
     string Version,
-    IEnumerable<KeyValuePair<string, string>> Attributes);
+    KeyValuePair<string, string>[] Attributes);
 
 public record NiftyFile(
     Guid Id,
@@ -89,7 +89,6 @@ public record PurchaseAttempt(
 public enum NiftyDistributionOutcome { 
     Successful = 1, 
     SuccessfulAfterRetry, 
-    FailurePurchaseAttempt, 
     FailureTxInfo, 
     FailureTxBuild, 
     FailureTxSubmit, 
@@ -100,6 +99,7 @@ public record NiftyDistributionResult(
     PurchaseAttempt PurchaseAttempt,
     string? MintTxBodyJson,
     string? MintTxHash = null,
+    string? BuyerAddress = null,
     Nifty[]? NiftiesDistributed = null,
     Exception? Exception = null);
 

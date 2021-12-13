@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Mintsafe.Lib
 {
@@ -50,6 +51,7 @@ namespace Mintsafe.Lib
         private static readonly JsonSerializerOptions SerialiserOptions = new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
         };
 
         private readonly ILogger<MetadataJsonBuilder> _logger;
@@ -95,9 +97,10 @@ namespace Mintsafe.Lib
                     MediaType = nft.MediaType,
                     Creators = nft.Creators,
                     Publishers = collection.Publishers,
-                    Files = nft.Files.Select(
-                        f => new CnftStandardFile { Name = f.Name, MediaType = f.MediaType, Src = f.Url, Hash = f.FileHash }).ToArray(),
-                    Attributes = nft.Attributes
+                    Files = nft.Files.Length == 0 ? null // don't serialise empty arrays
+                        : nft.Files.Select(
+                            f => new CnftStandardFile { Name = f.Name, MediaType = f.MediaType, Src = f.Url, Hash = f.FileHash }).ToArray(),
+                    Attributes = nft.Attributes.Length == 0 ? null : nft.Attributes
                 };
                 nftDictionary.Add(nft.AssetName, nftAsset);
             }

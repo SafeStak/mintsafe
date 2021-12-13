@@ -54,6 +54,7 @@ builder.Services.AddSingleton<IMetadataFileGenerator, MetadataFileGenerator>();
 builder.Services.AddSingleton<IMetadataJsonBuilder, MetadataJsonBuilder>();
 builder.Services.AddSingleton<INiftyDistributor, NiftyDistributor>();
 builder.Services.AddSingleton<IUtxoRefunder, UtxoRefunder>();
+builder.Services.AddSingleton<ISaleAllocationStore, SaleAllocationFileStore>();
 builder.Services.AddSingleton<IYoloWalletService, YoloWalletService>();
 
 // Data Access

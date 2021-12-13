@@ -70,7 +70,7 @@ public class CardanoCliTxBuilder : ITxBuilder
             }
 
             var feeCalculationTxBodyOutputPath = Path.Combine(_settings.BasePath, $"fee-{buildId}.txraw");
-            var feeCalculationTxBuildArgs = string.Join(" ",
+            actualTxBuildArgs = string.Join(" ",
                 "transaction", "build-raw",
                 GetTxInArgs(buildCommand),
                 GetTxOutArgs(buildCommand),
@@ -83,10 +83,10 @@ public class CardanoCliTxBuilder : ITxBuilder
             );
             var feeTxBuildCliOutput = await Command.ReadAsync(
                 "cardano-cli",
-                feeCalculationTxBuildArgs,
+                actualTxBuildArgs,
                 noEcho: true,
                 cancellationToken: ct);
-            _logger.LogDebug($"Fee Tx built {feeCalculationTxBuildArgs}{Environment.NewLine}{feeTxBuildCliOutput}");
+            _logger.LogDebug($"Fee Tx built {actualTxBuildArgs}{Environment.NewLine}{feeTxBuildCliOutput}");
 
             var feeCalculationArgs = string.Join(" ",
                 "transaction", "calculate-min-fee",
@@ -155,7 +155,6 @@ public class CardanoCliTxBuilder : ITxBuilder
         }
         catch (Exception ex)
         {
-            
             throw new CardanoCliException($"Unhandled exception in {nameof(CardanoCliTxBuilder)}", ex, _settings.Network.ToString(), actualTxBuildArgs);
         }
         finally

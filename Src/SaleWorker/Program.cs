@@ -103,36 +103,36 @@ IHost host = Host.CreateDefaultBuilder(args)
         services.AddSingleton<IMetadataJsonBuilder, MetadataJsonBuilder>();
         services.AddSingleton<INiftyDistributor, NiftyDistributor>();
         services.AddSingleton<IUtxoRefunder, UtxoRefunder>();
-        services.AddSingleton<ISaleContextDataStorage, SaleContextFileStorage>();
+        services.AddSingleton<ISaleAllocationStore, SaleAllocationFileStore>();
 
         // Fakes
-        //services.AddSingleton<INiftyDataService, LocalNiftyDataService>();
-        //services.AddSingleton<IUtxoRetriever, FakeUtxoRetriever>();
-        //services.AddSingleton<ITxInfoRetriever, FakeTxIoRetriever>();
+        services.AddSingleton<INiftyDataService, LocalNiftyDataService>();
+        services.AddSingleton<IUtxoRetriever, FakeUtxoRetriever>();
+        services.AddSingleton<ITxInfoRetriever, FakeTxIoRetriever>();
         //services.AddSingleton<ITxBuilder, FakeTxBuilder>();
-        //services.AddSingleton<ITxSubmitter, FakeTxSubmitter>();
+        services.AddSingleton<ITxSubmitter, FakeTxSubmitter>();
 
         //// Reals
         //services.AddSingleton<IUtxoRetriever, CardanoCliUtxoRetriever>();
-        services.AddSingleton<IUtxoRetriever, BlockfrostUtxoRetriever>();
-        services.AddSingleton<ITxInfoRetriever, BlockfrostTxInfoRetriever>();
+        //services.AddSingleton<IUtxoRetriever, BlockfrostUtxoRetriever>();
+        //services.AddSingleton<ITxInfoRetriever, BlockfrostTxInfoRetriever>();
         services.AddSingleton<ITxBuilder, CardanoCliTxBuilder>();
-        services.AddSingleton<ITxSubmitter, BlockfrostTxSubmitter>();
-        services.AddSingleton<INiftyDataService, TableStorageDataService>();
-        services.AddAzureClients(clientBuilder =>
-        {
-            var connectionString = hostContext.Configuration.GetSection("Storage:ConnectionString").Value;
-            clientBuilder.AddTableClient(connectionString, Constants.TableNames.NiftyCollection);
-            clientBuilder.AddTableClient(connectionString, Constants.TableNames.Nifty);
-            clientBuilder.AddTableClient(connectionString, Constants.TableNames.Sale);
-            clientBuilder.AddTableClient(connectionString, Constants.TableNames.NiftyFile);
-        });
-        services.AddSingleton<INiftyDataService, TableStorageDataService>();
-        services.AddSingleton<ICollectionAggregateComposer, CollectionAggregateComposer>();
-        services.AddSingleton<INiftyCollectionRepository, NiftyCollectionRepository>();
-        services.AddSingleton<INiftyRepository, NiftyRepository>();
-        services.AddSingleton<ISaleRepository, SaleRepository>();
-        services.AddSingleton<INiftyFileRepository, NiftyFileRepository>();
+        //services.AddSingleton<ITxSubmitter, BlockfrostTxSubmitter>();
+        //services.AddSingleton<INiftyDataService, TableStorageDataService>();
+        //services.AddAzureClients(clientBuilder =>
+        //{
+        //    var connectionString = hostContext.Configuration.GetSection("Storage:ConnectionString").Value;
+        //    clientBuilder.AddTableClient(connectionString, Constants.TableNames.NiftyCollection);
+        //    clientBuilder.AddTableClient(connectionString, Constants.TableNames.Nifty);
+        //    clientBuilder.AddTableClient(connectionString, Constants.TableNames.Sale);
+        //    clientBuilder.AddTableClient(connectionString, Constants.TableNames.NiftyFile);
+        //});
+        //services.AddSingleton<INiftyDataService, TableStorageDataService>();
+        //services.AddSingleton<ICollectionAggregateComposer, CollectionAggregateComposer>();
+        //services.AddSingleton<INiftyCollectionRepository, NiftyCollectionRepository>();
+        //services.AddSingleton<INiftyRepository, NiftyRepository>();
+        //services.AddSingleton<ISaleRepository, SaleRepository>();
+        //services.AddSingleton<INiftyFileRepository, NiftyFileRepository>();
     })
     .Build();
 

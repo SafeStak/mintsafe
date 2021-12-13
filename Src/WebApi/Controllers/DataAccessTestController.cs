@@ -40,7 +40,7 @@ namespace Mintsafe.WebApi.Controllers
 
             var nifty = new Nifty(niftyId, collectionId, true, "file.jpg", "file", "desc", new[] { "a", "b" },
                 "http://", "img", new []{ niftyFile }, DateTime.UtcNow, new Royalty(5, "lol"), "v1",
-                new List<KeyValuePair<string, string>>()
+                new KeyValuePair<string, string>[]
                 {
                     new("a", "b"),
                     new("b", "c")

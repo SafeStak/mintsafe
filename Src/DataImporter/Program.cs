@@ -33,11 +33,11 @@ using IHost host = Host.CreateDefaultBuilder(args)
     })
     .Build();
 
-var pickupDirPath = $"C:\\ws\\temp\\cardadeer";
+var pickupDirPath = $"C:\\ws\\temp\\hop";
 
 var collection = await LoadJsonFromFileAsync<NiftyCollection>(Path.Combine(pickupDirPath, "collection.json"));
 var sale = await LoadJsonFromFileAsync<Sale>(Path.Combine(pickupDirPath, "sale.json"));
-var nifties = await LoadDynamicJsonFromDirAsync(Path.Combine(pickupDirPath, "json")); // Assuming rares are also in here
+var nifties = await LoadDynamicJsonFromDirAsync(Path.Combine(pickupDirPath, "json")); 
 
 BuildModelsAndInsertAsync(host.Services, collection, sale, nifties);
 
@@ -55,30 +55,33 @@ async void BuildModelsAndInsertAsync(
     IServiceProvider provider = serviceScope.ServiceProvider;
     var dataService = provider.GetRequiredService<INiftyDataService>();
 
+    var assetPrefix = "HOP";
+
     var collectionId = niftyCollection.Id;
     var nifties = new List<Nifty>();
     foreach (var jsonObject in niftyJson)
     {
         var niftyId = Guid.NewGuid();
-        var jsonArray = (JsonArray)jsonObject["attributes"];
-        var jsonObjects = jsonArray.Cast<JsonObject>();
+        var attributesJsonArray = (JsonArray)jsonObject["attributes"];
+        var attributesJsonObjectsArray = attributesJsonArray.Cast<JsonObject>();
         var attributes =
-            jsonObjects.Select(x => new KeyValuePair<string, string>((string) x["key"], (string) x["value"])).ToList();
+            attributesJsonObjectsArray
+                .Select(x => new KeyValuePair<string, string>((string) x["key"], (string) x["value"])).ToArray();
 
         var nifty = new Nifty(
             Id: niftyId,
             CollectionId: collectionId,
             IsMintable: true,
-            AssetName: $"Cardadeer{(int)jsonObject["edition"]}",
+            AssetName: $"{assetPrefix}{(string)jsonObject["edition"]}",
             Name: (string)jsonObject["name"],
             Description: (string)jsonObject["description"],
-            Creators: new[] { "cardadeer.com" },
+            Creators: ((JsonArray)jsonObject["creators"]).Cast<string>().ToArray(),
             Image: (string)jsonObject["image"],
             MediaType: "image/png",
             Files: Array.Empty<NiftyFile>(),
             CreatedAt: DateTimeOffset.FromUnixTimeMilliseconds((long)jsonObject["date"]).UtcDateTime,
             Royalty: new Royalty(0, ""), 
-            Version: "1", 
+            Version: (string)jsonObject["version"], 
             Attributes: attributes);
 
         nifties.Add(nifty);

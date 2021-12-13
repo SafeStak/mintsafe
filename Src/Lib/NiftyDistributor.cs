@@ -19,7 +19,7 @@ public class NiftyDistributor : INiftyDistributor
     private readonly ITxInfoRetriever _txRetriever;
     private readonly ITxBuilder _txBuilder;
     private readonly ITxSubmitter _txSubmitter;
-    private readonly ISaleContextDataStorage _saleContextStore;
+    private readonly ISaleAllocationStore _saleContextStore;
 
     public NiftyDistributor(
         ILogger<NiftyDistributor> logger,
@@ -29,7 +29,7 @@ public class NiftyDistributor : INiftyDistributor
         ITxInfoRetriever txRetriever,
         ITxBuilder txBuilder,
         ITxSubmitter txSubmitter,
-        ISaleContextDataStorage saleContextStore)
+        ISaleAllocationStore saleContextStore)
     {
         _logger = logger;
         _instrumentor = instrumentor;
@@ -109,11 +109,12 @@ public class NiftyDistributor : INiftyDistributor
             metadataJsonPath,
             slotExpiry,
             signingKeyFilePaths);
+        var txBuildJson = JsonSerializer.Serialize(txBuildCommand);
         var utxoFolderPath = Path.Combine(saleContext.SaleUtxosPath, purchaseAttempt.Utxo.ToString());
         if (Directory.Exists(utxoFolderPath))
         {
             var utxoPurchasePath = Path.Combine(utxoFolderPath, "mint_tx.json");
-            File.WriteAllText(utxoPurchasePath, JsonSerializer.Serialize(txBuildCommand));
+            await File.WriteAllTextAsync(utxoPurchasePath, JsonSerializer.Serialize(txBuildCommand), ct).ConfigureAwait(false);
         }
 
         var txSubmissionBody = Array.Empty<byte>();
@@ -129,7 +130,7 @@ public class NiftyDistributor : INiftyDistributor
             return new NiftyDistributionResult(
                 NiftyDistributionOutcome.FailureTxBuild,
                 purchaseAttempt,
-                JsonSerializer.Serialize(txBuildCommand) + " | " + ex.Args,
+                txBuildJson + " | " + ex.Args,
                 Exception: ex);
         }
         catch (Exception ex)
@@ -138,7 +139,7 @@ public class NiftyDistributor : INiftyDistributor
             return new NiftyDistributionResult(
                 NiftyDistributionOutcome.FailureTxBuild,
                 purchaseAttempt,
-                JsonSerializer.Serialize(txBuildCommand),
+                txBuildJson,
                 Exception: ex);
         }
 
@@ -155,7 +156,7 @@ public class NiftyDistributor : INiftyDistributor
             return new NiftyDistributionResult(
                 NiftyDistributionOutcome.FailureTxSubmit,
                 purchaseAttempt,
-                JsonSerializer.Serialize(txBuildCommand),
+                txBuildJson,
                 Exception: ex);
         }
 
@@ -164,16 +165,17 @@ public class NiftyDistributor : INiftyDistributor
             swTotal.ElapsedMilliseconds,
             DateTime.UtcNow,
             nameof(NiftyDistributor),
-            string.Empty,
+            buyerAddress,
             nameof(DistributeNiftiesForSalePurchase),
-            data: JsonSerializer.Serialize(txBuildCommand),
+            data: txBuildJson,
             isSuccessful: true);
 
         return new NiftyDistributionResult(
             NiftyDistributionOutcome.Successful, 
             purchaseAttempt,
-            JsonSerializer.Serialize(txBuildCommand),
+            txBuildJson,
             txHash,
+            buyerAddress,
             nfts);
     }
 

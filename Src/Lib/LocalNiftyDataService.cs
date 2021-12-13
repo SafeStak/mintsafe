@@ -21,10 +21,10 @@ public class LocalNiftyDataService : INiftyDataService
         var collection = new NiftyCollection(
             Id: fakeCollectionId,
             PolicyId: "fbd42bedfcf8d5de2381dd572676dd5e85fd09b2a45ba80358d20fea",
-            Name: "cardadeer",
-            Description: "cardadeer.com",
+            Name: "cryptoquokkas",
+            Description: "cryptoquokkas.com",
             IsActive: true,
-            Publishers: new[] { "cardadeer.com", "mintsafe.io" },
+            Publishers: new[] { "cryptoquokkas.com", "mintsafe.io" },
             BrandImage: "",
             CreatedAt: new DateTime(2021, 9, 4, 0, 0, 0, DateTimeKind.Utc),
             LockedAt: new DateTime(2022, 1, 1, 0, 0, 0, DateTimeKind.Utc),
@@ -39,16 +39,16 @@ public class LocalNiftyDataService : INiftyDataService
             CollectionId: fakeCollectionId,
             IsActive: true,
             Name: "Launch #1",
-            Description: "Limited 3000 item launch",
-            LovelacesPerToken: 36000000,
+            Description: "Limited 300 item launch",
+            LovelacesPerToken: 6000000,
             Start: new DateTime(2021, 9, 4, 0, 0, 0, DateTimeKind.Utc),
-            End: new DateTime(2021, 12, 10, 0, 0, 0, DateTimeKind.Utc),
+            End: new DateTime(2021, 12, 14, 0, 0, 0, DateTimeKind.Utc),
             SaleAddress: "addr_test1vqgh0dutf08aynjcvhwa8jeaclpxs29fpjtsunlw2056pycjut5w7",
             CreatorAddress: "addr_test1vp92pf7y6mk9qgqs2474mxvjh9u3e5h885v6hy8c8qp3wdcddsldj",
             ProceedsAddress: "addr_test1vp92pf7y6mk9qgqs2474mxvjh9u3e5h885v6hy8c8qp3wdcddsldj",
             PostPurchaseMargin: 0.1m,
-            TotalReleaseQuantity: 3000,
-            MaxAllowedPurchaseQuantity: 5);
+            TotalReleaseQuantity: 300,
+            MaxAllowedPurchaseQuantity: 3);
 
         var activeSales = collection.IsActive && IsSaleOpen(sale) ? new[] { sale } : Array.Empty<Sale>();
 
@@ -124,7 +124,7 @@ public class LocalNiftyDataService : INiftyDataService
                     dateTimeParsed.AddDays(i),
                     new Royalty(royaltyPortion, royaltyAddress),
                     version,
-                    GetAttributesForIndex(i));
+                    GetAttributesForIndex(i).ToArray());
             })
             .ToArray();
     }

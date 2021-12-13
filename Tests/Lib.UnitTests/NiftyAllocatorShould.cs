@@ -12,11 +12,11 @@ namespace Mintsafe.Lib.UnitTests;
 public class NiftyAllocatorShould
 {
     private readonly NiftyAllocator _allocator;
-    private readonly Mock<ISaleContextDataStorage> _mockSaleContextStore;
+    private readonly Mock<ISaleAllocationStore> _mockSaleContextStore;
 
     public NiftyAllocatorShould()
     {
-        _mockSaleContextStore = new Mock<ISaleContextDataStorage>();
+        _mockSaleContextStore = new Mock<ISaleAllocationStore>();
         _allocator = new NiftyAllocator(
             NullLogger<NiftyAllocator>.Instance,
             NullInstrumentor.Instance,
@@ -88,37 +88,6 @@ public class NiftyAllocatorShould
         };
 
         await asyncTask.Should().ThrowAsync<CannotAllocateMoreThanSaleReleaseException>();
-    }
-
-    [Theory]
-    [InlineData(0, 1, 1, 1)]
-    [InlineData(1, 49, 2, 50)]
-    [InlineData(5, 145, 8, 150)]
-    public async Task Throws_CannotAllocateMoreThanMintableException_When_No_Mintable_Tokens_Are_Left(
-        int saleMintableCount,
-        int saleAllocatedCount,
-        int requestedQuantity,
-        int saleReleaseQuantity)
-    {
-        var sale = GenerateSale(totalReleaseQuantity: saleReleaseQuantity);
-        var collection = GenerateCollection();
-        var mintableTokens = GenerateTokens(saleMintableCount);
-        var allocatedTokens = GenerateTokens(saleAllocatedCount);
-        var saleContext = GenerateSaleContext(sale, collection, mintableTokens, allocatedTokens);
-        var request = new PurchaseAttempt(
-            Guid.NewGuid(),
-            Guid.NewGuid(),
-            new Utxo("", 0, new[] { new Value(Assets.LovelaceUnit, 1000000) }),
-            requestedQuantity,
-            0);
-
-        Func<Task> asyncTask = async () =>
-        {
-            var allocated = await _allocator.AllocateNiftiesForPurchaseAsync(
-                request, saleContext);
-        };
-
-        await asyncTask.Should().ThrowAsync<CannotAllocateMoreThanMintableException>();
     }
 
     [Theory]

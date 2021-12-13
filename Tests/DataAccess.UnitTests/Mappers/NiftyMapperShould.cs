@@ -111,7 +111,7 @@ namespace Mintsafe.DataAccess.UnitTests.Mappers
                 now,
                 new Royalty(1.0, "RoyaltyAddress"),
                 "Version",
-                new List<KeyValuePair<string, string>>() { new("key", "value") }
+                new KeyValuePair<string, string>[] { new("key", "value") }
             );
 
             var model = NiftyMapper.Map(nifty);
