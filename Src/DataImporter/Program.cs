@@ -67,15 +67,18 @@ async void BuildModelsAndInsertAsync(
         var attributes =
             attributesJsonObjectsArray
                 .Select(x => new KeyValuePair<string, string>((string) x["key"], (string) x["value"])).ToArray();
+        var creators = ((JsonArray)jsonObject["creators"]).Cast<JsonValue>()
+            .Select(jv => (string)jv)
+            .ToArray();
 
         var nifty = new Nifty(
             Id: niftyId,
             CollectionId: collectionId,
             IsMintable: true,
-            AssetName: $"{assetPrefix}{(string)jsonObject["edition"]}",
+            AssetName: $"{assetPrefix}{(string)jsonObject["version"]}",
             Name: (string)jsonObject["name"],
             Description: (string)jsonObject["description"],
-            Creators: ((JsonArray)jsonObject["creators"]).Cast<string>().ToArray(),
+            Creators: creators,
             Image: (string)jsonObject["image"],
             MediaType: "image/png",
             Files: Array.Empty<NiftyFile>(),

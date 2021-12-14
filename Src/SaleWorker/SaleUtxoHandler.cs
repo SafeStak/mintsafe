@@ -62,7 +62,7 @@ public class SaleUtxoHandler : ISaleUtxoHandler
             var utxoPurchasePath = Path.Combine(utxoFolderPath, "purchase.json");
             await File.WriteAllTextAsync(utxoPurchasePath, JsonSerializer.Serialize(purchase), ct).ConfigureAwait(false);
 
-            // Allocate tokens for purchase
+            // Allocate tokens 
             var tokens = await _tokenAllocator.AllocateNiftiesForPurchaseAsync(purchase, saleContext, ct).ConfigureAwait(false);
             _logger.LogDebug($"Successfully allocated {tokens.Length} tokens");
             var utxoAllocatedPath = Path.Combine(utxoFolderPath, "allocation.csv");
@@ -74,7 +74,7 @@ public class SaleUtxoHandler : ISaleUtxoHandler
             handlingOutcome = distributionResult.Outcome.ToString();
             var utxoDistributionPath = Path.Combine(utxoFolderPath, "distribution.json");
             await File.WriteAllTextAsync(utxoDistributionPath, JsonSerializer.Serialize(
-                new { distributionResult.Outcome, distributionResult.MintTxHash, 
+                new { Outcome = distributionResult.Outcome.ToString(), distributionResult.MintTxHash, 
                     distributionResult.BuyerAddress, distributionResult.NiftiesDistributed }), ct).ConfigureAwait(false);
             if (distributionResult.Outcome == NiftyDistributionOutcome.Successful
                 || distributionResult.Outcome == NiftyDistributionOutcome.SuccessfulAfterRetry)
@@ -124,7 +124,7 @@ public class SaleUtxoHandler : ISaleUtxoHandler
         {
             _logger.LogError(EventIds.SaleHandlerUnhandledError, ex, "Unhandled exception");
             handlingOutcome = "UnhandledException";
-            // Don't refund in case we can re-try
+            // Don't refund in case we can handle the utxo again
         }
         finally
         {
