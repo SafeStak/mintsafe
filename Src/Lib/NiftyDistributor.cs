@@ -190,7 +190,10 @@ public class NiftyDistributor : INiftyDistributor
         {
             return new[] {
                 new TxBuildOutput(buyerAddress, buyerOutputUtxoValues),
-                new TxBuildOutput(sale.ProceedsAddress, new[] { new Value(Assets.LovelaceUnit, saleLovelaces) })
+                new TxBuildOutput(
+                    sale.ProceedsAddress, 
+                    new[] { new Value(Assets.LovelaceUnit, saleLovelaces) }, 
+                    IsFeeDeducted: true)
             };
         }
 
