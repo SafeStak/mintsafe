@@ -31,8 +31,11 @@
         public const int CannotAllocateMoreThanSaleRelease = 140015;
         public const int PurchaseQuantityHardLimitExceeded = 140016;
         public const int MetadataFileElapsed = 150004;
+        public const int TxInfoRetrievalError = 160000;
         public const int TxInfoRetrievalElapsed = 160004;
+        public const int TxBuilderError = 170000;
         public const int TxBuilderElapsed = 170004;
+        public const int TxSubmissionError = 180000;
         public const int TxSubmissionElapsed = 180004;
         public const int DistributorElapsed = 190004;
         public const int UtxoRefunderError = 200000;

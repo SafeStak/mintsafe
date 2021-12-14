@@ -57,7 +57,7 @@ public class BlockfrostClient : IBlockfrostClient
             if (!response.IsSuccessStatusCode)
             {
                 var responseBody = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
-                throw new BlockfrostResponseException($"Unsuccessful Blockfrost response:{responseBody}", (int)response.StatusCode);
+                throw new BlockfrostResponseException($"Unsuccessful Blockfrost response:{responseBody}", (int)response.StatusCode, responseBody);
             }
             
             _logger.LogDebug($"{nameof(BlockfrostClient)}.{nameof(GetUtxosAtAddressAsync)} from {relativePath} reponse: {responseCode}");
@@ -65,7 +65,7 @@ public class BlockfrostClient : IBlockfrostClient
             if (bfResponse == null)
             {
                 var json = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
-                throw new BlockfrostResponseException($"BlockFrost response is null or cannot be deserialised {json}", responseCode);
+                throw new BlockfrostResponseException($"BlockFrost response is null or cannot be deserialised {json}", responseCode, json);
             }
             isSuccessful = true;
             return bfResponse;
@@ -97,7 +97,7 @@ public class BlockfrostClient : IBlockfrostClient
             if (!response.IsSuccessStatusCode)
             {
                 var responseBody = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
-                throw new BlockfrostResponseException($"Unsuccessful Blockfrost response:{responseBody}", (int)response.StatusCode);
+                throw new BlockfrostResponseException($"Unsuccessful Blockfrost response:{responseBody}", (int)response.StatusCode, responseBody);
             }
 
             _logger.LogDebug($"{nameof(BlockfrostClient)}.{nameof(GetTransactionAsync)} from {relativePath} reponse: {responseCode}");
@@ -105,7 +105,7 @@ public class BlockfrostClient : IBlockfrostClient
             if (bfResponse == null)
             {
                 var json = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
-                throw new BlockfrostResponseException($"BlockFrost response is null or cannot be deserialised {json}", responseCode);
+                throw new BlockfrostResponseException($"BlockFrost response is null or cannot be deserialised {json}", responseCode, json);
             }
             isSuccessful = true;
             return bfResponse;
@@ -139,7 +139,8 @@ public class BlockfrostClient : IBlockfrostClient
             if (!response.IsSuccessStatusCode)
             {
                 var responseBody = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
-                throw new BlockfrostResponseException($"Unsuccessful Blockfrost response:{responseBody}", (int)response.StatusCode);
+                throw new BlockfrostResponseException(
+                    $"Unsuccessful Blockfrost response:{responseBody}", (int)response.StatusCode, responseBody);
             }
 
             var txHash = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
