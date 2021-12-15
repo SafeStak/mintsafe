@@ -50,25 +50,18 @@ public class NiftyDistributor : INiftyDistributor
         var swTotal = Stopwatch.StartNew();
 
         // Derive buyer address after getting source UTxO details 
-        var buyerAddress = string.Empty;
-        try
-        {
-            var txIo = await _txRetriever.GetTxInfoAsync(purchaseAttempt.Utxo.TxHash, ct).ConfigureAwait(false);
-            buyerAddress = txIo.Inputs.First().Address;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(EventIds.TxInfoRetrievalError, ex, $"Failed TxInfo Restrieval");
-            await _saleContextStore.ReleaseAllocationAsync(nfts, saleContext, ct).ConfigureAwait(false);
+        var buyerAddressResult = await TryGetBuyerAddressAsync(nfts, purchaseAttempt, saleContext, ct).ConfigureAwait(false);
+        if (buyerAddressResult.Address == null)
+        { 
             return new NiftyDistributionResult(
                 NiftyDistributionOutcome.FailureTxInfo,
                 purchaseAttempt,
                 string.Empty,
-                Exception: ex);
+                Exception: buyerAddressResult.Ex);
         }
 
         var tokenMintValues = nfts.Select(n => new Value($"{saleContext.Collection.PolicyId}.{n.AssetName}", 1)).ToArray();
-        var txBuildOutputs = GetTxBuildOutputs(saleContext.Sale, purchaseAttempt, buyerAddress, tokenMintValues);
+        var txBuildOutputs = GetTxBuildOutputs(saleContext.Sale, purchaseAttempt, buyerAddressResult.Address, tokenMintValues);
         var policyScriptPath = Path.Combine(_settings.BasePath, $"{saleContext.Collection.PolicyId}.policy.script");
         var metadataJsonPath = Path.Combine(_settings.BasePath, $"metadata-mint-{purchaseAttempt.Utxo}.json");
         await _metadataGenerator.GenerateNftStandardMetadataJsonFile(nfts, saleContext.Collection, metadataJsonPath, ct).ConfigureAwait(false);
@@ -97,47 +90,24 @@ public class NiftyDistributor : INiftyDistributor
             await File.WriteAllTextAsync(utxoPurchasePath, JsonSerializer.Serialize(txBuildCommand), ct).ConfigureAwait(false);
         }
 
-        var txSubmissionBody = Array.Empty<byte>();
-        try
+        var txRawBytesResult = await TryGetTxRawBytesAsync(txBuildCommand, nfts, saleContext, ct).ConfigureAwait(false);
+        if (txRawBytesResult.TxRawBytes == null)
         {
-            txSubmissionBody = await _txBuilder.BuildTxAsync(txBuildCommand, ct).ConfigureAwait(false);
-        }
-        catch (CardanoCliException ex)
-        {
-            _logger.LogError(EventIds.TxBuilderError, ex, $"Failed Tx Build {ex.Args}");
-            await _saleContextStore.ReleaseAllocationAsync(nfts, saleContext, ct).ConfigureAwait(false);
             return new NiftyDistributionResult(
                 NiftyDistributionOutcome.FailureTxBuild,
                 purchaseAttempt,
-                txBuildJson + " | " + ex.Args,
-                Exception: ex);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(EventIds.TxBuilderError, ex, "Failed Tx Build");
-            await _saleContextStore.ReleaseAllocationAsync(nfts, saleContext, ct).ConfigureAwait(false);
-            return new NiftyDistributionResult(
-                NiftyDistributionOutcome.FailureTxBuild,
-                purchaseAttempt,
-                txBuildJson,
-                Exception: ex);
+                string.Empty,
+                Exception: buyerAddressResult.Ex);
         }
 
-        var txHash = string.Empty;
-        try
+        var txHashResult = await TrySubmitTxAsync(txRawBytesResult.TxRawBytes, nfts, saleContext, ct).ConfigureAwait(false);
+        if (txHashResult.TxHash == null)
         {
-            txHash = await _txSubmitter.SubmitTxAsync(txSubmissionBody, ct).ConfigureAwait(false);
-            _logger.LogDebug($"{nameof(_txSubmitter.SubmitTxAsync)} completed with txHash:{txHash}");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(EventIds.TxSubmissionError, ex, $"Failed Tx Submission");
-            await _saleContextStore.ReleaseAllocationAsync(nfts, saleContext, ct).ConfigureAwait(false);
             return new NiftyDistributionResult(
                 NiftyDistributionOutcome.FailureTxSubmit,
                 purchaseAttempt,
                 txBuildJson,
-                Exception: ex);
+                Exception: txHashResult.Ex);
         }
 
         _instrumentor.TrackDependency(
@@ -145,7 +115,7 @@ public class NiftyDistributor : INiftyDistributor
             swTotal.ElapsedMilliseconds,
             DateTime.UtcNow,
             nameof(NiftyDistributor),
-            buyerAddress,
+            buyerAddressResult.Address,
             nameof(DistributeNiftiesForSalePurchase),
             data: txBuildJson,
             isSuccessful: true);
@@ -154,9 +124,70 @@ public class NiftyDistributor : INiftyDistributor
             NiftyDistributionOutcome.Successful, 
             purchaseAttempt,
             txBuildJson,
-            txHash,
-            buyerAddress,
+            txHashResult.TxHash,
+            buyerAddressResult.Address,
             nfts);
+    }
+
+    private async Task<(string? Address, Exception? Ex)> TryGetBuyerAddressAsync(
+        Nifty[] nfts, PurchaseAttempt purchaseAttempt, SaleContext saleContext, CancellationToken ct)
+    {
+        try
+        {
+            var txIo = await _txRetriever.GetTxInfoAsync(purchaseAttempt.Utxo.TxHash, ct).ConfigureAwait(false);
+            return (txIo.Inputs.First().Address, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(EventIds.TxInfoRetrievalError, ex, $"Failed TxInfo Restrieval");
+            await _saleContextStore.ReleaseAllocationAsync(nfts, saleContext, ct).ConfigureAwait(false);
+            return (null, ex);
+        }
+    }
+
+    private async Task<(byte[]? TxRawBytes, Exception? Ex)> TryGetTxRawBytesAsync(
+        TxBuildCommand txBuildCommand,
+        Nifty[] nfts, 
+        SaleContext saleContext, 
+        CancellationToken ct)
+    {
+        try
+        {
+            var raw = await _txBuilder.BuildTxAsync(txBuildCommand, ct).ConfigureAwait(false);
+            return (raw, null);
+        }
+        catch (CardanoCliException ex)
+        {
+            _logger.LogError(EventIds.TxBuilderError, ex, $"Failed Tx Build {ex.Args}");
+            await _saleContextStore.ReleaseAllocationAsync(nfts, saleContext, ct).ConfigureAwait(false);
+            return (null, ex);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(EventIds.TxBuilderError, ex, "Failed Tx Build");
+            await _saleContextStore.ReleaseAllocationAsync(nfts, saleContext, ct).ConfigureAwait(false);
+            return (null, ex);
+        }
+    }
+
+    private async Task<(string? TxHash, Exception? Ex)> TrySubmitTxAsync(
+        byte[] txRawBytes,
+        Nifty[] nfts,
+        SaleContext saleContext,
+        CancellationToken ct)
+    {
+        try
+        {
+            var txHash = await _txSubmitter.SubmitTxAsync(txRawBytes, ct).ConfigureAwait(false);
+            _logger.LogDebug($"{nameof(_txSubmitter.SubmitTxAsync)} completed with txHash:{txHash}");
+            return (txHash, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(EventIds.TxSubmissionError, ex, $"Failed Tx Submission");
+            await _saleContextStore.ReleaseAllocationAsync(nfts, saleContext, ct).ConfigureAwait(false);
+            return (null, ex);
+        }
     }
 
     private static Value[] GetBuyerTxOutputUtxoValues(
