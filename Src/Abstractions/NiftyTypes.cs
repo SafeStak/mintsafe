@@ -103,4 +103,18 @@ public record NiftyDistributionResult(
     Nifty[]? NiftiesDistributed = null,
     Exception? Exception = null);
 
-
+public record Mint(
+    Guid PurchaseAttemptId,
+    Guid SaleId,
+    string SaleAddress,
+    string BuyerAddress,
+    string PurchaseAttemptUtxo,
+    DateTime MintTxSubmissionAt,
+    long PriceLovelaces,
+    long CreatorCutLovelaces,
+    long MintsafeCutLovelaces,
+    bool IsMintsafeCutDistributed,
+    Guid NiftyId,
+    string PolicyId,
+    string AssetName
+);

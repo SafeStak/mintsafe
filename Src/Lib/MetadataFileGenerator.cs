@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Mintsafe.Abstractions;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -43,7 +44,12 @@ public class MetadataFileGenerator : IMetadataFileGenerator
             nameof(MetadataFileGenerator),
             outputPath,
             nameof(GenerateNftStandardMetadataJsonFile),
-            isSuccessful: true);
+            isSuccessful: true,
+            customProperties: new Dictionary<string, object>
+                {
+                    { "NftCount", nfts.Length },
+                    { "JsonLength", json.Length }
+                });
         _logger.LogDebug($"NFT Metadata JSON file generated at {outputPath} after {sw.ElapsedMilliseconds}ms");
     }
 
@@ -62,7 +68,11 @@ public class MetadataFileGenerator : IMetadataFileGenerator
             nameof(MetadataFileGenerator),
             outputPath,
             nameof(GenerateMessageMetadataJsonFile),
-            isSuccessful: true);
+            isSuccessful: true,
+            customProperties: new Dictionary<string, object>
+                {
+                    { "JsonLength", json.Length }
+                });
         _logger.LogDebug($"Message Metadata JSON file generated at {outputPath} after {sw.ElapsedMilliseconds}ms");
     }
 }
