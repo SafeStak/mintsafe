@@ -50,18 +50,19 @@ public class NiftyDistributor : INiftyDistributor
         var swTotal = Stopwatch.StartNew();
 
         // Derive buyer address after getting source UTxO details 
-        var buyerAddressResult = await TryGetBuyerAddressAsync(nfts, purchaseAttempt, saleContext, ct).ConfigureAwait(false);
-        if (buyerAddressResult.Address == null)
+        var (address, buyerAddressException) = await TryGetBuyerAddressAsync(
+            nfts, purchaseAttempt, saleContext, ct).ConfigureAwait(false);
+        if (address == null)
         { 
             return new NiftyDistributionResult(
                 NiftyDistributionOutcome.FailureTxInfo,
                 purchaseAttempt,
                 string.Empty,
-                Exception: buyerAddressResult.Ex);
+                Exception: buyerAddressException);
         }
 
         var tokenMintValues = nfts.Select(n => new Value($"{saleContext.Collection.PolicyId}.{n.AssetName}", 1)).ToArray();
-        var txBuildOutputs = GetTxBuildOutputs(saleContext.Sale, purchaseAttempt, buyerAddressResult.Address, tokenMintValues);
+        var txBuildOutputs = GetTxBuildOutputs(saleContext.Sale, purchaseAttempt, address, tokenMintValues);
         var policyScriptPath = Path.Combine(_settings.BasePath, $"{saleContext.Collection.PolicyId}.policy.script");
         var metadataJsonPath = Path.Combine(_settings.BasePath, $"metadata-mint-{purchaseAttempt.Utxo}.json");
         await _metadataGenerator.GenerateNftStandardMetadataJsonFile(nfts, saleContext.Collection, metadataJsonPath, ct).ConfigureAwait(false);
@@ -90,24 +91,27 @@ public class NiftyDistributor : INiftyDistributor
             await File.WriteAllTextAsync(utxoPurchasePath, JsonSerializer.Serialize(txBuildCommand), ct).ConfigureAwait(false);
         }
 
-        var txRawBytesResult = await TryGetTxRawBytesAsync(txBuildCommand, nfts, saleContext, ct).ConfigureAwait(false);
-        if (txRawBytesResult.TxRawBytes == null)
+        var (txRawBytes, txRawException) = await TryGetTxRawBytesAsync(
+            txBuildCommand, nfts, saleContext, ct).ConfigureAwait(false);
+        if (txRawBytes == null)
         {
             return new NiftyDistributionResult(
                 NiftyDistributionOutcome.FailureTxBuild,
                 purchaseAttempt,
                 string.Empty,
-                Exception: buyerAddressResult.Ex);
+                Exception: txRawException);
         }
 
-        var txHashResult = await TrySubmitTxAsync(txRawBytesResult.TxRawBytes, nfts, saleContext, ct).ConfigureAwait(false);
-        if (txHashResult.TxHash == null)
+        var (txHash, txSubmissionException) = await TrySubmitTxAsync(
+            txRawBytes, nfts, saleContext, ct).ConfigureAwait(false);
+        if (txHash == null)
         {
+            // TODO: Record a mint in our table storage (see NiftyTypes)
             return new NiftyDistributionResult(
                 NiftyDistributionOutcome.FailureTxSubmit,
                 purchaseAttempt,
                 txBuildJson,
-                Exception: txHashResult.Ex);
+                Exception: txSubmissionException);
         }
 
         _instrumentor.TrackDependency(
@@ -115,7 +119,7 @@ public class NiftyDistributor : INiftyDistributor
             swTotal.ElapsedMilliseconds,
             DateTime.UtcNow,
             nameof(NiftyDistributor),
-            buyerAddressResult.Address,
+            address,
             nameof(DistributeNiftiesForSalePurchase),
             data: txBuildJson,
             isSuccessful: true);
@@ -124,8 +128,8 @@ public class NiftyDistributor : INiftyDistributor
             NiftyDistributionOutcome.Successful, 
             purchaseAttempt,
             txBuildJson,
-            txHashResult.TxHash,
-            buyerAddressResult.Address,
+            txHash,
+            address,
             nfts);
     }
 
