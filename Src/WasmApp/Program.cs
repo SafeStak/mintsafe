@@ -26,6 +26,6 @@ if (address == null)
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(address) });
 
 builder.Services.AddScoped<IAddressUtxoService, AddressUtxoService>();
-builder.Services.AddScoped<IYoloPaymentService, YoloPaymentService>();
+//builder.Services.AddScoped<IYoloPaymentService, SimplePaymentService>();
 
 await builder.Build().RunAsync();

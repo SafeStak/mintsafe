@@ -19,7 +19,7 @@ namespace Mintsafe.WebApi.Controllers
         }
 
         [HttpGet("{collectionId}")]
-        public async Task<CollectionAggregate> Get(Guid collectionId, CancellationToken ct)
+        public async Task<CollectionAggregate?> Get(Guid collectionId, CancellationToken ct)
         {
             var collectionAggregate = await _dataService.GetCollectionAggregateAsync(collectionId, ct);
 
@@ -32,14 +32,14 @@ namespace Mintsafe.WebApi.Controllers
             var collectionId = Guid.NewGuid();
 
             var niftyCollection = new NiftyCollection(collectionId, "a", "name", "desc", true, "", new[] { "a", "b" },
-                DateTime.UtcNow, DateTime.UtcNow, 5);
+                DateTime.UtcNow, DateTime.UtcNow, 5, new Royalty(5, "lol"));
 
             var niftyId = Guid.NewGuid();
 
             var niftyFile = new NiftyFile(Guid.NewGuid(), niftyId, "file1.file", "image/jpeg", "http://url.com", "hash");
 
             var nifty = new Nifty(niftyId, collectionId, true, "file.jpg", "file", "desc", new[] { "a", "b" },
-                "http://", "img", new []{ niftyFile }, DateTime.UtcNow, new Royalty(5, "lol"), "v1",
+                "http://", "img", new []{ niftyFile }, DateTime.UtcNow, "v1",
                 new KeyValuePair<string, string>[]
                 {
                     new("a", "b"),

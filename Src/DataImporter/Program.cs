@@ -49,7 +49,7 @@ async void BuildModelsAndInsertAsync(
     IServiceProvider services, 
     NiftyCollection niftyCollection, 
     Sale sale, 
-    IList<JsonNode> niftyJson)
+    IList<JsonNode?> niftyJson)
 {
     using IServiceScope serviceScope = services.CreateScope();
     IServiceProvider provider = serviceScope.ServiceProvider;
@@ -68,7 +68,7 @@ async void BuildModelsAndInsertAsync(
             attributesJsonObjectsArray
                 .Select(x => new KeyValuePair<string, string>((string) x["key"], (string) x["value"])).ToArray();
         var creators = ((JsonArray)jsonObject["creators"]).Cast<JsonValue>()
-            .Select(jv => (string)jv)
+            .Select(jv => (string)jv ?? string.Empty)
             .ToArray();
 
         var nifty = new Nifty(
@@ -83,7 +83,6 @@ async void BuildModelsAndInsertAsync(
             MediaType: "image/png",
             Files: Array.Empty<NiftyFile>(),
             CreatedAt: DateTimeOffset.FromUnixTimeMilliseconds((long)jsonObject["date"]).UtcDateTime,
-            Royalty: new Royalty(0, ""), 
             Version: (string)jsonObject["version"], 
             Attributes: attributes);
 
@@ -95,16 +94,16 @@ async void BuildModelsAndInsertAsync(
     await dataService.InsertCollectionAggregateAsync(aggregate, CancellationToken.None);
 }
 
-async Task<T> LoadJsonFromFileAsync<T>(string path)
+async Task<T?> LoadJsonFromFileAsync<T>(string path)
 {
-    var raw = await File.ReadAllTextAsync(path);
+    var raw = await File.ReadAllTextAsync(path).ConfigureAwait(false);
     return JsonSerializer.Deserialize<T>(raw);
 }
 
-async Task<List<JsonNode>> LoadDynamicJsonFromDirAsync(string path)
+async Task<List<JsonNode?>> LoadDynamicJsonFromDirAsync(string path)
 {
     var files = Directory.GetFiles(path);
-    var list = new List<JsonNode>();
+    var list = new List<JsonNode?>();
     foreach (var filePath in files)
     {
         var raw = await File.ReadAllTextAsync(filePath);

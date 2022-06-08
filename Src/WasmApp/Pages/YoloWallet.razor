@@ -53,7 +53,7 @@
 	[Inject]
 	private IAddressUtxoService AddressUtxoService { get; set; }
 	[Inject]
-	private IYoloPaymentService YoloPaymentService { get; set; }
+	private ISimplePaymentService SimplePaymentService { get; set; }
 
 	private Utxo[]? Utxos { get; set; }
 
@@ -101,16 +101,16 @@
 			throw new ArgumentNullException(nameof(Quantity));
 		}
 
-		var payment = new YoloPayment
-			{
-				DestinationAddress = DestinationAddress,
-				SourceAddress = SourceAddress,
-				Message = new[] { Message },
-				SigningKeyCborHex = SigningKeyCborHex,
-				Values = new[] { new Value(Unit, Quantity.Value) } 
-			};
+		//var payment = new YoloPayment
+		//	{
+		//		DestinationAddress = DestinationAddress,
+		//		SourceAddress = SourceAddress,
+		//		Message = new[] { Message },
+		//		SigningKeyCborHex = SigningKeyCborHex,
+		//		Values = new[] { new Value(Unit, Quantity.Value) } 
+		//	};
 
-		var txId = await YoloPaymentService.MakePaymentAsync(payment);
+		//var txId = await SimplePaymentService.MakePaymentAsync(payment);
 	}
 
 }

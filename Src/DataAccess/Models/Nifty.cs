@@ -7,13 +7,13 @@ namespace Mintsafe.DataAccess.Models
 {
     public class Nifty : ITableEntity
     {
-        public string PartitionKey { get; set; }
-        public string RowKey { get; set; }
+        public string? PartitionKey { get; set; }
+        public string? RowKey { get; set; }
 
         public bool IsMintable { get; set; }
-        public string AssetName { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
+        public string? AssetName { get; set; }
+        public string? Name { get; set; }
+        public string? Description { get; set; }
 
         [IgnoreDataMember]
         public string[]? Creators { get; set; }
@@ -24,15 +24,13 @@ namespace Mintsafe.DataAccess.Models
             set => Creators = value?.Split(',');
         }
 
-        public string Image { get; set; }
-        public string MediaType { get; set; }
+        public string? Image { get; set; }
+        public string? MediaType { get; set; }
         public DateTime CreatedAt { get; set; }
-        public string Version { get; set; }
-        public double RoyaltyPortion { get; set; }
-        public string RoyaltyAddress { get; set; }
+        public string? Version { get; set; }
 
         [IgnoreDataMember]
-        public IEnumerable<KeyValuePair<string, string>> Attributes { get; set; }
+        public IEnumerable<KeyValuePair<string, string>>? Attributes { get; set; }
 
         public string AttributesAsString
         {

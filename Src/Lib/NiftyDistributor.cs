@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -61,7 +62,7 @@ public class NiftyDistributor : INiftyDistributor
                 Exception: buyerAddressException);
         }
 
-        var tokenMintValues = nfts.Select(n => new Value($"{saleContext.Collection.PolicyId}.{n.AssetName}", 1)).ToArray();
+        var tokenMintValues = nfts.Select(n => new Value($"{saleContext.Collection.PolicyId}.{Convert.ToHexString(Encoding.UTF8.GetBytes(n.AssetName))}", 1)).ToArray();
         var txBuildOutputs = GetTxBuildOutputs(saleContext.Sale, purchaseAttempt, address, tokenMintValues);
         var policyScriptPath = Path.Combine(_settings.BasePath, $"{saleContext.Collection.PolicyId}.policy.script");
         var metadataJsonPath = Path.Combine(_settings.BasePath, $"metadata-mint-{purchaseAttempt.Utxo}.json");

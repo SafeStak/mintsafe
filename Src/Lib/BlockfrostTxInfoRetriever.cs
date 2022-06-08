@@ -8,9 +8,9 @@ namespace Mintsafe.Lib;
 
 public class BlockfrostTxInfoRetriever : ITxInfoRetriever
 {
-    private readonly BlockfrostClient _blockFrostClient;
+    private readonly IBlockfrostClient _blockFrostClient;
 
-    public BlockfrostTxInfoRetriever(BlockfrostClient blockFrostClient)
+    public BlockfrostTxInfoRetriever(IBlockfrostClient blockFrostClient)
     {
         _blockFrostClient = blockFrostClient;
     }

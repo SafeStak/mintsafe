@@ -29,11 +29,12 @@ public static class FakeGenerator
             Name: "GREATARTIST",
             Description: "Top secret artist",
             IsActive: true,
-            Publishers: new[] { "topsecret", "mintsafe.io" },
             BrandImage: "ipfs://cid",
+            Publishers: new[] { "mintsafe.io" },
             CreatedAt: new DateTime(2021, 9, 4, 0, 0, 0, DateTimeKind.Utc),
             LockedAt: new DateTime(2022, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-            SlotExpiry: 44674366);
+            SlotExpiry: 44674366,
+            Royalty: new Royalty(0, String.Empty));
     }
 
     public static List<Nifty> GenerateTokens(int mintableTokenCount)
@@ -51,7 +52,29 @@ public static class FakeGenerator
                 "image/png",
                 Array.Empty<NiftyFile>(),
                 DateTime.UtcNow,
-                new Royalty(0, string.Empty),
+                "1.0",
+                Array.Empty<KeyValuePair<string, string>>()))
+            .ToList();
+    }
+
+    public static List<Nifty> GenerateOnChainTokens(
+        int mintableTokenCount, string onChainImageSrc, string onChainFileSrc)
+    {
+        return Enumerable.Range(0, mintableTokenCount)
+            .Select(i => new Nifty(
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                true,
+                $"Token{i}",
+                $"Token {i}",
+                $"Token {i} Description",
+                new[] { "mintsafe.io" },
+                onChainImageSrc,
+                "image/png",
+                string.IsNullOrEmpty(onChainFileSrc) 
+                    ? Array.Empty<NiftyFile>()
+                    : new[] { new NiftyFile(Guid.NewGuid(), Guid.NewGuid(), "File", "image/jpg", onChainFileSrc) },
+                DateTime.UtcNow,
                 "1.0",
                 Array.Empty<KeyValuePair<string, string>>()))
             .ToList();

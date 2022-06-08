@@ -4,6 +4,7 @@ using Mintsafe.Abstractions;
 using Moq;
 using System;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -258,7 +259,7 @@ public class NiftyDistributorShould
         var buyerOutputLovelace = buyerOutput.Values.First(v => v.Unit == Assets.LovelaceUnit).Quantity;
 
         var minUtxoLovelaceQuantity = TxUtils.CalculateMinUtxoLovelace(buyerOutput.Values);
-        var expectedNiftyAssetNames = nifties.Select(n => $"{policyId}.{n.AssetName}").ToArray();
+        var expectedNiftyAssetNames = nifties.Select(n => $"{policyId}.{Convert.ToHexString(Encoding.UTF8.GetBytes(n.AssetName))}").ToArray();
         var allSingleNiftyOutputs = buyerOutput.Values
             .Where(v => v.Unit != Assets.LovelaceUnit)
             .All(v => expectedNiftyAssetNames.Contains(v.Unit) && v.Quantity == 1);
@@ -309,7 +310,7 @@ public class NiftyDistributorShould
         Nifty[] nifties,
         string policyId)
     {
-        var expectedNiftyAssetNames = nifties.Select(n => $"{policyId}.{n.AssetName}").ToArray();
+        var expectedNiftyAssetNames = nifties.Select(n => $"{policyId}.{Convert.ToHexString(Encoding.UTF8.GetBytes(n.AssetName))}").ToArray();
         var allSingleNiftyMints = buildCommand.Mint
             .All(v => expectedNiftyAssetNames.Contains(v.Unit) && v.Quantity == 1);
 

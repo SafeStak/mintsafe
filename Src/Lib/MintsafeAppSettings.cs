@@ -13,4 +13,3 @@ public record MintsafeAppSettings
     public string? AppInsightsInstrumentationKey { get; init; }
     public Guid CollectionId { get; init; }
 }
-

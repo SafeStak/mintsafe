@@ -66,7 +66,7 @@ namespace Mintsafe.DataAccess.UnitTests.Repositories
 
 
         [Fact]
-        public async Task Call_AddEntityAsync__When_InsertOneAsync_Is_Called()
+        public async Task Call_AddEntityAsync_When_InsertOneAsync_Is_Called()
         {
 
             var fixture = new Fixture().Build<Nifty>().Without(x => x.AttributesAsString).Without(x => x.CreatorsAsString);

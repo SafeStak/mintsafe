@@ -18,7 +18,8 @@ public record NiftyCollection(
     string[] Publishers,
     DateTime CreatedAt,
     DateTime LockedAt,
-    long SlotExpiry);
+    long SlotExpiry,
+    Royalty Royalty);
 
 public record Nifty(
     Guid Id,
@@ -26,14 +27,13 @@ public record Nifty(
     bool IsMintable,
     string AssetName,
     string Name,
-    string Description,
+    string? Description,
     string[] Creators,
-    string Image,
-    string MediaType,
+    string? Image,
+    string? MediaType,
     NiftyFile[] Files,
     DateTime CreatedAt,
-    Royalty Royalty,
-    string Version,
+    string? Version,
     KeyValuePair<string, string>[] Attributes);
 
 public record NiftyFile(
@@ -118,3 +118,13 @@ public record Mint(
     string PolicyId,
     string AssetName
 );
+
+public record MintMessage(
+    Guid MessageId,
+    string FromAddress,
+    string[] ToAddresses,
+    string[] CcAddresses,
+    string MessageTitle,
+    string MessageBody,
+    DateTime MessageSentAt,
+    string PolicyId);

@@ -5,12 +5,12 @@ namespace Mintsafe.DataAccess.Composers
 {
     public interface ICollectionAggregateComposer
     {
-        CollectionAggregate Build(Models.NiftyCollection? collection, IEnumerable<Models.Nifty> nifties, IEnumerable<Models.Sale> sales, IEnumerable<Models.NiftyFile> niftyFiles);
+        CollectionAggregate Build(Models.NiftyCollection collection, IEnumerable<Models.Nifty> nifties, IEnumerable<Models.Sale> sales, IEnumerable<Models.NiftyFile> niftyFiles);
     }
 
     public class CollectionAggregateComposer : ICollectionAggregateComposer
     {
-        public CollectionAggregate Build(Models.NiftyCollection? collection, IEnumerable<Models.Nifty> nifties, IEnumerable<Models.Sale> sales, IEnumerable<Models.NiftyFile> niftyFiles)
+        public CollectionAggregate Build(Models.NiftyCollection collection, IEnumerable<Models.Nifty> nifties, IEnumerable<Models.Sale> sales, IEnumerable<Models.NiftyFile> niftyFiles)
         {
             var activeSales = sales.Where(IsSaleOpen).ToArray();
             var hydratedNifties = HydrateNifties(nifties, niftyFiles);
@@ -28,7 +28,7 @@ namespace Mintsafe.DataAccess.Composers
                 && (!sale.End.HasValue || (sale.End.HasValue && sale.End > DateTime.UtcNow));
         }
 
-        private Nifty[] HydrateNifties(IEnumerable<Models.Nifty> nifties, IEnumerable<Models.NiftyFile> allFiles)
+        private static Nifty[] HydrateNifties(IEnumerable<Models.Nifty> nifties, IEnumerable<Models.NiftyFile> allFiles)
         {
             var returnNifties = new List<Nifty>();
             foreach (var nifty in nifties)

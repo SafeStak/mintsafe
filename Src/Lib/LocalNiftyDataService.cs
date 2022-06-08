@@ -26,12 +26,13 @@ public class LocalNiftyDataService : INiftyDataService
             IsActive: true,
             Publishers: new[] { "cryptoquokkas.com", "mintsafe.io" },
             BrandImage: "",
-            CreatedAt: new DateTime(2021, 9, 4, 0, 0, 0, DateTimeKind.Utc),
-            LockedAt: new DateTime(2022, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-            SlotExpiry: 49027186); // testnet christmas 
+            CreatedAt: new DateTime(2022, 1, 28, 0, 0, 0, DateTimeKind.Utc),
+            LockedAt: new DateTime(2022, 12, 1, 0, 0, 0, DateTimeKind.Utc),
+            SlotExpiry: 74686216,
+            Royalty: new Royalty(0, string.Empty)); // testnet christmas 
 
         var tokens = GenerateTokens(
-            3000,
+            100,
             FakeCollectionId);
 
         var sale = new Sale(
@@ -39,16 +40,16 @@ public class LocalNiftyDataService : INiftyDataService
             CollectionId: fakeCollectionId,
             IsActive: true,
             Name: "Launch #1",
-            Description: "Limited 300 item launch",
-            LovelacesPerToken: 6000000,
-            Start: new DateTime(2021, 9, 4, 0, 0, 0, DateTimeKind.Utc),
-            End: new DateTime(2021, 12, 14, 0, 0, 0, DateTimeKind.Utc),
+            Description: "Limited 40 item launch",
+            LovelacesPerToken: 45000000,
+            Start: new DateTime(2022, 4, 1, 0, 0, 0, DateTimeKind.Utc),
+            End: new DateTime(2022, 12, 14, 0, 0, 0, DateTimeKind.Utc),
             SaleAddress: "addr_test1vqgh0dutf08aynjcvhwa8jeaclpxs29fpjtsunlw2056pycjut5w7",
             CreatorAddress: "addr_test1vp92pf7y6mk9qgqs2474mxvjh9u3e5h885v6hy8c8qp3wdcddsldj",
             ProceedsAddress: "addr_test1vp92pf7y6mk9qgqs2474mxvjh9u3e5h885v6hy8c8qp3wdcddsldj",
             PostPurchaseMargin: 0.1m,
-            TotalReleaseQuantity: 300,
-            MaxAllowedPurchaseQuantity: 3);
+            TotalReleaseQuantity: 45,
+            MaxAllowedPurchaseQuantity: 1);
 
         var activeSales = collection.IsActive && IsSaleOpen(sale) ? new[] { sale } : Array.Empty<Sale>();
 
@@ -79,8 +80,6 @@ public class LocalNiftyDataService : INiftyDataService
         string urlBase = "ipfs://QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6",
         string mediaType = "image/png",
         string createdAtIso8601 = "2021-01-01T19:30:00Z",
-        double royaltyPortion = 0,
-        string royaltyAddress = "",
         string version = "1",
         string attributeKey = "size",
         string attributeValue = "full")
@@ -122,7 +121,6 @@ public class LocalNiftyDataService : INiftyDataService
                         new(Guid.NewGuid(), niftyId, "specs_pdf", "application/pdf", $"{urlBase}{i + 1}")
                     },
                     dateTimeParsed.AddDays(i),
-                    new Royalty(royaltyPortion, royaltyAddress),
                     version,
                     GetAttributesForIndex(i).ToArray());
             })

@@ -24,6 +24,7 @@ namespace Mintsafe.DataAccess.UnitTests.Mappers
                 Description = "Description",
                 LovelacesPerToken = 1,
                 SaleAddress = "SaleAddress",
+                CreatorAddress = "CreatorAddress",
                 ProceedsAddress = "ProceedsAddress",
                 TotalReleaseQuantity = 5,
                 MaxAllowedPurchaseQuantity = 2,
@@ -52,7 +53,7 @@ namespace Mintsafe.DataAccess.UnitTests.Mappers
         {
             var rowKey = Guid.NewGuid();
             var partitionKey = Guid.NewGuid();
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
 
             var sale = new Abstractions.Sale(
                 rowKey,

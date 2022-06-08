@@ -110,11 +110,11 @@ public class FakeUtxoRetriever : IUtxoRetriever
 {
     public async Task<Utxo[]> GetUtxosAtAddressAsync(string address, CancellationToken ct = default)
     {
-        await Task.Delay(1000, ct);
+        await Task.Delay(1000, ct).ConfigureAwait(false);
         return GenerateUtxos(3,
-            15000000,
-            10000000,
-            30000000);
+            45_000000,
+            10_000000,
+            60_000000);
     }
 
     private static Utxo[] GenerateUtxos(int count, params long[] values)

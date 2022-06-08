@@ -55,7 +55,7 @@ builder.Services.AddSingleton<IMetadataJsonBuilder, MetadataJsonBuilder>();
 builder.Services.AddSingleton<INiftyDistributor, NiftyDistributor>();
 builder.Services.AddSingleton<IUtxoRefunder, UtxoRefunder>();
 builder.Services.AddSingleton<ISaleAllocationStore, SaleAllocationFileStore>();
-builder.Services.AddSingleton<IYoloWalletService, YoloWalletService>();
+builder.Services.AddSingleton<ISimpleWalletService, SimpleWalletService>();
 
 // Data Access
 builder.Services.AddSingleton<INiftyDataService, TableStorageDataService>();

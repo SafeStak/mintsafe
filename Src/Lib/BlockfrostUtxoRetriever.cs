@@ -10,12 +10,11 @@ namespace Mintsafe.Lib;
 public class BlockfrostUtxoRetriever : IUtxoRetriever
 {
     private readonly ILogger<BlockfrostUtxoRetriever> _logger;
-    private readonly BlockfrostClient _blockFrostClient;
+    private readonly IBlockfrostClient _blockFrostClient;
     
-
     public BlockfrostUtxoRetriever(
         ILogger<BlockfrostUtxoRetriever> logger,
-        BlockfrostClient blockFrostClient)
+        IBlockfrostClient blockFrostClient)
     {
         _logger = logger;
         _blockFrostClient = blockFrostClient;
@@ -45,9 +44,14 @@ public class BlockfrostUtxoRetriever : IUtxoRetriever
         {
             if (bfVal.Quantity == null) 
                 throw new BlockfrostResponseException("Blockfrost response has null amount.quantity", 0);
+            if (bfVal.Unit == null)
+                throw new BlockfrostResponseException("Blockfrost response has null amount.unit", 0);
 
+            // Add a dividing '.' for cardano-cli compatibility
+            var unit = bfVal.Unit == Assets.LovelaceUnit 
+                ? Assets.LovelaceUnit : bfVal.Unit.Insert(56, ".");
             return new Value(
-                bfVal.Unit ?? throw new BlockfrostResponseException("Blockfrost response has null amount.unit", 0),
+                unit,
                 long.Parse(bfVal.Quantity));
         }
 

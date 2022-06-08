@@ -19,14 +19,18 @@ namespace Mintsafe.DataAccess.Mappers
                 MediaType = nifty.MediaType,
                 CreatedAt = nifty.CreatedAt.ToUniversalTime(),
                 Version = nifty.Version,
-                RoyaltyAddress = nifty.Royalty.Address,
-                RoyaltyPortion = nifty.Royalty.PortionOfSale,
                 Attributes = nifty.Attributes
             };
         }
 
         public static Nifty Map(Models.Nifty dtoNifty, IEnumerable<Models.NiftyFile> niftyFiles)
         {
+            if (dtoNifty == null) throw new ArgumentNullException(nameof(dtoNifty));
+            if (dtoNifty.AssetName == null) throw new ArgumentNullException(nameof(dtoNifty.AssetName));
+            if (dtoNifty.Name == null) throw new ArgumentNullException(nameof(dtoNifty.Name));
+            if (dtoNifty.RowKey == null) throw new ArgumentNullException(nameof(dtoNifty.RowKey));
+            if (dtoNifty.PartitionKey == null) throw new ArgumentNullException(nameof(dtoNifty.PartitionKey));
+
             return new Nifty(
                 Guid.Parse(dtoNifty.RowKey),
                 Guid.Parse(dtoNifty.PartitionKey),
@@ -34,14 +38,14 @@ namespace Mintsafe.DataAccess.Mappers
                 dtoNifty.AssetName,
                 dtoNifty.Name,
                 dtoNifty.Description,
-                dtoNifty.Creators,
+                dtoNifty.Creators ?? Array.Empty<string>(),
                 dtoNifty.Image,
                 dtoNifty.MediaType,
                 niftyFiles.Select(NiftyFileMapper.Map).ToArray(),
                 dtoNifty.CreatedAt,
-                new Royalty(dtoNifty.RoyaltyPortion, dtoNifty.RoyaltyAddress),
                 dtoNifty.Version,
-                dtoNifty.Attributes.ToArray()
+                dtoNifty.Attributes == null 
+                    ? Array.Empty<KeyValuePair<string,string>>() : dtoNifty.Attributes.ToArray()
                 );
         }
     }
