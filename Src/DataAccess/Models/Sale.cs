@@ -11,7 +11,7 @@ namespace Mintsafe.DataAccess.Models
         public bool IsActive { get; set; }
         public string? Name { get; set; }
         public string? Description { get; set; }
-        public long LovelacesPerToken { get; set; }
+        public ulong LovelacesPerToken { get; set; }
         public string? SaleAddress { get; set; }
         public string? CreatorAddress { get; set; }
         public string? ProceedsAddress { get; set; }

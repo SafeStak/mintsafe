@@ -1,8 +1,7 @@
-﻿using System;
+﻿using Mintsafe.Abstractions;
+using System;
 
 namespace Mintsafe.Lib;
-
-public enum Network { Mainnet, Testnet }
 
 public record MintsafeAppSettings
 {
@@ -12,4 +11,5 @@ public record MintsafeAppSettings
     public string? BlockFrostApiKey { get; init; }
     public string? AppInsightsInstrumentationKey { get; init; }
     public Guid CollectionId { get; init; }
+    public string? KeyVaultUrl { get; init; }
 }

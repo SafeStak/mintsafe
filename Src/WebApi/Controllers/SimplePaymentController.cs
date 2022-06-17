@@ -1,9 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Mintsafe.Abstractions;
 using Mintsafe.Lib;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Mintsafe.WebApi.Controllers
 {

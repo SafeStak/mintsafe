@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Text;
+﻿using System.Threading.Tasks;
 using Mintsafe.Abstractions;
 using Moq;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -24,11 +20,11 @@ namespace Mintsafe.Lib.UnitTests
         }
 
         [Theory]
-        [InlineData("d29bbb14dbe448eda8156f5439335ce6c800f39f4812dfc6f8293274871d6e52", 0, "540f107c7a3df20d2111a41c3bc407cce3e63c10c8dd673d51a02c22434f4e4431", "1", "2172289",
-            "540f107c7a3df20d2111a41c3bc407cce3e63c10c8dd673d51a02c22.434f4e4431", 1, 2172289)]
+        [InlineData("d29bbb14dbe448eda8156f5439335ce6c800f39f4812dfc6f8293274871d6e52", 0U, "540f107c7a3df20d2111a41c3bc407cce3e63c10c8dd673d51a02c22434f4e4431", "1", "2172289",
+            "540f107c7a3df20d2111a41c3bc407cce3e63c10c8dd673d51a02c22", "434f4e4431", 1, 2172289)]
         public async Task Should_Map_Utxo_Values_Correctly(
-            string bfTxHash, int bfOutputIndex, string bfNativeAssetUnit, string bfNativeAssetQuantity, string bfLovelaceQuantity,
-            string expectedNativeAssetUnit, long expectedNativeAssetQuantity, long expectedLovelaceQuantity)
+            string bfTxHash, uint bfOutputIndex, string bfNativeAssetUnit, string bfNativeAssetQuantity, string bfLovelaceQuantity,
+            string expectedNativeAssetPolicyId, string expectedNativeAssetName, ulong expectedNativeAssetQuantity, ulong expectedLovelaceQuantity)
         {
             _mockBlockfrostClient.Setup(m => m.GetUtxosAtAddressAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new[] {
@@ -57,10 +53,11 @@ namespace Mintsafe.Lib.UnitTests
             Assert.NotNull(utxos);
             utxos.Length.Should().Be(1);
             var utxo = utxos[0];
-            utxo.Values[0].Unit.Should().Be("lovelace");
-            utxo.Values[0].Quantity.Should().Be(expectedLovelaceQuantity);
-            utxo.Values[1].Unit.Should().Be(expectedNativeAssetUnit);
-            utxo.Values[1].Quantity.Should().Be(expectedNativeAssetQuantity);
+            utxo.Lovelaces.Should().Be(expectedLovelaceQuantity);
+            utxo.Value.Lovelaces.Should().Be(expectedLovelaceQuantity);
+            utxo.Value.NativeAssets[0].PolicyId.Should().Be(expectedNativeAssetPolicyId);
+            utxo.Value.NativeAssets[0].AssetName.Should().Be(expectedNativeAssetName);
+            utxo.Value.NativeAssets[0].Quantity.Should().Be(expectedNativeAssetQuantity);
         }
     }
 }

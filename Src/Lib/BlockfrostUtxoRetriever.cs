@@ -20,7 +20,7 @@ public class BlockfrostUtxoRetriever : IUtxoRetriever
         _blockFrostClient = blockFrostClient;
     }
 
-    public async Task<Utxo[]> GetUtxosAtAddressAsync(string address, CancellationToken ct = default)
+    public async Task<UnspentTransactionOutput[]> GetUtxosAtAddressAsync(string address, CancellationToken ct = default)
     {
         var bfResult = Array.Empty<BlockFrostAddressUtxo>();
         try
@@ -32,36 +32,42 @@ public class BlockfrostUtxoRetriever : IUtxoRetriever
         catch (Exception ex)
         {
             _logger.LogError(EventIds.UtxoRetrievalError, ex, "Unhandled exception from the BlockfrostClient");
-            return Array.Empty<Utxo>();
+            return Array.Empty<UnspentTransactionOutput>();
         }
 
         return bfResult.Select(MapBlockFrostUtxoToUtxo).ToArray();
     }
 
-    private static Utxo MapBlockFrostUtxoToUtxo(BlockFrostAddressUtxo bfUtxo)
+    private static UnspentTransactionOutput MapBlockFrostUtxoToUtxo(BlockFrostAddressUtxo bfUtxo)
     {
-        static Value MapValueFromAmount(BlockFrostValue bfVal)
-        {
-            if (bfVal.Quantity == null) 
-                throw new BlockfrostResponseException("Blockfrost response has null amount.quantity", 0);
-            if (bfVal.Unit == null)
-                throw new BlockfrostResponseException("Blockfrost response has null amount.unit", 0);
-
-            // Add a dividing '.' for cardano-cli compatibility
-            var unit = bfVal.Unit == Assets.LovelaceUnit 
-                ? Assets.LovelaceUnit : bfVal.Unit.Insert(56, ".");
-            return new Value(
-                unit,
-                long.Parse(bfVal.Quantity));
-        }
-
+        if (bfUtxo.Tx_hash == null)
+            throw new BlockfrostResponseException("Blockfrost response has null txhash", 0);
         if (bfUtxo.Amount == null) 
             throw new BlockfrostResponseException("Blockfrost response has null amount", 0);
 
-        return new Utxo(
-            bfUtxo.Tx_hash ?? throw new BlockfrostResponseException("Blockfrost response has null tx_hash", 0),
-            bfUtxo.Output_index,
-            bfUtxo.Amount
-                .Select(MapValueFromAmount).ToArray());
+        var lovelaces = 0UL;
+        var index = 0;
+        var nativeAssets = new NativeAssetValue[bfUtxo.Amount.Length - 1];
+        foreach (var val in bfUtxo.Amount)
+        {
+            if (val.Unit == null)
+                throw new BlockfrostResponseException("Blockfrost response has null unit", 0);
+            if (val.Quantity == null)
+                throw new BlockfrostResponseException("Blockfrost response has null quantity", 0);
+            if (val.Unit == Assets.LovelaceUnit)
+            {
+                lovelaces = ulong.Parse(val.Quantity);
+                continue;
+            }
+            var policyId = val.Unit[..56];
+            var assetName = val.Unit[56..];
+            nativeAssets[index++] = new NativeAssetValue(policyId, assetName, ulong.Parse(val.Quantity));
+        }
+        var aggValue = new AggregateValue(lovelaces, nativeAssets);
+
+        return new UnspentTransactionOutput(
+            bfUtxo.Tx_hash,
+            (uint)bfUtxo.Output_index,
+            aggValue);
     }
 }

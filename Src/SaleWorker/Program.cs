@@ -1,15 +1,9 @@
 using Microsoft.ApplicationInsights.WorkerService;
-using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Mintsafe.Abstractions;
-using Mintsafe.DataAccess;
-using Mintsafe.DataAccess.Composers;
-using Mintsafe.DataAccess.Extensions;
-using Mintsafe.DataAccess.Repositories;
-using Mintsafe.DataAccess.Supporting;
 using Mintsafe.Lib;
 using Mintsafe.SaleWorker;
 using System;
@@ -54,7 +48,13 @@ IHost host = Host.CreateDefaultBuilder(args)
             .GetSection("BlockfrostApi")
             .Get<BlockfrostApiConfig>();
         if (blockfrostApiConfig.BaseUrl == null)
-            throw new MintSafeConfigException("BaseUrl is missing in BlockfrostApiConfig", "MintsafeWorker.BlockfrostApiConfig");
+            throw new MintSafeConfigException("BaseUrl is missing in BlockfrostApiConfig", "MintsafeWorker.BlockfrostApi");
+
+        var keychainConfig = hostContext.Configuration
+            .GetSection("Keychain")
+            .Get<KeychainConfig>();
+        if (string.IsNullOrWhiteSpace(keychainConfig.KeyVaultUrl))
+            throw new MintSafeConfigException("KeyVaultUrl is missing in KeychainConfig", "MintsafeWorker.Keychain.KeyVaultUrl");
 
         var mintsafeWorkerConfig = hostContext.Configuration
             .GetSection("MintsafeWorker")
@@ -67,7 +67,8 @@ IHost host = Host.CreateDefaultBuilder(args)
             BlockFrostApiKey = blockfrostApiConfig.ApiKey,
             BasePath = mintsafeWorkerConfig.MintBasePath,
             PollingIntervalSeconds = mintsafeWorkerConfig.PollingIntervalSeconds.HasValue ? mintsafeWorkerConfig.PollingIntervalSeconds.Value : 10,
-            CollectionId = Guid.Parse(mintsafeWorkerConfig.CollectionId)
+            CollectionId = Guid.Parse(mintsafeWorkerConfig.CollectionId),
+            KeyVaultUrl = keychainConfig.KeyVaultUrl
         };
         services.AddSingleton(settings);
 
@@ -101,24 +102,27 @@ IHost host = Host.CreateDefaultBuilder(args)
         services.AddSingleton<INiftyAllocator, NiftyAllocator>();
         services.AddSingleton<IMetadataFileGenerator, MetadataFileGenerator>();
         services.AddSingleton<IMetadataJsonBuilder, MetadataJsonBuilder>();
-        services.AddSingleton<INiftyDistributor, NiftyDistributor>();
+        services.AddSingleton<INiftyDistributor, CardanoSharpNiftyDistributor>();
         services.AddSingleton<IUtxoRefunder, UtxoRefunder>();
         services.AddSingleton<ISaleAllocationStore, SaleAllocationFileStore>();
 
         // Fakes
-        services.AddSingleton<INiftyDataService, LocalNiftyDataService>();
-        services.AddSingleton<IUtxoRetriever, FakeUtxoRetriever>();
-        services.AddSingleton<ITxInfoRetriever, FakeTxIoRetriever>();
-        services.AddSingleton<ITxBuilder, FakeTxBuilder>();
-        services.AddSingleton<ITxSubmitter, FakeTxSubmitter>();
+        services.AddSingleton<INiftyDataService, TacfDataService>();
+        services.AddSingleton<IMintingKeychainRetriever, KeyVaultMintingKeychainRetriever>();
+        //services.AddSingleton<IUtxoRetriever, FakeUtxoRetriever>();
+        //services.AddSingleton<ITxInfoRetriever, FakeTxIoRetriever>();
+        //services.AddSingleton<ITxBuilder, FakeTxBuilder>();
+        //services.AddSingleton<ITxSubmitter, FakeTxSubmitter>();
 
         //// Reals
-        //services.AddSingleton<IBlockfrostClient, BlockfrostClient>();
+        services.AddSingleton<INetworkContextRetriever, BlockfrostNetworkContextRetriever>();
+        services.AddSingleton<IBlockfrostClient, BlockfrostClient>();
         //services.AddSingleton<IUtxoRetriever, CardanoCliUtxoRetriever>();
-        //services.AddSingleton<IUtxoRetriever, BlockfrostUtxoRetriever>();
-        //services.AddSingleton<ITxInfoRetriever, BlockfrostTxInfoRetriever>();
+        services.AddSingleton<IUtxoRetriever, BlockfrostUtxoRetriever>();
+        services.AddSingleton<ITxInfoRetriever, BlockfrostTxInfoRetriever>();
+        services.AddSingleton<ITransactionBuilder, CardanoSharpTxBuilder>();
         //services.AddSingleton<ITxBuilder, CardanoCliTxBuilder>();
-        //services.AddSingleton<ITxSubmitter, BlockfrostTxSubmitter>();
+        services.AddSingleton<ITxSubmitter, BlockfrostTxSubmitter>();
         //services.AddSingleton<INiftyDataService, TableStorageDataService>();
         //services.AddAzureClients(clientBuilder =>
         //{

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Mintsafe.Abstractions;
 using Mintsafe.Lib;
 using Mintsafe.WasmApp;
 using Mintsafe.WasmApp.Services;

@@ -5,5 +5,5 @@ namespace Mintsafe.Abstractions;
 
 public interface IUtxoRetriever
 {
-    Task<Utxo[]> GetUtxosAtAddressAsync(string address, CancellationToken ct = default);
+    Task<UnspentTransactionOutput[]> GetUtxosAtAddressAsync(string address, CancellationToken ct = default);
 }

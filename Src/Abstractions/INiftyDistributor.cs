@@ -9,5 +9,6 @@ public interface INiftyDistributor
         Nifty[] allocatedNfts,
         PurchaseAttempt purchaseRequest,
         SaleContext saleContext,
+        NetworkContext networkContext,
         CancellationToken ct = default);
 }

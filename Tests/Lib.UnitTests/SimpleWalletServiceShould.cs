@@ -10,8 +10,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Mintsafe.Abstractions;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 using static Mintsafe.Lib.UnitTests.FakeGenerator;
@@ -23,7 +21,7 @@ public class SimpleWalletServiceShould
     private const int MessageMetadataStandardKey = 674;
     private const int NftRoyaltyMetadataStandardKey = 777;
 
-    [Fact]
+    [Fact(Skip = "Live integration test - can fail if run concurrently with other tests")]
     public async Task Submit_Transaction_Successfully_When_Consolidating_Own_Address_Utxos()
     {
         var simpleWalletService = new SimpleWalletService(NullLogger<SimpleWalletService>.Instance, NullInstrumentor.Instance);
@@ -44,7 +42,7 @@ public class SimpleWalletServiceShould
         Assert.NotNull(txId);
     }
 
-    [Fact]
+    [Fact(Skip = "Live integration test - can fail if run concurrently with other tests")]
     public async Task Submit_Transaction_Successfully_When_Making_Simple_Ada_Payment_To_One_Address()
     {
         var simpleWalletService = new SimpleWalletService(NullLogger<SimpleWalletService>.Instance, NullInstrumentor.Instance);
@@ -69,7 +67,7 @@ public class SimpleWalletServiceShould
         Assert.NotNull(txId);
     }
 
-    [Fact]
+    [Fact(Skip = "Live integration test - can fail if run concurrently with other tests")]
     public async Task Submit_Transaction_Successfully_When_Minting_Nft_Royalty_Asset()
     {
         var simpleWalletService = new SimpleWalletService(NullLogger<SimpleWalletService>.Instance, NullInstrumentor.Instance);

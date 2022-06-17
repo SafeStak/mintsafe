@@ -25,7 +25,7 @@ public class TxUtilsShould
         "91acca0a2614212d68a5ae7313c85962849994aab54e340d3a68aabb.cryptokoalas0087",
         "e8209a96a456202276f66224241a703676122d606d208fe464f2e09f.cryptowombats27699")]
     public void SubtractValues_With_No_Effect_When_Rhs_Values_Are_Empty(
-        long lovelaceQuantity, params string[] customTokenUnits)
+        ulong lovelaceQuantity, params string[] customTokenUnits)
     {
         var valuesLhs = new List<Value> { new Value(Assets.LovelaceUnit, lovelaceQuantity) };
         valuesLhs.AddRange(customTokenUnits.Select(u => new Value(u, 1)));
@@ -50,7 +50,7 @@ public class TxUtilsShould
     [InlineData(15000000, 1413762, 13586238)]
     [InlineData(14946_734549, 2299_663323, 12647071226)]
     public void SubtractValues_Correctly_When_Only_Ada_Values(
-        long lovelaceQuantityLhs, long lovelaceQuantityRhs, long expectedLovelaceValues)
+        ulong lovelaceQuantityLhs, ulong lovelaceQuantityRhs, ulong expectedLovelaceValues)
     {
         var valuesLhs = new[] { new Value(Assets.LovelaceUnit, lovelaceQuantityLhs) };
         var valuesRhs = new[] { new Value(Assets.LovelaceUnit, lovelaceQuantityRhs) };
@@ -65,7 +65,7 @@ public class TxUtilsShould
     [InlineData(761792, 43284, 718508)]
     [InlineData(9014946734549, 8822996633231, 191950101318)]
     public void SubtractValues_Correctly_When_Ada_And_Custom_Fungible_Token_Values_Are_Given(
-        long ftQuantityLhs, long ftQuantityRhs, long expectedFtQuantity)
+        ulong ftQuantityLhs, ulong ftQuantityRhs, ulong expectedFtQuantity)
     {
         var valuesLhs = new[] { 
             new Value(Assets.LovelaceUnit, 15000000),
@@ -94,7 +94,7 @@ public class TxUtilsShould
     [InlineData(821_945678, AdaOnlyUtxoLovelaces)]
     [InlineData(5197820531_945678, AdaOnlyUtxoLovelaces)]
     public void DeriveMinUtxoLovelace_Correctly_Given_All_Default_Params_When_Values_Have_Ada_Only(
-        long lovelaceValue, long expectedMinUtxo)
+        ulong lovelaceValue, ulong expectedMinUtxo)
     {
         var values = new[] { new Value(Assets.LovelaceUnit, lovelaceValue) };
 
@@ -110,7 +110,7 @@ public class TxUtilsShould
         1620654, "0a85dd1543465407852c90e66c074a3b52ea2d7c77a2346ddc20550a.cryptoroos123",
         "91acca0a2614212d68a5ae7313c85962849994aab54e340d3a68aabb.cryptopossums99999")]
     public void DeriveMinUtxoLovelace_Given_Default_Values_When_Output_Has_Multiple_NFTs_Under_Same_Policy_And_No_Data_Hash(
-        long expectedMinUtxoLovelace, params string[] customTokenUnits)
+        ulong expectedMinUtxoLovelace, params string[] customTokenUnits)
     {
         var values = new List<Value> { new Value(Assets.LovelaceUnit, 100_000000) };
         values.AddRange(customTokenUnits.Select(u => new Value(u, 1)));
@@ -127,7 +127,7 @@ public class TxUtilsShould
         1965474, "5bc031932ddb0e89b880569171da1e0e63c4c07867df8e35214e8213.cryptoemus0001",
         "7cb31677481b1112db5aaa2acdffbe624d8195d416da8b788cb51f00.cryptoquokka99999")]
     public void DeriveMinUtxoLovelace_Given_Default_Values_When_Output_Has_Multiple_NFTs_Under_Same_Policy_And_Data_Hash(
-        long expectedMinUtxoLovelace, params string[] customTokenUnits)
+        ulong expectedMinUtxoLovelace, params string[] customTokenUnits)
     {
         var values = new List<Value> { new Value(Assets.LovelaceUnit, 100_000000) };
         values.AddRange(customTokenUnits.Select(u => new Value(u, 1)));
@@ -145,7 +145,7 @@ public class TxUtilsShould
     [InlineData(
         518_919618, 10000, "7cb31677481b1112db5aaa2acdffbe624d8195d416da8b788cb51f00.cryptokoalas")]
     public void DeriveMinUtxoLovelace_Given_Default_Values_When_Output_Has_Many_NFTs_Under_Same_Policy_And_Data_Hash(
-        long expectedMinUtxoLovelace, int count, string customTokenUnitBase)
+        ulong expectedMinUtxoLovelace, int count, string customTokenUnitBase)
     {
         var values = new List<Value> { new Value(Assets.LovelaceUnit, 100_000000) };
         values.AddRange(Enumerable.Range(1, count).Select(i => new Value($"{customTokenUnitBase}i", 1)));
@@ -328,12 +328,12 @@ public class TxUtilsShould
 public record OutputValueDto
 {
     public ulong Lovelaces { get; set; }
-    public NativeAssetValueDto[] NativeAssets { get; set; }
+    public NativeAssetValueDto[]? NativeAssets { get; set; }
 }
 
 public record NativeAssetValueDto
 {
-    public string PolicyId { get; set; }
-    public string AssetNameHex { get; set; }
+    public string? PolicyId { get; set; }
+    public string? AssetNameHex { get; set; }
     public ulong Quantity { get; set; }
 }

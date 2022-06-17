@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
-using Mintsafe.Abstractions;
 using Mintsafe.DataAccess.Mappers;
 using Xunit;
 using Nifty = Mintsafe.DataAccess.Models.Nifty;
@@ -45,7 +44,7 @@ namespace Mintsafe.DataAccess.UnitTests.Mappers
                     NiftyId = niftyId.ToString(),
                     Name = "Name",
                     MediaType = "jpeg",
-                    Url = "test.com",
+                    Src = "test.com",
                     FileHash = "hash"
                 }
             };
@@ -72,7 +71,7 @@ namespace Mintsafe.DataAccess.UnitTests.Mappers
             model.Files.First().NiftyId.Should().Be(niftyId);
             model.Files.First().Name.Should().Be("Name");
             model.Files.First().MediaType.Should().Be("jpeg");
-            model.Files.First().Url.Should().Be("test.com");
+            model.Files.First().Src.Should().Be("test.com");
             model.Files.First().FileHash.Should().Be("hash");
         }
 

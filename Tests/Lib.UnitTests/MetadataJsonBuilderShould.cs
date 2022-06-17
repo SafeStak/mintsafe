@@ -1,9 +1,7 @@
 ﻿using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
-using Mintsafe.Abstractions;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text.Json;
 using Xunit;
@@ -70,7 +68,7 @@ public class MetadataJsonBuilderShould
                     throw new Exception("Files cannot be null");
                 var assetFile = asset.Files.First(f => f.Name == file.Name);
                 assetFile.Name.Should().Be(file.Name);
-                assetFile.Src.Should().Be(file.Url);
+                assetFile.Src.Should().Be(file.Src);
                 assetFile.MediaType.Should().Be(file.MediaType);
                 assetFile.Hash.Should().Be(file.FileHash);
             }
@@ -123,7 +121,7 @@ public class MetadataJsonBuilderShould
                     throw new Exception("Files cannot be null");
                 var assetFile = asset.Files.First(f => f.Name == file.Name);
                 assetFile.Name.Should().Be(file.Name);
-                assetFile.Src.Should().BeEquivalentTo(MetadataJsonBuilder.SplitStringToChunks(file.Url));
+                assetFile.Src.Should().BeEquivalentTo(MetadataJsonBuilder.SplitStringToChunks(file.Src));
                 assetFile.MediaType.Should().Be(file.MediaType);
                 assetFile.Hash.Should().Be(file.FileHash);
             }

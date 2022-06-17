@@ -98,7 +98,7 @@ namespace Mintsafe.Lib
         {
             var hasOnChainNifties = nfts.Any(
                 n => (n.Image != null && n.Image.Length > MaxMetadataStringLength)
-                || n.Files.Any(nf => nf.Url.Length > MaxMetadataStringLength));
+                || n.Files.Any(nf => nf.Src.Length > MaxMetadataStringLength));
             
             return hasOnChainNifties
                 ? GetOnChainNftStandardJson(nfts, collection)
@@ -134,7 +134,7 @@ namespace Mintsafe.Lib
                     Publishers = collection.Publishers,
                     Files = nft.Files.Length == 0 ? null // don't serialise empty arrays
                         : nft.Files.Select(
-                            f => new CnftStandardFile { Name = f.Name, MediaType = f.MediaType, Src = f.Url, Hash = f.FileHash }).ToArray(),
+                            f => new CnftStandardFile { Name = f.Name, MediaType = f.MediaType, Src = f.Src, Hash = f.FileHash }).ToArray(),
                     Attributes = nft.Attributes.Length == 0 ? null : nft.Attributes
                 };
                 nftDictionary.Add(nft.AssetName, nftAsset);
@@ -179,7 +179,7 @@ namespace Mintsafe.Lib
                     Publishers = collection.Publishers,
                     Files = nft.Files.Length == 0 ? null // don't serialise empty arrays
                         : nft.Files.Select(
-                            f => new CnftOnChainStandardFile { Name = f.Name, MediaType = f.MediaType, Src = SplitStringToChunks(f.Url), Hash = f.FileHash }).ToArray(),
+                            f => new CnftOnChainStandardFile { Name = f.Name, MediaType = f.MediaType, Src = SplitStringToChunks(f.Src), Hash = f.FileHash }).ToArray(),
                     Attributes = nft.Attributes.Length == 0 ? null : nft.Attributes
                 };
                 nftDictionary.Add(nft.AssetName, nftAsset);

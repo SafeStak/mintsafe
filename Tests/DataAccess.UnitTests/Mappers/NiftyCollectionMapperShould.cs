@@ -2,7 +2,6 @@
 using FluentAssertions;
 using Mintsafe.Abstractions;
 using Mintsafe.DataAccess.Mappers;
-using Mintsafe.DataAccess.Models;
 using Xunit;
 
 namespace Mintsafe.DataAccess.UnitTests.Mappers

@@ -31,7 +31,7 @@ public class CardanoCliUtxoRetriever : IUtxoRetriever
             : "--testnet-magic 1097911063";
     }
 
-    public async Task<Utxo[]> GetUtxosAtAddressAsync(string address, CancellationToken ct = default)
+    public async Task<UnspentTransactionOutput[]> GetUtxosAtAddressAsync(string address, CancellationToken ct = default)
     {
         var isSuccessful = false;
         var sw = Stopwatch.StartNew();
@@ -72,43 +72,45 @@ public class CardanoCliUtxoRetriever : IUtxoRetriever
         }
 
         var lines = rawUtxoResponse.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
-        var utxos = new Utxo[lines.Length - 2];
+        var utxos = new UnspentTransactionOutput[lines.Length - 2];
         var insertionIndex = 0;
         foreach (var utxoLine in lines[2..]) // skip the headers
         {
             var contentSegments = utxoLine.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            var values = ParseValues(contentSegments).ToArray();
+            var values = ParseValues(contentSegments);
 
-            utxos[insertionIndex++] = new Utxo(
+            utxos[insertionIndex++] = new UnspentTransactionOutput(
                 TxHash: contentSegments[0],
-                OutputIndex: int.Parse(contentSegments[1]),
-                Values: values);
+                OutputIndex: uint.Parse(contentSegments[1]),
+                Value: values);
 
         }
         return utxos;
     }
 
-    private static IEnumerable<Value> ParseValues(string[] utxoLineSegments)
+    private static AggregateValue ParseValues(string[] utxoLineSegments)
     {
         // Must always contain an ADA/lovelace UTXO value
-        var lovelaceValue = new Value(Assets.LovelaceUnit, long.Parse(utxoLineSegments[2]));
-        yield return lovelaceValue;
+        var lovelaceValue = ulong.Parse(utxoLineSegments[2]);
 
+        var nativeAssets = new List<NativeAssetValue>();
         var currentSegmentIndex = 4; // 4 comes frrom skipping [0]{txHash} [1]{txOutputIndex} [2]{txOutputLovelaceValue} [3]lovelace
         while (utxoLineSegments[currentSegmentIndex] == "+" && utxoLineSegments[currentSegmentIndex + 1] != "TxOutDatumNone")
         {
             //_logger.LogDebug($"FOUND {utxoLineSegments[currentSegmentIndex]} AND {utxoLineSegments[currentSegmentIndex + 1]}");
-            var quantity = long.Parse(utxoLineSegments[currentSegmentIndex + 1]);
+            var quantity = ulong.Parse(utxoLineSegments[currentSegmentIndex + 1]);
             var unit = utxoLineSegments[currentSegmentIndex + 2];
-            yield return new Value(unit, quantity);
+            var unitParts = unit.Split('.');
+            nativeAssets.Add(new NativeAssetValue(unitParts[0], unitParts[1], quantity));
             currentSegmentIndex += 3; // skip "+ {quantity} {unit}"
         }
+        return new AggregateValue(lovelaceValue, nativeAssets.ToArray());
     }
 }
 
 public class FakeUtxoRetriever : IUtxoRetriever
 {
-    public async Task<Utxo[]> GetUtxosAtAddressAsync(string address, CancellationToken ct = default)
+    public async Task<UnspentTransactionOutput[]> GetUtxosAtAddressAsync(string address, CancellationToken ct = default)
     {
         await Task.Delay(1000, ct).ConfigureAwait(false);
         return GenerateUtxos(3,
@@ -117,16 +119,16 @@ public class FakeUtxoRetriever : IUtxoRetriever
             60_000000);
     }
 
-    private static Utxo[] GenerateUtxos(int count, params long[] values)
+    private static UnspentTransactionOutput[] GenerateUtxos(int count, params ulong[] values)
     {
         if (values.Length != count)
             throw new ArgumentException($"{nameof(values)} must be the same length as count", nameof(values));
 
         return Enumerable.Range(0, count)
-            .Select(i => new Utxo(
+            .Select(i => new UnspentTransactionOutput(
                 "127745e23b81a5a5e22a409ce17ae8672b234dda7be1f09fc9e3a11906bd3a11",
-                i,
-                new[] { new Value(Assets.LovelaceUnit, values[i]) }))
+                (uint)i,
+                new AggregateValue(values[i], Array.Empty<NativeAssetValue>())))
             .ToArray();
     }
 }

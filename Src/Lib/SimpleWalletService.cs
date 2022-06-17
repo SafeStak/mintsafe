@@ -6,21 +6,15 @@ using CardanoSharp.Wallet.Extensions.Models;
 using CardanoSharp.Wallet.Extensions.Models.Transactions;
 using CardanoSharp.Wallet.Models.Addresses;
 using CardanoSharp.Wallet.Models.Keys;
-using CardanoSharp.Wallet.Models.Transactions;
-using CardanoSharp.Wallet.Models.Transactions.Scripts;
-using CardanoSharp.Wallet.Models.Transactions.TransactionWitness.Scripts;
 using CardanoSharp.Wallet.TransactionBuilding;
 using CardanoSharp.Wallet.Utilities;
 using Microsoft.Extensions.Logging;
 using Mintsafe.Abstractions;
-using PeterO.Cbor2;
 using Refit;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -157,8 +151,10 @@ public class SimpleWalletService : ISimpleWalletService
         var auxDataBuilder = AuxiliaryDataBuilder.Create;
         if (metadata != null && metadata.Any())
         {
-            var tag = metadata.Keys.First();
-            auxDataBuilder = auxDataBuilder.AddMetadata(tag, metadata[tag]);
+            foreach (var key in metadata.Keys)
+            {
+                auxDataBuilder = auxDataBuilder.AddMetadata(key, metadata[key]);
+            }
             txBuilder = txBuilder.SetAuxData(auxDataBuilder);
             _logger.LogInformation("Build Metadata {txMetadata}", auxDataBuilder);
         }
@@ -176,20 +172,140 @@ public class SimpleWalletService : ISimpleWalletService
         try
         {
             sw.Restart();
-            using var stream = new MemoryStream(txBytes);
-            var response = await txClient.Submit(stream).ConfigureAwait(false);
-            if (!response.IsSuccessStatusCode || response.Content == null)
+            //using var stream = new MemoryStream(txBytes);
+            //var response = await txClient.Submit(stream).ConfigureAwait(false);
+            //if (!response.IsSuccessStatusCode || response.Content == null)
+            //{
+            //    _logger.LogWarning("Failed tx submission status={statusCode}, error={errorContent}", response.Error.StatusCode, response.Error.Content);
+            //    return null;
+            //}
+            //var txId = response.Content.TrimStart('"').TrimEnd('"');
+            //if (txId != txHash)
+            //{
+            //    _logger.LogWarning("TxId {txId} from txClient.Submit is different to calculated TxHash {txHash}", txId, txHash);
+            //}
+            //_logger.LogInformation("Submitted mint tx {elapnsed}ms TxId: {txId} ({txBytesLength}bytes)", sw.ElapsedMilliseconds, txId, txBytes.Length);
+            //return txId;
+            return txHash;
+        }
+        catch (ApiException ex)
+        {
+            _logger.LogError(ex, "Failed tx submission {error}", ex.Content);
+            return null;
+        }
+    }
+
+    public async Task<string?> SubmitTransactionAsync(
+        BuildTransactionCommand txCommand, CancellationToken ct = default)
+    {
+        var sw = Stopwatch.StartNew();
+        (var epochClient, var networkClient, var addressClient, var txClient) = GetKoiosClients(txCommand.Network);
+        var tip = (await networkClient.GetChainTip()).Content.First();
+        var protocolParams = (await epochClient.GetProtocolParameters(tip.Epoch.ToString())).Content.First();
+        _logger.LogInformation(
+            "Queried Koios {elapsedMs}ms - Epoch: {Epoch}, AbsSlot: {AbsSlot}",
+            sw.ElapsedMilliseconds, tip.Epoch, tip.AbsSlot);
+
+        // Inputs TODO: Coin selection?
+        var txInputs = txCommand.Inputs;
+        var consolidatedInputValue = BuildConsolidatedTxInputValue(
+            txInputs, txCommand.Mint.SelectMany(m => m.NativeAssetsToMint).ToArray());
+        // Outputs
+        var txOutputs = txCommand.Outputs;
+        var consolidatedOutputValue = txOutputs.Select(txOut => txOut.Value).Sum();
+        var valueDifference = consolidatedInputValue.Subtract(consolidatedOutputValue);
+        if (valueDifference.Lovelaces != 0 && !valueDifference.NativeAssets.All(na => na.Quantity == 0))
+        {
+            throw new InputOutputValueMismatchException(
+                "Input/Output value mismatch", txCommand.Inputs, txCommand.Outputs);
+        }
+
+        // Start building transaction body using CardanoSharp
+        var txBodyBuilder = TransactionBodyBuilder.Create
+            .SetFee(0)
+            .SetTtl((uint)tip.AbsSlot + txCommand.TtlTipOffsetSlots);
+        // TxInputs
+        foreach (var txInput in txInputs)
+        {
+            txBodyBuilder.AddInput(txInput.TxHash, txInput.OutputIndex);
+        }
+        // TxOutputs
+        foreach (var txOutput in txOutputs)
+        {
+            var tokenBundleBuilder = (txOutput.Value.NativeAssets.Length > 0)
+                ? GetTokenBundleBuilderFromNativeAssets(txOutput.Value.NativeAssets)
+                : null;
+            txBodyBuilder.AddOutput(new Address(txOutput.Address), txOutput.Value.Lovelaces, tokenBundleBuilder);
+        }
+        // TxMint
+        if (txCommand.Mint.Length > 0)
+        {
+            // Build Cardano Native Assets from TestResults
+            var freshMintTokenBundleBuilder = TokenBundleBuilder.Create;
+            foreach (var newAssetMint in txCommand.Mint.SelectMany(m => m.NativeAssetsToMint))
             {
-                _logger.LogWarning("Failed tx submission status={statusCode}, error={errorContent}", response.Error.StatusCode, response.Error.Content);
-                return null;
+                freshMintTokenBundleBuilder = freshMintTokenBundleBuilder
+                    .AddToken(newAssetMint.PolicyId.HexToByteArray(), newAssetMint.AssetName.HexToByteArray(), 1);
             }
-            var txId = response.Content.TrimStart('"').TrimEnd('"');
-            if (txId != txHash)
-            {
-                _logger.LogWarning("TxId {txId} from txClient.Submit is different to calculated TxHash {txHash}", txId, txHash);
-            }
-            _logger.LogInformation("Submitted mint tx {elapnsed}ms TxId: {txId} ({txBytesLength}bytes)", sw.ElapsedMilliseconds, txId, txBytes.Length);
-            return txId;
+            txBodyBuilder.SetMint(freshMintTokenBundleBuilder);
+        }
+        // TxWitnesses
+        var witnesses = TransactionWitnessSetBuilder.Create;
+        foreach (var signingKey in txCommand.PaymentSigningKeys)
+        {
+            var paymentSkey = GetPrivateKeyFromBech32SigningKey(signingKey);
+            witnesses.AddVKeyWitness(paymentSkey.GetPublicKey(false), paymentSkey);
+        }
+        foreach (var policy in txCommand.Mint.Select(m => m.BasicMintingPolicy))
+        {
+            var policyKey = GetPrivateKeyFromBech32SigningKey(policy.PolicySigningKeysAll.First());
+            witnesses.AddVKeyWitness(policyKey.GetPublicKey(false), policyKey);
+            var policyScriptAllBuilder = GetScriptAllBuilder(
+                policy.PolicySigningKeysAll.Select(GetPrivateKeyFromBech32SigningKey), 
+                policy.ExpirySlot);
+            witnesses.SetNativeScript(policyScriptAllBuilder);
+        }
+            
+        // Build Tx for fee calculation
+        var txBuilder = TransactionBuilder.Create
+            .SetBody(txBodyBuilder)
+            .SetWitnesses(witnesses);
+        // Metadata
+        var auxDataBuilder = AuxiliaryDataBuilder.Create;
+        foreach (var key in txCommand.Metadata.Keys)
+        {
+            auxDataBuilder = auxDataBuilder.AddMetadata(key, txCommand.Metadata[key]);
+        }
+        txBuilder = txBuilder.SetAuxData(auxDataBuilder);
+            _logger.LogInformation("Build Metadata {txMetadata}", auxDataBuilder);
+        // Calculate and update change Utxo
+        var tx = txBuilder.Build();
+        var fee = tx.CalculateFee(protocolParams.MinFeeA, protocolParams.MinFeeB);
+        txBodyBuilder.SetFee(fee);
+        tx.TransactionBody.TransactionOutputs.Last().Value.Coin -= fee;
+        var txBytes = tx.Serialize();
+        var txHash = HashUtility.Blake2b256(tx.TransactionBody.Serialize(auxDataBuilder.Build())).ToStringHex();
+        _logger.LogInformation("Built mint tx {elapnsed}ms", sw.ElapsedMilliseconds);
+
+        // Submit Tx
+        try
+        {
+            sw.Restart();
+            //using var stream = new MemoryStream(txBytes);
+            //var response = await txClient.Submit(stream).ConfigureAwait(false);
+            //if (!response.IsSuccessStatusCode || response.Content == null)
+            //{
+            //    _logger.LogWarning("Failed tx submission status={statusCode}, error={errorContent}", response.Error.StatusCode, response.Error.Content);
+            //    return null;
+            //}
+            //var txId = response.Content.TrimStart('"').TrimEnd('"');
+            //if (txId != txHash)
+            //{
+            //    _logger.LogWarning("TxId {txId} from txClient.Submit is different to calculated TxHash {txHash}", txId, txHash);
+            //}
+            //_logger.LogInformation("Submitted mint tx {elapnsed}ms TxId: {txId} ({txBytesLength}bytes)", sw.ElapsedMilliseconds, txId, txBytes.Length);
+            //return txId;
+            return txHash;
         }
         catch (ApiException ex)
         {

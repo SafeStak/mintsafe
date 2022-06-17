@@ -2,10 +2,8 @@
 using Mintsafe.Abstractions;
 using SimpleExec;
 using System;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -102,7 +100,7 @@ public class CardanoCliTxBuilder : ITxBuilder
                 feeCalculationArgs,
                 noEcho: true,
                 cancellationToken: ct);
-            var feeLovelaceQuantity = long.Parse(feeCalculationCliOutput.Split(' ')[0]); // Parse "199469 Lovelace"
+            var feeLovelaceQuantity = ulong.Parse(feeCalculationCliOutput.Split(' ')[0]); // Parse "199469 Lovelace"
             _logger.LogDebug($"Fee Calculated {feeCalculationArgs}{Environment.NewLine}{feeCalculationCliOutput}");
 
             var actualTxBodyOutputPath = Path.Combine(_settings.BasePath, $"{buildId}.txraw");
@@ -186,13 +184,13 @@ public class CardanoCliTxBuilder : ITxBuilder
         return sb.ToString();
     }
 
-    private static string GetTxOutArgs(TxBuildCommand command, long fee = 0)
+    private static string GetTxOutArgs(TxBuildCommand command, ulong fee = 0)
     {
         var sb = new StringBuilder();
         foreach (var output in command.Outputs)
         {
             // Determine the txout that will pay for the fee (i.e. the sale proceeds address and not the buyer)
-            var lovelacesOut = output.Values.First(v => v.Unit == Assets.LovelaceUnit).Quantity;
+            var lovelacesOut = output.Values.Lovelaces;
             if (output.IsFeeDeducted)
             {
                 lovelacesOut -= fee;
@@ -200,10 +198,10 @@ public class CardanoCliTxBuilder : ITxBuilder
 
             sb.Append($"--tx-out \"{output.Address}+{lovelacesOut}");
 
-            var nativeTokens = output.Values.Where(o => o.Unit != Assets.LovelaceUnit).ToArray();
+            var nativeTokens = output.Values.NativeAssets;
             foreach (var value in nativeTokens)
             {
-                sb.Append($"+{value.Quantity} {value.Unit}");
+                sb.Append($"+{value.Quantity} {value.PolicyId}.{value.AssetName}");
             }
             sb.Append("\" ");
         }
@@ -220,7 +218,7 @@ public class CardanoCliTxBuilder : ITxBuilder
         sb.Append($"--mint \"");
         foreach (var value in command.Mint)
         {
-            sb.Append($"{value.Quantity} {value.Unit}+");
+            sb.Append($"{value.Quantity} {value.PolicyId}.{value.AssetName}+");
         }
         sb.Remove(sb.Length - 1, 1); // trim trailing + 
         sb.Append('"');
@@ -349,7 +347,7 @@ public class FakeTxBuilder : ITxBuilder
 
         _logger.LogDebug("Calculating fee using fee calculation tx (199469) from:");
         _logger.LogDebug(feeCalculationArgs);
-        var feeLovelaceQuantity = 199469;
+        var feeLovelaceQuantity = 199469UL;
 
         var actualTxBodyPath = Path.Combine(_settings.BasePath, $"mint-{buildId}.txraw");
         var txBuildArgs = string.Join(" ",
@@ -389,13 +387,13 @@ public class FakeTxBuilder : ITxBuilder
         return sb.ToString();
     }
 
-    private static string GetTxOutArgs(TxBuildCommand command, long fee = 0)
+    private static string GetTxOutArgs(TxBuildCommand command, ulong fee = 0)
     {
         var sb = new StringBuilder();
         foreach (var output in command.Outputs)
         {
             // Determine the txout that will pay for the fee (i.e. the sale proceeds address and not the buyer)
-            var lovelacesOut = output.Values.First(v => v.Unit == Assets.LovelaceUnit).Quantity;
+            var lovelacesOut = output.Values.Lovelaces;
             if (output.IsFeeDeducted)
             {
                 lovelacesOut -= fee;
@@ -403,11 +401,12 @@ public class FakeTxBuilder : ITxBuilder
 
             sb.Append($"--tx-out \"{output.Address}+{lovelacesOut}");
 
-            var nativeTokens = output.Values.Where(o => o.Unit != Assets.LovelaceUnit).ToArray();
+            var nativeTokens = output.Values.NativeAssets;
             foreach (var value in nativeTokens)
             {
-                sb.Append($"+{value.Quantity} {value.Unit}");
+                sb.Append($"+{value.Quantity} {value.PolicyId}.{value.AssetName}");
             }
+
             sb.Append("\" ");
         }
         sb.Remove(sb.Length - 1, 1); // trim trailing space 
@@ -423,7 +422,7 @@ public class FakeTxBuilder : ITxBuilder
         sb.Append($"--mint \"");
         foreach (var value in command.Mint)
         {
-            sb.Append($"{value.Quantity} {value.Unit}+");
+            sb.Append($"{value.Quantity} {value.PolicyId}.{value.AssetName}+");
         }
         sb.Remove(sb.Length - 1, 1); // trim trailing + 
         sb.Append('"');

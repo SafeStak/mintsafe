@@ -3,10 +3,6 @@ using Microsoft.Extensions.Logging;
 using Mintsafe.Abstractions;
 using Mintsafe.Lib;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,10 +12,10 @@ public class Worker : BackgroundService
 {
     private readonly IHostApplicationLifetime _hostApplicationLifetime;
     private readonly ILogger<Worker> _logger;
-    private readonly IInstrumentor _instrumentor;
     private readonly MintsafeAppSettings _settings;
     private readonly INiftyDataService _niftyDataService;
     private readonly ISaleAllocationStore _saleContextDataStorage;
+    private readonly INetworkContextRetriever _networkContextRetriever;
     private readonly IUtxoRetriever _utxoRetriever;
     private readonly ISaleUtxoHandler _saleUtxoHandler;
     private readonly Guid _workerId;
@@ -27,19 +23,19 @@ public class Worker : BackgroundService
     public Worker(
         IHostApplicationLifetime hostApplicationLifetime,
         ILogger<Worker> logger,
-        IInstrumentor instrumentor,
         MintsafeAppSettings settings,
         INiftyDataService niftyDataService,
         ISaleAllocationStore saleContextDataStorage,
+        INetworkContextRetriever networkContextRetriever,
         IUtxoRetriever utxoRetriever,
         ISaleUtxoHandler saleUtxoHandler)
     {
         _hostApplicationLifetime = hostApplicationLifetime;
         _logger = logger;
-        _instrumentor = instrumentor;
         _settings = settings;
         _niftyDataService = niftyDataService;
         _saleContextDataStorage = saleContextDataStorage;
+        _networkContextRetriever = networkContextRetriever;
         _utxoRetriever = utxoRetriever;
         _saleUtxoHandler = saleUtxoHandler;
         _workerId = Guid.NewGuid();
@@ -71,6 +67,7 @@ public class Worker : BackgroundService
         var timer = new PeriodicTimer(TimeSpan.FromSeconds(_settings.PollingIntervalSeconds));
         do
         {
+            var networkContext = await _networkContextRetriever.GetNetworkContext(ct);
             var saleUtxos = await _utxoRetriever.GetUtxosAtAddressAsync(saleContext.Sale.SaleAddress, ct);
             _logger.LogDebug($"Querying SaleAddress UTxOs for sale {saleContext.Sale.Name} of {collection.Collection.Name} by {string.Join(",", collection.Collection.Publishers)}");
             _logger.LogDebug($"Found {saleUtxos.Length} UTxOs at {saleContext.Sale.SaleAddress}");
@@ -81,7 +78,7 @@ public class Worker : BackgroundService
                     _logger.LogDebug($"Utxo {saleUtxo.TxHash}[{saleUtxo.OutputIndex}]({saleUtxo.Lovelaces}) skipped (already locked)");
                     continue;
                 }
-                await _saleUtxoHandler.HandleAsync(saleUtxo, saleContext, ct);
+                await _saleUtxoHandler.HandleAsync(saleUtxo, saleContext, networkContext, ct);
             }
             _logger.LogDebug(
                 $"Successful: {saleContext.SuccessfulUtxos.Count} UTxOs | Refunded: {saleContext.RefundedUtxos.Count} UTxOs | Failed: {saleContext.FailedUtxos.Count} UTxOs | Locked: {saleContext.LockedUtxos.Count} UTxOs");

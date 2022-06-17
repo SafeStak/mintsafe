@@ -6,8 +6,9 @@ namespace Mintsafe.Abstractions;
 public interface IUtxoRefunder
 {
     Task<string> ProcessRefundForUtxo(
-        Utxo utxo, 
-        string signingKeyFilePath, 
+        UnspentTransactionOutput utxo,
+        SaleContext saleContext,
+        NetworkContext networkContext,
         string reason, 
         CancellationToken ct = default);
 }

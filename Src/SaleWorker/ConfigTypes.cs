@@ -21,6 +21,14 @@ public class BlockfrostApiConfig
     public string? ApiKey { get; init; }
 }
 
+public class KeychainConfig
+{
+    public string? KeyVaultUrl { get; init; }
+    public int? RetrievalMaxRetries { get; init; }
+    public int? RetrievalRetryDelaySeconds { get; init; }
+    public int? RetrievalRetryMaxDelaySeconds { get; init; }
+}
+
 public class ApplicationInsightsConfig
 {
     public bool Enabled { get; init; }

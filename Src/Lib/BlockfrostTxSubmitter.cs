@@ -16,7 +16,6 @@ public class BlockfrostTxSubmitter : ITxSubmitter
     public async Task<string> SubmitTxAsync(byte[] txSignedBinary, CancellationToken ct = default)
     {
         var txHash = await _blockFrostClient.SubmitTransactionAsync(txSignedBinary, ct);
-
         return txHash;
     }
 }

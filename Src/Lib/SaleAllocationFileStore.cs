@@ -71,10 +71,10 @@ public class SaleAllocationFileStore : ISaleAllocationStore
             collectionAggregate.Collection,
             mintableTokens,
             allocatedNfts,
-            new HashSet<Utxo>(),
-            new HashSet<Utxo>(),
-            new HashSet<Utxo>(),
-            new HashSet<Utxo>());
+            new HashSet<UnspentTransactionOutput>(),
+            new HashSet<UnspentTransactionOutput>(),
+            new HashSet<UnspentTransactionOutput>(),
+            new HashSet<UnspentTransactionOutput>());
 
         _instrumentor.TrackDependency(
             EventIds.SaleContextGetOrRestoreElapsed,

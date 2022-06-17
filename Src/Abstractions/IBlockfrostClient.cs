@@ -6,6 +6,8 @@ namespace Mintsafe.Abstractions;
 
 public interface IBlockfrostClient
 {
+    Task<LatestBlock> GetLatestBlockAsync(CancellationToken ct = default);
+    Task<ProtocolParameters> GetLatestProtocolParameters(CancellationToken ct = default);
     Task<BlockFrostTransactionUtxoResponse> GetTransactionAsync(string txHash, CancellationToken ct = default);
     Task<BlockFrostAddressUtxo[]> GetUtxosAtAddressAsync(string address, CancellationToken ct = default);
     Task<string> SubmitTransactionAsync(byte[] txSignedBinary, CancellationToken ct = default);
@@ -27,6 +29,23 @@ public class BlockfrostResponseException : ApplicationException
     }
 }
 
+public class LatestBlock
+{
+    public uint? Epoch { get; init; }
+    public uint? Slot { get; init; }
+    public uint? Height { get; init; }
+    public string? Hash { get; init; }
+}
+
+public class ProtocolParameters
+{
+    public uint? Protocol_major_ver { get; init; }
+    public uint? Protocol_minor_ver { get; init; }
+    public uint? Min_fee_a { get; init; }
+    public uint? Min_fee_b { get; init; }
+    public string? Coins_per_utxo_word { get; init; }
+}
+
 public class BlockFrostValue
 {
     public string? Unit { get; init; }
@@ -36,7 +55,7 @@ public class BlockFrostValue
 public class BlockFrostTransactionIo
 {
     public string? Address { get; init; }
-    public int Output_Index { get; init; }
+    public uint Output_Index { get; init; }
     public BlockFrostValue[]? Amount { get; init; }
 }
 
@@ -50,6 +69,6 @@ public class BlockFrostTransactionUtxoResponse
 public class BlockFrostAddressUtxo
 {
     public string? Tx_hash { get; init; }
-    public int Output_index { get; init; }
+    public uint Output_index { get; init; }
     public BlockFrostValue[]? Amount { get; init; }
 }

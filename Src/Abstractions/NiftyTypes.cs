@@ -41,7 +41,7 @@ public record NiftyFile(
     Guid NiftyId,
     string Name,
     string MediaType,
-    string Url,
+    string Src,
     string FileHash = "");
 
 public record Royalty(
@@ -54,7 +54,7 @@ public record Sale(
     bool IsActive,
     string Name,
     string Description,
-    long LovelacesPerToken,
+    ulong LovelacesPerToken,
     string SaleAddress,
     string CreatorAddress,
     string ProceedsAddress,
@@ -73,18 +73,22 @@ public record SaleContext
     NiftyCollection Collection,
     List<Nifty> MintableTokens,
     List<Nifty> AllocatedTokens,
-    HashSet<Utxo> LockedUtxos,
-    HashSet<Utxo> SuccessfulUtxos,
-    HashSet<Utxo> RefundedUtxos,
-    HashSet<Utxo> FailedUtxos
+    HashSet<UnspentTransactionOutput> LockedUtxos,
+    HashSet<UnspentTransactionOutput> SuccessfulUtxos,
+    HashSet<UnspentTransactionOutput> RefundedUtxos,
+    HashSet<UnspentTransactionOutput> FailedUtxos
 );
 
 public record PurchaseAttempt(
     Guid Id,
     Guid SaleId,
-    Utxo Utxo,
+    UnspentTransactionOutput Utxo,
     int NiftyQuantityRequested,
-    long ChangeInLovelace);
+    ulong ChangeInLovelace);
+
+public record MintingKeyChain(
+    string[] SigningKeys, 
+    BasicMintingPolicy MintingPolicy);
 
 public enum NiftyDistributionOutcome { 
     Successful = 1, 
@@ -103,7 +107,7 @@ public record NiftyDistributionResult(
     Nifty[]? NiftiesDistributed = null,
     Exception? Exception = null);
 
-public record Mint(
+public record MintRecord(
     Guid PurchaseAttemptId,
     Guid SaleId,
     string SaleAddress,

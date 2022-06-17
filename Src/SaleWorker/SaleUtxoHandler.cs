@@ -14,7 +14,11 @@ namespace Mintsafe.SaleWorker;
 
 public interface ISaleUtxoHandler
 {
-    Task HandleAsync(Utxo saleUtxo, SaleContext saleContext, CancellationToken ct);
+    Task HandleAsync(
+        UnspentTransactionOutput saleUtxo, 
+        SaleContext saleContext, 
+        NetworkContext networkContext, 
+        CancellationToken ct);
 }
 
 public class SaleUtxoHandler : ISaleUtxoHandler
@@ -43,8 +47,9 @@ public class SaleUtxoHandler : ISaleUtxoHandler
     }
 
     public async Task HandleAsync(
-        Utxo saleUtxo,
+        UnspentTransactionOutput saleUtxo,
         SaleContext saleContext,
+        NetworkContext networkContext,
         CancellationToken ct)
     {
         var isSuccessful = false;
@@ -70,7 +75,7 @@ public class SaleUtxoHandler : ISaleUtxoHandler
 
             // Distribute tokens 
             var distributionResult = await _tokenDistributor.DistributeNiftiesForSalePurchase(
-                tokens, purchase, saleContext, ct).ConfigureAwait(false);
+                tokens, purchase, saleContext, networkContext, ct).ConfigureAwait(false);
             handlingOutcome = distributionResult.Outcome.ToString();
             var utxoDistributionPath = Path.Combine(utxoFolderPath, "distribution.json");
             await File.WriteAllTextAsync(utxoDistributionPath, JsonSerializer.Serialize(
@@ -135,7 +140,7 @@ public class SaleUtxoHandler : ISaleUtxoHandler
             }
             if (shouldRefundUtxo)
             {
-                await RefundUtxo(saleUtxo, saleContext, handlingOutcome, ct).ConfigureAwait(false);
+                await RefundUtxo(saleUtxo, saleContext, networkContext, handlingOutcome, ct).ConfigureAwait(false);
             }
             LogHandlingRequest(saleUtxo.ToString(), isSuccessful, sw.ElapsedMilliseconds, handlingOutcome, saleContext);
         }
@@ -173,21 +178,25 @@ public class SaleUtxoHandler : ISaleUtxoHandler
     }
 
     private async Task RefundUtxo(
-        Utxo saleUtxo, SaleContext saleContext, string refundReason, CancellationToken ct)
+        UnspentTransactionOutput utxo,
+        SaleContext saleContext, 
+        NetworkContext networkContext, 
+        string refundReason, 
+        CancellationToken ct)
     {
         try
         {
             // TODO: better way to do refunds? Use Channels?
-            var saleAddressSigningKey = Path.Combine(_settings.BasePath, $"{saleContext.Sale.Id}.sale.skey");
-            var refundTxHash = await _utxoRefunder.ProcessRefundForUtxo(saleUtxo, saleAddressSigningKey, refundReason, ct).ConfigureAwait(false);
+            var refundTxHash = await _utxoRefunder.ProcessRefundForUtxo(
+                utxo, saleContext, networkContext, refundReason, ct).ConfigureAwait(false);
             if (!string.IsNullOrEmpty(refundTxHash))
             {
-                saleContext.RefundedUtxos.Add(saleUtxo);
+                saleContext.RefundedUtxos.Add(utxo);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(EventIds.UtxoRefunderError, ex, $"Refund error for {saleUtxo} {refundReason}");
+            _logger.LogError(EventIds.UtxoRefunderError, ex, $"Refund error for {utxo} {refundReason}");
         }
     }
 }

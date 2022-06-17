@@ -1,15 +1,14 @@
-﻿using Mintsafe.Abstractions;
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 
 namespace Mintsafe.WasmApp.Services;
 
 public record SimplePayment
 {
-    public string SourcePaymentAddress { get; init; }
-    public string SourcePaymentAddressSigningKey { get; init; }
-    public string DestinationPaymentAddress { get; init; }
+    public string? SourcePaymentAddress { get; init; }
+    public string? SourcePaymentAddressSigningKey { get; init; }
+    public string? DestinationPaymentAddress { get; init; }
     public ulong PaymentLovelaces { get; init; }
-    public string Comment { get; init; }
+    public string? Comment { get; init; }
 }
 
 public interface ISimplePaymentService
