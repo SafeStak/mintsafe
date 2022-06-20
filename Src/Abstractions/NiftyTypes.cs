@@ -3,7 +3,12 @@ using System.Collections.Generic;
 
 namespace Mintsafe.Abstractions;
 
-public record CollectionAggregate(
+public record SaleAggregate(
+    Sale Sale,
+    NiftyCollection Collection,
+    Nifty[] Tokens);
+
+public record ProjectAggregate(
     NiftyCollection Collection,
     Nifty[] Tokens,
     Sale[] ActiveSales);
@@ -12,9 +17,9 @@ public record NiftyCollection(
     Guid Id,
     string PolicyId,
     string Name,
-    string Description,
+    string? Description,
     bool IsActive,
-    string BrandImage,
+    string? BrandImage,
     string[] Publishers,
     DateTime CreatedAt,
     DateTime LockedAt,

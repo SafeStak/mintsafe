@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Mintsafe.Abstractions;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -19,7 +18,7 @@ public class UtxoRefunder : IUtxoRefunder
     private readonly IMintingKeychainRetriever _keychainRetriever;
     private readonly IMetadataFileGenerator _metadataGenerator;
     private readonly ITxSubmitter _txSubmitter;
-    private readonly ITransactionBuilder _txBuilder;
+    private readonly IMintTransactionBuilder _txBuilder;
 
     public UtxoRefunder(
         ILogger<UtxoRefunder> logger,
@@ -27,7 +26,7 @@ public class UtxoRefunder : IUtxoRefunder
         ITxInfoRetriever txRetriever,
         IMintingKeychainRetriever keychainRetriever,
         IMetadataFileGenerator metadataGenerator,
-        ITransactionBuilder txBuilder,
+        IMintTransactionBuilder txBuilder,
         ITxSubmitter txSubmitter)
     {
         _logger = logger;

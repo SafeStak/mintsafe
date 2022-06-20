@@ -8,6 +8,7 @@ namespace Mintsafe.DataAccess.Repositories
 {
     public interface ISaleRepository
     {
+        Task<IEnumerable<Sale>> GetBySaleIdAsync(Guid saleId, CancellationToken ct);
         Task<IEnumerable<Sale>> GetByCollectionIdAsync(Guid collectionId, CancellationToken ct);
         Task UpdateOneAsync(Sale sale, CancellationToken ct);
         Task InsertOneAsync(Sale sale, CancellationToken ct);
@@ -22,7 +23,13 @@ namespace Mintsafe.DataAccess.Repositories
         {
             _saleClient = tableClientFactory.CreateClient(Constants.TableNames.Sale);
         }
-        
+
+        public async Task<IEnumerable<Sale>> GetBySaleIdAsync(Guid saleId, CancellationToken ct)
+        {
+            var saleQuery = _saleClient.QueryAsync<Models.Sale>(x => x.RowKey == saleId.ToString());
+            return await saleQuery.GetAllAsync(ct);
+        }
+
         public async Task<IEnumerable<Sale>> GetByCollectionIdAsync(Guid collectionId, CancellationToken ct)
         {
             var saleQuery = _saleClient.QueryAsync<Models.Sale>(x => x.PartitionKey == collectionId.ToString());

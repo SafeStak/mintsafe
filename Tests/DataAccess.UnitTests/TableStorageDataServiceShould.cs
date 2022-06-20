@@ -25,7 +25,7 @@ namespace Mintsafe.DataAccess.UnitTests
         private readonly Mock<ISaleRepository> _saleRepositoryMock;
         private readonly Mock<INiftyFileRepository> _niftyFileRepositoryMock;
 
-        private readonly Mock<ICollectionAggregateComposer> _collectionAggregateComposerMock;
+        private readonly Mock<IAggregateComposer> _collectionAggregateComposerMock;
 
         private readonly Mock<ILogger<TableStorageDataService>> _loggerMock;
 
@@ -37,7 +37,7 @@ namespace Mintsafe.DataAccess.UnitTests
             _niftyRepositoryMock = new Mock<INiftyRepository>();
             _saleRepositoryMock = new Mock<ISaleRepository>();
             _niftyFileRepositoryMock = new Mock<INiftyFileRepository>();
-            _collectionAggregateComposerMock = new Mock<ICollectionAggregateComposer>();
+            _collectionAggregateComposerMock = new Mock<IAggregateComposer>();
             _loggerMock = new Mock<ILogger<TableStorageDataService>>();
 
             
@@ -67,7 +67,7 @@ namespace Mintsafe.DataAccess.UnitTests
             _niftyFileRepositoryMock.Setup(x => x.GetByCollectionIdAsync(collectionId, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new[] {niftyFile});
 
-            var collectionAggregate = new Fixture().Build<CollectionAggregate>().Create();
+            var collectionAggregate = new Fixture().Build<ProjectAggregate>().Create();
             _collectionAggregateComposerMock.Setup(x => x.Build(niftyCollection, new[] {nifty}, new[] {sale}, new[] {niftyFile})).Returns(collectionAggregate);
 
             var result = await _tableStorageDataService.GetCollectionAggregateAsync(collectionId);
@@ -90,7 +90,7 @@ namespace Mintsafe.DataAccess.UnitTests
             _niftyCollectionRepositoryMock.Setup(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(exception);
 
-            Func<Task<CollectionAggregate>> act = async () => await _tableStorageDataService.GetCollectionAggregateAsync(Guid.NewGuid());
+            Func<Task<ProjectAggregate>> act = async () => await _tableStorageDataService.GetCollectionAggregateAsync(Guid.NewGuid());
 
             await act.Should().ThrowAsync<Exception>();
 
@@ -111,7 +111,7 @@ namespace Mintsafe.DataAccess.UnitTests
             _niftyRepositoryMock.Setup(x => x.GetByCollectionIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(exception);
 
-            Func<Task<CollectionAggregate>> act = async () => await _tableStorageDataService.GetCollectionAggregateAsync(Guid.NewGuid());
+            Func<Task<ProjectAggregate>> act = async () => await _tableStorageDataService.GetCollectionAggregateAsync(Guid.NewGuid());
 
             await act.Should().ThrowAsync<Exception>();
 
@@ -132,7 +132,7 @@ namespace Mintsafe.DataAccess.UnitTests
             _niftyFileRepositoryMock.Setup(x => x.GetByCollectionIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(exception);
 
-            Func<Task<CollectionAggregate>> act = async () => await _tableStorageDataService.GetCollectionAggregateAsync(Guid.NewGuid());
+            Func<Task<ProjectAggregate>> act = async () => await _tableStorageDataService.GetCollectionAggregateAsync(Guid.NewGuid());
 
             await act.Should().ThrowAsync<Exception>();
 
@@ -153,7 +153,7 @@ namespace Mintsafe.DataAccess.UnitTests
             _saleRepositoryMock.Setup(x => x.GetByCollectionIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(exception);
 
-            Func<Task<CollectionAggregate>> act = async () => await _tableStorageDataService.GetCollectionAggregateAsync(Guid.NewGuid());
+            Func<Task<ProjectAggregate>> act = async () => await _tableStorageDataService.GetCollectionAggregateAsync(Guid.NewGuid());
 
             await act.Should().ThrowAsync<Exception>();
 

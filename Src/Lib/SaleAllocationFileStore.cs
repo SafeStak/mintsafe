@@ -30,7 +30,7 @@ public class SaleAllocationFileStore : ISaleAllocationStore
     }
 
     public async Task<SaleContext> GetOrRestoreSaleContextAsync(
-        CollectionAggregate collectionAggregate, Guid workerId, CancellationToken ct)
+        ProjectAggregate collectionAggregate, Guid workerId, CancellationToken ct)
     {
         var activeSale = collectionAggregate.ActiveSales[0];
         var mintableTokens = collectionAggregate.Tokens.Where(t => t.IsMintable).ToList();
@@ -69,6 +69,77 @@ public class SaleAllocationFileStore : ISaleAllocationStore
             saleUtxosFolder,
             activeSale,
             collectionAggregate.Collection,
+            mintableTokens,
+            allocatedNfts,
+            new HashSet<UnspentTransactionOutput>(),
+            new HashSet<UnspentTransactionOutput>(),
+            new HashSet<UnspentTransactionOutput>(),
+            new HashSet<UnspentTransactionOutput>());
+
+        _instrumentor.TrackDependency(
+            EventIds.SaleContextGetOrRestoreElapsed,
+            sw.ElapsedMilliseconds,
+            DateTime.UtcNow,
+            nameof(SaleAllocationFileStore),
+            allocatedNftIdsPath,
+            nameof(GetOrRestoreSaleContextAsync),
+            isSuccessful: true,
+            customProperties: new Dictionary<string, object>
+            {
+                { "WorkerId", saleContext.SaleWorkerId },
+                { "SaleId", saleContext.Sale.Id },
+                { "CollectionId", saleContext.Collection.Id },
+                { "SaleContext.AllocatedTokens", saleContext.AllocatedTokens.Count },
+                { "SaleContext.MintableTokens", saleContext.MintableTokens.Count },
+                { "SaleContext.RefundedUtxos", saleContext.RefundedUtxos.Count },
+                { "SaleContext.SuccessfulUtxos", saleContext.SuccessfulUtxos.Count },
+                { "SaleContext.FailedUtxos", saleContext.FailedUtxos.Count },
+                { "SaleContext.LockedUtxos", saleContext.LockedUtxos.Count },
+            });
+
+        return saleContext;
+    }
+
+    public async Task<SaleContext> GetOrRestoreSaleContextAsync(
+        SaleAggregate saleAggregate, Guid workerId, CancellationToken ct)
+    {
+        var activeSale = saleAggregate.Sale;
+        var mintableTokens = saleAggregate.Tokens.Where(t => t.IsMintable).ToList();
+        var allocatedNfts = new List<Nifty>();
+        var saleFolder = Path.Combine(_settings.BasePath, activeSale.Id.ToString()[..8]);
+        var saleUtxosFolder = Path.Combine(saleFolder, "utxos");
+        var mintableNftIdsSnapshotPath = Path.Combine(saleFolder, "mintableNftIds.csv");
+        var allocatedNftIdsPath = Path.Combine(saleFolder, "allocatedNftIds.csv");
+        var sw = new Stopwatch();
+        // Brand new sale for worker - generate fresh context and persist it
+        if (!Directory.Exists(saleFolder))
+        {
+            Directory.CreateDirectory(saleFolder);
+            Directory.CreateDirectory(saleUtxosFolder);
+            sw.Start();
+            await File.WriteAllLinesAsync(mintableNftIdsSnapshotPath, mintableTokens.Select(n => n.Id.ToString()), ct).ConfigureAwait(false);
+            await File.WriteAllTextAsync(allocatedNftIdsPath, string.Empty, ct).ConfigureAwait(false);
+        }
+        else // Restore sale context from previous execution
+        {
+            var allocatedNftIdLines = await File.ReadAllLinesAsync(allocatedNftIdsPath, ct).ConfigureAwait(false);
+            var allocatedNftIds = new HashSet<string>(allocatedNftIdLines);
+            var revisedMintableNfts = new List<Nifty>();
+            foreach (var nft in mintableTokens)
+            {
+                if (allocatedNftIds.Contains(nft.Id.ToString()))
+                    allocatedNfts.Add(nft);
+                else
+                    revisedMintableNfts.Add(nft);
+            }
+            mintableTokens = revisedMintableNfts;
+        }
+        var saleContext = new SaleContext(
+            workerId,
+            saleFolder,
+            saleUtxosFolder,
+            activeSale,
+            saleAggregate.Collection,
             mintableTokens,
             allocatedNfts,
             new HashSet<UnspentTransactionOutput>(),

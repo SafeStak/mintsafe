@@ -64,7 +64,7 @@ builder.Services.AddSingleton<INiftyRepository, NiftyRepository>();
 builder.Services.AddSingleton<ISaleRepository, SaleRepository>();
 builder.Services.AddSingleton<INiftyFileRepository, NiftyFileRepository>();
 
-builder.Services.AddSingleton<ICollectionAggregateComposer, CollectionAggregateComposer>();
+builder.Services.AddSingleton<IAggregateComposer, AggregateComposer>();
 
 builder.Services.AddAzureClients(clientBuilder =>
 {

@@ -7,6 +7,7 @@ public class MintsafeWorkerConfig
     public string? MintBasePath { get; init; }
     public int? PollingIntervalSeconds { get; init; }
     public string? CollectionId { get; init; }
+    public string[]? SaleIds { get; init; }
 }
 
 public class CardanoNetworkConfig

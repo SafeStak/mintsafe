@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Mintsafe.Abstractions;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -258,9 +257,9 @@ public class CardanoSharpNiftyDistributor : INiftyDistributor
     private readonly MintsafeAppSettings _settings;
     private readonly ITxInfoRetriever _txRetriever;
     private readonly IMintingKeychainRetriever _keychainRetriever;
-    private readonly ITransactionBuilder _txBuilder;
+    private readonly IMintTransactionBuilder _txBuilder;
     private readonly ITxSubmitter _txSubmitter;
-    private readonly ISaleAllocationStore _saleContextStore;
+    private readonly ISaleAllocationStore _saleAllocationStore;
 
     public CardanoSharpNiftyDistributor(
         ILogger<CardanoSharpNiftyDistributor> logger,
@@ -268,7 +267,7 @@ public class CardanoSharpNiftyDistributor : INiftyDistributor
         MintsafeAppSettings settings,
         ITxInfoRetriever txRetriever,
         IMintingKeychainRetriever keychainRetriever,
-        ITransactionBuilder txBuilder,
+        IMintTransactionBuilder txBuilder,
         ITxSubmitter txSubmitter,
         ISaleAllocationStore saleContextStore)
     {
@@ -279,7 +278,7 @@ public class CardanoSharpNiftyDistributor : INiftyDistributor
         _keychainRetriever = keychainRetriever;
         _txBuilder = txBuilder;
         _txSubmitter = txSubmitter;
-        _saleContextStore = saleContextStore;
+        _saleAllocationStore = saleContextStore;
     }
 
     public async Task<NiftyDistributionResult> DistributeNiftiesForSalePurchase(
@@ -371,7 +370,7 @@ public class CardanoSharpNiftyDistributor : INiftyDistributor
         catch (Exception ex)
         {
             _logger.LogError(EventIds.TxInfoRetrievalError, ex, $"Failed TxInfo Restrieval");
-            await _saleContextStore.ReleaseAllocationAsync(nfts, saleContext, ct).ConfigureAwait(false);
+            await _saleAllocationStore.ReleaseAllocationAsync(nfts, saleContext, ct).ConfigureAwait(false);
             return (null, ex);
         }
     }
@@ -439,13 +438,13 @@ public class CardanoSharpNiftyDistributor : INiftyDistributor
         catch (CardanoSharpException ex)
         {
             _logger.LogError(EventIds.TxBuilderError, ex, "Failed Tx Build");
-            await _saleContextStore.ReleaseAllocationAsync(nfts, saleContext, ct).ConfigureAwait(false);
+            await _saleAllocationStore.ReleaseAllocationAsync(nfts, saleContext, ct).ConfigureAwait(false);
             return (null, ex);
         }
         catch (Exception ex)
         {
             _logger.LogError(EventIds.TxBuilderError, ex, "Failed Tx Build");
-            await _saleContextStore.ReleaseAllocationAsync(nfts, saleContext, ct).ConfigureAwait(false);
+            await _saleAllocationStore.ReleaseAllocationAsync(nfts, saleContext, ct).ConfigureAwait(false);
             return (null, ex);
         }
     }
@@ -465,7 +464,7 @@ public class CardanoSharpNiftyDistributor : INiftyDistributor
         catch (Exception ex)
         {
             _logger.LogError(EventIds.TxSubmissionError, ex, $"Failed Tx Submission");
-            await _saleContextStore.ReleaseAllocationAsync(nfts, saleContext, ct).ConfigureAwait(false);
+            await _saleAllocationStore.ReleaseAllocationAsync(nfts, saleContext, ct).ConfigureAwait(false);
             return (null, ex);
         }
     }

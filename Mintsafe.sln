@@ -41,6 +41,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mintsafe.DataImporter", "Sr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CardanoSharp.Wallet", "..\cardanosharp-wallet\CardanoSharp.Wallet\CardanoSharp.Wallet.csproj", "{C46A2637-A636-41F8-8CF4-F71562CDE785}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Deploy", "Deploy", "{F7454B84-B79D-4359-9202-1ADB836359FB}"
+	ProjectSection(SolutionItems) = preProject
+		Deploy\README.md = Deploy\README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

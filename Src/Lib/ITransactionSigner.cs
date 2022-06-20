@@ -1,12 +1,6 @@
 ﻿using CardanoSharp.Wallet.Extensions.Models.Transactions;
-using CardanoSharp.Wallet.Models.Transactions;
 using Microsoft.Extensions.Logging;
 using Mintsafe.Abstractions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Mintsafe.Lib;
 

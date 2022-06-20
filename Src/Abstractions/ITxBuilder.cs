@@ -9,3 +9,10 @@ public interface ITxBuilder
         TxBuildCommand buildCommand,
         CancellationToken ct = default);
 }
+
+public interface IMintTransactionBuilder
+{
+    BuiltTransaction BuildTx(
+        BuildTransactionCommand buildCommand,
+        NetworkContext networkContext);
+}

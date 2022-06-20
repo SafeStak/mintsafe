@@ -28,7 +28,6 @@ namespace Mintsafe.DataAccess.Mappers
             if (dtoNiftyCollection == null) throw new ArgumentNullException(nameof(dtoNiftyCollection));
             if (dtoNiftyCollection.PolicyId == null) throw new ArgumentNullException(nameof(dtoNiftyCollection.PolicyId));
             if (dtoNiftyCollection.Name == null) throw new ArgumentNullException(nameof(dtoNiftyCollection.Name));
-            if (dtoNiftyCollection.BrandImage == null) throw new ArgumentNullException(nameof(dtoNiftyCollection.BrandImage));
 
             return new NiftyCollection(
                 Guid.Parse(dtoNiftyCollection.RowKey),

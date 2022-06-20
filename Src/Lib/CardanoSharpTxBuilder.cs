@@ -30,16 +30,9 @@ public class CardanoSharpException : ApplicationException
     }
 }
 
-public interface ITransactionBuilder
+public class CardanoSharpTxBuilder : IMintTransactionBuilder
 {
-    BuiltTransaction BuildTx(
-        BuildTransactionCommand buildCommand, 
-        NetworkContext networkContext);
-}
-
-public class CardanoSharpTxBuilder : ITransactionBuilder
-{
-    private const ulong FeePadding = 280;
+    private const ulong FeePadding = 132;
     private readonly ILogger<CardanoSharpTxBuilder> _logger;
     private readonly IInstrumentor _instrumentor;
     private readonly MintsafeAppSettings _settings;

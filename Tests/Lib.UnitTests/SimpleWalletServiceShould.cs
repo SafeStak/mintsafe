@@ -73,14 +73,14 @@ public class SimpleWalletServiceShould
         var simpleWalletService = new SimpleWalletService(NullLogger<SimpleWalletService>.Instance, NullInstrumentor.Instance);
         var sourcePaymentAddress = "addr_test1qrlsqwhg4vay0x4yy6lw08s4qx4kcpnujcc7dz8e5lqjdnkdfj93s4scmnax7lgemz2q2ftms4zna9y9xle0c3c88f5qhvdm5m";
         var sourcePaymentXsk = "addr_xsk1gr99v0ynu0wvuxwe4vu2sap3d3vxqzpupu93gvhtu869wmk8wezu2zlkssy9xj4j5u5ymf356np04f2tt77pfees3uckytdlpdhv8pwss378smdhsecy7un46q8738rhgwd0hytz4r77k6v95dmt47g0ms4ec63v";
-        var royaltyRate = "0.08";
-        var royaltyAddress = "addr_test1qplxcfvad2uzq2w4k99unzj6d5hmpprgrujn3l0nwsl8vh3e2mgaxpeslac7hghtxxzcwerr3wt6ly2t9hr7unkua9rskg2855";
-        var policySkey = "policy_sk16zy4n87qj996t77yfzqp3hmsv3l689gm5yq939gnlxresmx8wezhuj2qzf7sz7eck62wct5vv72rf4gfa48ehgrn3j5tffqfe6zm67qsk0p44";
-        var policyExpirySlot = 96997186U;
+        var royaltyRate = "0.10";
+        var royaltyAddress = "addr_test1qrlsqwhg4vay0x4yy6lw08s4qx4kcpnujcc7dz8e5lqjdnkdfj93s4scmnax7lgemz2q2ftms4zna9y9xle0c3c88f5qhvdm5m";
+        var policySkey = "policy_sk1xyz"; 
+        var policyExpirySlot = 98504109U;
         var policyId = BuildScriptAllPolicy(policySkey, policyExpirySlot).GetPolicyId().ToStringHex();
-        var network = Network.Testnet;
+        var network = Network.Mainnet;
         var nativeAssetsToMint = new[] { new NativeAssetValue(policyId, "", 1) }; // empty assetname is required for CIP27
-        var minUtxoLovelace = TxUtils.CalculateMinUtxoLovelace(new AggregateValue(1000000, nativeAssetsToMint));
+        var minUtxoLovelace = TxUtils.CalculateMinUtxoLovelace(nativeAssetsToMint);
         var royaltyBodyMetadata = new Dictionary<string, object>
             { 
                 { "rate", royaltyRate }, 

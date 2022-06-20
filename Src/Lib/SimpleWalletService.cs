@@ -37,6 +37,7 @@ public interface ISimpleWalletService
 
 public class SimpleWalletService : ISimpleWalletService
 {
+    private const ulong FeePadding = 132;
     private readonly ILogger<SimpleWalletService> _logger;
     private readonly IInstrumentor _instrumentor;
 
@@ -141,7 +142,7 @@ public class SimpleWalletService : ISimpleWalletService
                 witnesses.AddVKeyWitness(policyKey.GetPublicKey(false), policyKey);
             }
             var policyScriptAllBuilder = GetScriptAllBuilder(policySkeys.Select(GetPrivateKeyFromBech32SigningKey), policyExpirySlot);
-            witnesses.SetNativeScript(policyScriptAllBuilder);
+            witnesses.SetScriptAllNativeScript(policyScriptAllBuilder);
         }
         // Build Tx for fee calculation
         var txBuilder = TransactionBuilder.Create
@@ -161,7 +162,7 @@ public class SimpleWalletService : ISimpleWalletService
         // Calculate and update change Utxo
         var protocolParams = protocolParamsResponse.Content.Single();
         var tx = txBuilder.Build();
-        var fee = tx.CalculateFee(protocolParams.MinFeeA, protocolParams.MinFeeB);
+        var fee = tx.CalculateFee(protocolParams.MinFeeA, protocolParams.MinFeeB) + FeePadding;
         txBodyBuilder.SetFee(fee);
         tx.TransactionBody.TransactionOutputs.Last().Value.Coin -= fee;
         var txBytes = tx.Serialize();

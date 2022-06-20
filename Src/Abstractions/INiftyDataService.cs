@@ -6,6 +6,7 @@ namespace Mintsafe.Abstractions;
 
 public interface INiftyDataService
 {
-    public Task<CollectionAggregate?> GetCollectionAggregateAsync(Guid collectionId, CancellationToken ct = default);
-    Task InsertCollectionAggregateAsync(CollectionAggregate collectionAggregate, CancellationToken ct = default);
+    public Task<ProjectAggregate?> GetCollectionAggregateAsync(Guid collectionId, CancellationToken ct = default);
+    public Task<SaleAggregate?> GetSaleAggregateAsync(Guid saleId, CancellationToken ct = default);
+    Task InsertCollectionAggregateAsync(ProjectAggregate collectionAggregate, CancellationToken ct = default);
 }
