@@ -73,7 +73,8 @@ IHost host = Host.CreateDefaultBuilder(args)
             Network = cardanoNetworkConfig.Network == "Mainnet" ? Network.Mainnet : Network.Testnet,
             BlockFrostApiKey = blockfrostApiConfig.ApiKey,
             BasePath = mintsafeWorkerConfig.MintBasePath,
-            PollingIntervalSeconds = mintsafeWorkerConfig.PollingIntervalSeconds.HasValue ? mintsafeWorkerConfig.PollingIntervalSeconds.Value : 10,
+            PollingIntervalSeconds = mintsafeWorkerConfig.PollingIntervalSeconds.HasValue ? mintsafeWorkerConfig.PollingIntervalSeconds.Value : 20,
+            PollErrorRetryLimit = mintsafeWorkerConfig.PollErrorRetryLimit.HasValue ? mintsafeWorkerConfig.PollErrorRetryLimit.Value : 8,
             CollectionId = Guid.Parse(mintsafeWorkerConfig.CollectionId),
             SaleIds = mintsafeWorkerConfig.SaleIds?.Select(Guid.Parse).ToArray() ?? Array.Empty<Guid>(),
             KeyVaultUrl = keychainConfig.KeyVaultUrl

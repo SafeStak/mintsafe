@@ -56,12 +56,22 @@ public class Worker : BackgroundService
         }
         _logger.LogInformation(EventIds.HostedServiceInfo, $"SaleWorker({_workerId}) has an {activeSales.Length} activeSales{Environment.NewLine}{string.Join(Environment.NewLine, activeSales.Select(GetSaleInfo))}");
 
+        var retryCount = 0;
         var timer = new PeriodicTimer(TimeSpan.FromSeconds(_settings.PollingIntervalSeconds));
         do
         {
-            var networkContext = await _networkContextRetriever.GetNetworkContext(ct);
-            await Task.WhenAll(activeSales.Select(s => PollSaleAddressForUtxos(s, networkContext, ct)));
-        } while (await timer.WaitForNextTickAsync(ct));
+            try
+            {
+                var networkContext = await _networkContextRetriever.GetNetworkContext(ct);
+                await Task.WhenAll(activeSales.Select(s => PollSaleAddressForUtxos(s, networkContext, ct)));
+                retryCount = 0;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unhandled exception in {Worker}", nameof(Worker));
+                retryCount++;
+            }
+        } while (await timer.WaitForNextTickAsync(ct) && (retryCount <= _settings.PollErrorRetryLimit));
     }
 
     private async Task PollSaleAddressForUtxos(SaleContext saleContext, NetworkContext networkContext, CancellationToken ct)
