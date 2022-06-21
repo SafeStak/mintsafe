@@ -25,7 +25,7 @@ using IHost host = Host.CreateDefaultBuilder(args)
 
         services.AddAzureClients(clientBuilder =>
         {
-            var connectionString = "";
+            var connectionString = "``";
 
             clientBuilder.AddTableClient(connectionString, Constants.TableNames.NiftyCollection);
             clientBuilder.AddTableClient(connectionString, Constants.TableNames.Nifty);
@@ -35,7 +35,7 @@ using IHost host = Host.CreateDefaultBuilder(args)
     })
     .Build();
 
-var pickupDirPath = $"C:\\ws\\temp\\tacf_portrait2";
+var pickupDirPath = $"C:\\ws\\temp\\t";
 
 var collection = await LoadJsonFromFileAsync<NiftyCollection>(Path.Combine(pickupDirPath, "collection_tn.json"));
 var sale = await LoadJsonFromFileAsync<Sale>(Path.Combine(pickupDirPath, "sale_tn.json"));
