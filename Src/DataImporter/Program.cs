@@ -25,7 +25,7 @@ using IHost host = Host.CreateDefaultBuilder(args)
 
         services.AddAzureClients(clientBuilder =>
         {
-            var connectionString = "DefaultEndpointsProtocol=https;AccountName=sstneunmsapiapivmstor;AccountKey=u6xexnihOsCJulTo3UZZqfs18GlnZ5r+CCNpaES/yLPQf3xxwJnnurOLxtOKsVNKrFgTP94NSJP++AStC5JT/Q==;EndpointSuffix=core.windows.net";
+            var connectionString = "";
 
             clientBuilder.AddTableClient(connectionString, Constants.TableNames.NiftyCollection);
             clientBuilder.AddTableClient(connectionString, Constants.TableNames.Nifty);
