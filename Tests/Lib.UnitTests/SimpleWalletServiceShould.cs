@@ -84,7 +84,7 @@ public class SimpleWalletServiceShould
         var royaltyBodyMetadata = new Dictionary<string, object>
             { 
                 { "rate", royaltyRate }, 
-                { "addr", royaltyAddress.Length > 64 ? MetadataJsonBuilder.SplitStringToChunks(royaltyAddress) : royaltyAddress }  
+                { "addr", royaltyAddress.Length > 64 ? MetadataBuilder.SplitStringToChunks(royaltyAddress) : royaltyAddress }  
             };
         var royaltyMetadata = new Dictionary<int, Dictionary<string, object>>
             { { NftRoyaltyMetadataStandardKey, royaltyBodyMetadata } };

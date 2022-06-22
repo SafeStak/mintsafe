@@ -122,7 +122,7 @@ public static class MetadataBuilder
         return messageMetadata;
     }
 
-    private static string[] SplitStringToChunks(string? value, int maxLength = MaxMetadataStringLength)
+    public static string[] SplitStringToChunks(string? value, int maxLength = MaxMetadataStringLength)
     {
         if (value == null)
             return Array.Empty<string>();

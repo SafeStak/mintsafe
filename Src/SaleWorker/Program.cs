@@ -109,8 +109,6 @@ IHost host = Host.CreateDefaultBuilder(args)
 
         services.AddSingleton<ISaleUtxoHandler, SaleUtxoHandler>();
         services.AddSingleton<INiftyAllocator, NiftyAllocator>();
-        services.AddSingleton<IMetadataFileGenerator, MetadataFileGenerator>();
-        services.AddSingleton<IMetadataJsonBuilder, MetadataJsonBuilder>();
         services.AddSingleton<INiftyDistributor, CardanoSharpNiftyDistributor>();
         services.AddSingleton<IUtxoRefunder, UtxoRefunder>();
         services.AddSingleton<ISaleAllocationStore, SaleAllocationFileStore>();

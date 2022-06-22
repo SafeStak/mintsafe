@@ -50,9 +50,7 @@ builder.Services.AddHttpClient<BlockfrostClient>(nameof(BlockfrostClient), (s, c
 
 builder.Services.AddSingleton<IInstrumentor, LoggingInstrumentor>();
 builder.Services.AddSingleton<INiftyAllocator, NiftyAllocator>();
-builder.Services.AddSingleton<IMetadataFileGenerator, MetadataFileGenerator>();
-builder.Services.AddSingleton<IMetadataJsonBuilder, MetadataJsonBuilder>();
-builder.Services.AddSingleton<INiftyDistributor, NiftyDistributor>();
+builder.Services.AddSingleton<INiftyDistributor, CardanoSharpNiftyDistributor>();
 builder.Services.AddSingleton<IUtxoRefunder, UtxoRefunder>();
 builder.Services.AddSingleton<ISaleAllocationStore, SaleAllocationFileStore>();
 builder.Services.AddSingleton<ISimpleWalletService, SimpleWalletService>();
@@ -76,13 +74,9 @@ builder.Services.AddAzureClients(clientBuilder =>
     clientBuilder.AddTableClient(connectionString, Constants.TableNames.NiftyFile);
 });
 
-//TODO
-builder.Services.AddSingleton<IMetadataJsonBuilder, MetadataJsonBuilder>();
-
 // Fakes
 //builder.Services.AddSingleton<IUtxoRetriever, FakeUtxoRetriever>();
 builder.Services.AddSingleton<ITxInfoRetriever, FakeTxIoRetriever>();
-builder.Services.AddSingleton<ITxBuilder, FakeTxBuilder>();
 builder.Services.AddSingleton<ITxSubmitter, FakeTxSubmitter>();
 
 // Reals
