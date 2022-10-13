@@ -9,12 +9,12 @@ namespace Mintsafe.DataAccess.Models
         public string RowKey { get; set; }
 
         public bool IsActive { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public long LovelacesPerToken { get; set; }
-        public string SaleAddress { get; set; }
-        public string CreatorAddress { get; set; }
-        public string ProceedsAddress { get; set; }
+        public string? Name { get; set; }
+        public string? Description { get; set; }
+        public ulong LovelacesPerToken { get; set; }
+        public string? SaleAddress { get; set; }
+        public string? CreatorAddress { get; set; }
+        public string? ProceedsAddress { get; set; }
         public double PostPurchaseMargin { get; set; }
         public int TotalReleaseQuantity { get; set; }
         public int MaxAllowedPurchaseQuantity { get; set; }

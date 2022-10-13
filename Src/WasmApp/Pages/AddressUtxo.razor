@@ -7,7 +7,7 @@
 
 <input @bind="Address" placeholder="addr1..." style="width: 550px" />
 <button @onclick="QueryAddressUtxos">Query</button>
-@(Utxos?.Sum(u => u.Lovelaces)/1000000) ADA
+@*@(Utxos?.Sum(u => u.Lovelaces)/1000000) ADA*@
 
 @if (Utxos != null)
 {

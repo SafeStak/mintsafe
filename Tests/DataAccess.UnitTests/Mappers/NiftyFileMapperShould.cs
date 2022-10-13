@@ -21,7 +21,7 @@ namespace Mintsafe.DataAccess.UnitTests.Mappers
                 NiftyId = niftyId.ToString(),
                 Name = "Name",
                 MediaType = "jpeg",
-                Url = "test.com",
+                Src = "test.com",
                 FileHash = "hash"
             };
 
@@ -32,7 +32,7 @@ namespace Mintsafe.DataAccess.UnitTests.Mappers
             model.NiftyId.Should().Be(niftyId);
             model.Name.Should().Be("Name");
             model.MediaType.Should().Be("jpeg");
-            model.Url.Should().Be("test.com");
+            model.Src.Should().Be("test.com");
             model.FileHash.Should().Be("hash");
         }
 
@@ -60,7 +60,7 @@ namespace Mintsafe.DataAccess.UnitTests.Mappers
             model.NiftyId.Should().Be(niftyId.ToString());
             model.Name.Should().Be("Name");
             model.MediaType.Should().Be("jpeg");
-            model.Url.Should().Be("test.com");
+            model.Src.Should().Be("test.com");
             model.FileHash.Should().Be("hash");
         }
     }

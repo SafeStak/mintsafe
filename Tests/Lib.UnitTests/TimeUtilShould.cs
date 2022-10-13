@@ -10,7 +10,8 @@ public class TimeUtilShould
     [Theory]
     [InlineData(2021, 10, 28, 14, 0, 4, 41060390)]
     [InlineData(2022, 1, 28, 19, 0, 0, 49027186)]
-    public void Return_Correct_Testnet_Slot(
+    [InlineData(2023, 7, 23, 0, 0, 0, 95701186)]
+    public void Return_Correct_Testnet_Slot_Utc_DateTime(
         int year, int month, int day, int hour, int minute, int second,
         int expectedSlot)
     {
@@ -24,6 +25,7 @@ public class TimeUtilShould
     [Theory]
     [InlineData(41060390, 2021, 10, 28, 14, 0, 4)]
     [InlineData(49027186, 2022, 1, 28, 19, 0, 0)]
+    [InlineData(74686216, 2022, 11, 21, 18, 30, 30)]
     public void Return_Correct_Utc_Time_From_Testnet_Slot(
         int slot, int expectedYear, int expectedMonth, int expectedDay, int expectedHour, int expectedMinute, int expectedSecond)
     {
@@ -37,6 +39,7 @@ public class TimeUtilShould
     [Theory]
     [InlineData(2021, 10, 28, 14, 1, 0, 43863369)]
     [InlineData(2022, 4, 1, 0, 0, 0, 57204909)]
+    [InlineData(2023, 7, 23, 0, 0, 0, 98504109)]
     public void Return_Correct_Mainnet_Slot_For_Utc_DateTime(
         int year, int month, int day, int hour, int minute, int second,
         int expectedSlot)
@@ -51,6 +54,7 @@ public class TimeUtilShould
     [Theory]
     [InlineData(43863369, 2021, 10, 28, 14, 1, 0)]
     [InlineData(51830109, 2022, 1, 28, 19, 0, 0)]
+    [InlineData(98504109, 2023, 7, 23, 0, 0, 0)]
     public void Return_Correct_Utc_Time_From_Mainnet_Slot(
         int slot, int expectedYear, int expectedMonth, int expectedDay, int expectedHour, int expectedMinute, int expectedSecond)
     {

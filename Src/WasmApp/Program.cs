@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Mintsafe.Abstractions;
 using Mintsafe.Lib;
 using Mintsafe.WasmApp;
 using Mintsafe.WasmApp.Services;
@@ -26,6 +27,6 @@ if (address == null)
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(address) });
 
 builder.Services.AddScoped<IAddressUtxoService, AddressUtxoService>();
-builder.Services.AddScoped<IYoloPaymentService, YoloPaymentService>();
+//builder.Services.AddScoped<IYoloPaymentService, SimplePaymentService>();
 
 await builder.Build().RunAsync();

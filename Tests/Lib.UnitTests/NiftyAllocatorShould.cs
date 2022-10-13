@@ -78,7 +78,7 @@ public class NiftyAllocatorShould
         var request = new PurchaseAttempt(
             Guid.NewGuid(),
             Guid.NewGuid(),
-            new Utxo("", 0, new[] { new Value(Assets.LovelaceUnit, 1000000) }),
+            new UnspentTransactionOutput("", 0, new Balance(1000000, Array.Empty<NativeAssetValue>())),
             requestedQuantity,
             0);
 
@@ -110,7 +110,7 @@ public class NiftyAllocatorShould
         var request = new PurchaseAttempt(
             Guid.NewGuid(),
             Guid.NewGuid(),
-            new Utxo("", 0, new[] { new Value(Assets.LovelaceUnit, 1000000) }),
+            new UnspentTransactionOutput("", 0, new Balance(1000000, Array.Empty<NativeAssetValue>())),
             requestedQuantity,
             0);
 

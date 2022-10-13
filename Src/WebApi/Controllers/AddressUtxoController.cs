@@ -22,7 +22,7 @@ namespace Mintsafe.WebApi.Controllers
         }
 
         [HttpGet("{address}")]
-        public async Task<Utxo[]> Get(string address, CancellationToken ct)
+        public async Task<UnspentTransactionOutput[]> Get(string address, CancellationToken ct)
         {
             var utxos = await _utxoRetriever.GetUtxosAtAddressAsync(address, ct);
 

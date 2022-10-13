@@ -7,7 +7,7 @@ public static class PurchaseAttemptGenerator
 {
     private const int QuantityHardLimit = 64; // Rough guess based on 16KB Tx limit
 
-    public static PurchaseAttempt FromUtxo(Utxo utxo, Sale sale)
+    public static PurchaseAttempt FromUtxo(UnspentTransactionOutput utxo, Sale sale)
     {
         if (!sale.IsActive)
             throw new SaleInactiveException("Sale is inactive", sale.Id, utxo);

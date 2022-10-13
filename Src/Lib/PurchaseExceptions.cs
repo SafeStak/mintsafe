@@ -9,11 +9,11 @@ public class CannotAllocateMoreThanSaleReleaseException : ApplicationException
     public long SaleReleaseQuantity { get; }
     public long SaleAllocatedQuantity { get; }
     public Guid SaleId { get; }
-    public Utxo PurchaseAttemptUtxo { get; }
+    public UnspentTransactionOutput PurchaseAttemptUtxo { get; }
 
     public CannotAllocateMoreThanSaleReleaseException(
         string message,
-        Utxo purchaseAttemptUtxo,
+        UnspentTransactionOutput purchaseAttemptUtxo,
         Guid saleId,
         int saleReleaseQuantity,
         int saleAllocatedQuantity,
@@ -29,15 +29,15 @@ public class CannotAllocateMoreThanSaleReleaseException : ApplicationException
 
 public class InsufficientPaymentException : ApplicationException
 {
-    public long QuantityPerToken { get; }
+    public ulong QuantityPerToken { get; }
     public Guid SaleId { get; }
-    public Utxo PurchaseAttemptUtxo { get; }
+    public UnspentTransactionOutput PurchaseAttemptUtxo { get; }
 
     public InsufficientPaymentException(
         string message,
         Guid saleId,
-        Utxo purchaseAttemptUtxo,
-        long quantityPerToken) : base(message)
+        UnspentTransactionOutput purchaseAttemptUtxo,
+        ulong quantityPerToken) : base(message)
     {
         QuantityPerToken = quantityPerToken;
         SaleId = saleId;
@@ -49,11 +49,11 @@ public class PurchaseQuantityHardLimitException : ApplicationException
 {
     public long RequestedQuantity { get; }
     public Guid SaleId { get; }
-    public Utxo PurchaseAttemptUtxo { get; }
+    public UnspentTransactionOutput PurchaseAttemptUtxo { get; }
 
     public PurchaseQuantityHardLimitException(
         string message,
-        Utxo purchaseAttemptUtxo,
+        UnspentTransactionOutput purchaseAttemptUtxo,
         Guid saleId,
         int requestedQuantity) : base(message)
     {
@@ -68,12 +68,12 @@ public class MaxAllowedPurchaseQuantityExceededException : ApplicationException
     public int MaxQuantity { get; }
     public int DerivedQuantity { get; }
     public Guid SaleId { get; }
-    public Utxo PurchaseAttemptUtxo { get; }
+    public UnspentTransactionOutput PurchaseAttemptUtxo { get; }
 
     public MaxAllowedPurchaseQuantityExceededException(
         string message,
         Guid saleId,
-        Utxo purchaseAttemptUtxo,
+        UnspentTransactionOutput purchaseAttemptUtxo,
         int maxQuantity,
         int derivedQuantity) : base(message)
     {
@@ -90,12 +90,12 @@ public class SalePeriodOutOfRangeException : ApplicationException
     public DateTime? SaleEndDateTime { get; }
     public DateTime PurchaseAttemptedAt { get; }
     public Guid SaleId { get; }
-    public Utxo PurchaseAttemptUtxo { get; }
+    public UnspentTransactionOutput PurchaseAttemptUtxo { get; }
 
     public SalePeriodOutOfRangeException(
         string message,
         Guid saleId,
-        Utxo purchaseAttemptUtxo,
+        UnspentTransactionOutput purchaseAttemptUtxo,
         DateTime? saleStartDateTime,
         DateTime? saleEndDateTime) : base(message)
     {
@@ -109,13 +109,13 @@ public class SalePeriodOutOfRangeException : ApplicationException
 
 public class SaleInactiveException : ApplicationException
 {
-    public Utxo PurchaseAttemptUtxo { get; }
+    public UnspentTransactionOutput PurchaseAttemptUtxo { get; }
     public Guid SaleId { get; }
 
     public SaleInactiveException(
         string message,
         Guid saleId,
-        Utxo purchaseAttemptUtxo) : base(message)
+        UnspentTransactionOutput purchaseAttemptUtxo) : base(message)
     {
         SaleId = saleId;
         PurchaseAttemptUtxo = purchaseAttemptUtxo;
@@ -124,16 +124,34 @@ public class SaleInactiveException : ApplicationException
 
 public class FailedUtxoRefundException : ApplicationException
 {
-    public Utxo PurchaseAttemptUtxo { get; }
+    public UnspentTransactionOutput PurchaseAttemptUtxo { get; }
     public Guid SaleId { get; }
 
     public FailedUtxoRefundException(
         string message,
         Guid saleId,
-        Utxo purchaseAttemptUtxo,
+        UnspentTransactionOutput purchaseAttemptUtxo,
         Exception? innerException) : base(message, innerException)
     {
         SaleId = saleId;
         PurchaseAttemptUtxo = purchaseAttemptUtxo;
+    }
+}
+
+public class InputOutputValueMismatchException : ApplicationException
+{
+    public UnspentTransactionOutput[] Inputs { get; }
+    public PendingTransactionOutput[] Outputs { get; }
+    public string CorrelationId { get; }
+
+    public InputOutputValueMismatchException(
+        string message,
+        UnspentTransactionOutput[] inputs,
+        PendingTransactionOutput[] outputs,
+        string? correlationId = null) : base(message)
+    {
+        Inputs = inputs;
+        Outputs = outputs;
+        CorrelationId = correlationId ?? Guid.NewGuid().ToString();
     }
 }

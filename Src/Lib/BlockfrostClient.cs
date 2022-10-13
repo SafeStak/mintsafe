@@ -29,12 +29,12 @@ public class BlockfrostClient : IBlockfrostClient
         ILogger<BlockfrostClient> logger,
         IInstrumentor instrumentor,
         MintsafeAppSettings settings,
-        HttpClient httpClient)
+        IHttpClientFactory factory)
     {
         _logger = logger;
         _instrumentor = instrumentor;
         _settings = settings;
-        _httpClient = httpClient;
+        _httpClient = factory.CreateClient(nameof(BlockfrostClient));
     }
 
     public async Task<BlockFrostAddressUtxo[]> GetUtxosAtAddressAsync(string address, CancellationToken ct = default)
@@ -172,6 +172,89 @@ public class BlockfrostClient : IBlockfrostClient
                 relativePath, nameof(SubmitTransactionAsync),
                 isSuccessful: isSuccessful,
                 customProperties: dependencyProperties);
+        }
+    }
+
+    public async Task<BlockfrostLatestBlock> GetLatestBlockAsync(CancellationToken ct = default)
+    {
+        var relativePath = $"api/v0/blocks/latest";
+
+        var isSuccessful = false;
+        BlockfrostLatestBlock? bfResponse = null;
+        var responseCode = 0;
+        var sw = Stopwatch.StartNew();
+        try
+        {
+            var response = await _httpClient.GetAsync(relativePath, ct).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode)
+            {
+                var responseBody = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+                throw new BlockfrostResponseException($"Unsuccessful Blockfrost response:{responseBody}", (int)response.StatusCode, responseBody);
+            }
+            _logger.LogDebug($"{nameof(BlockfrostClient)}.{nameof(GetLatestBlockAsync)} from {relativePath} reponse: {responseCode}");
+            bfResponse = await response.Content.ReadFromJsonAsync<BlockfrostLatestBlock>(SerialiserOptions, ct).ConfigureAwait(false);
+            if (bfResponse == null)
+            {
+                var json = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+                throw new BlockfrostResponseException($"BlockFrost response is null or cannot be deserialised {json}", responseCode, json);
+            }
+            isSuccessful = true;
+            return bfResponse;
+        }
+        finally
+        {
+            _instrumentor.TrackDependency(
+                EventIds.NetworkTipRetrievalElapsed,
+                sw.ElapsedMilliseconds,
+                DateTime.UtcNow,
+                nameof(BlockfrostClient),
+                relativePath,
+                nameof(GetLatestBlockAsync),
+                isSuccessful: isSuccessful,
+                customProperties: bfResponse != null
+                    ? new Dictionary<string, object> { { "Slot", bfResponse?.Slot ?? 0 } }
+                    : null);
+        }
+    }
+
+    public async Task<BlockfrostProtocolParameters> GetLatestProtocolParameters(CancellationToken ct = default)
+    {
+        var relativePath = $"api/v0/epochs/latest/parameters";
+        var isSuccessful = false;
+        BlockfrostProtocolParameters? bfResponse = null;
+        var responseCode = 0;
+        var sw = Stopwatch.StartNew();
+        try
+        {
+            var response = await _httpClient.GetAsync(relativePath, ct).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode)
+            {
+                var responseBody = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+                throw new BlockfrostResponseException($"Unsuccessful Blockfrost response:{responseBody}", (int)response.StatusCode, responseBody);
+            }
+            _logger.LogDebug($"{nameof(BlockfrostClient)}.{nameof(GetLatestProtocolParameters)} from {relativePath} reponse: {responseCode}");
+            bfResponse = await response.Content.ReadFromJsonAsync<BlockfrostProtocolParameters>(SerialiserOptions, ct).ConfigureAwait(false);
+            if (bfResponse == null)
+            {
+                var json = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+                throw new BlockfrostResponseException($"BlockFrost response is null or cannot be deserialised {json}", responseCode, json);
+            }
+            isSuccessful = true;
+            return bfResponse;
+        }
+        finally
+        {
+            _instrumentor.TrackDependency(
+                EventIds.NetworkProtocolParamsRetrievalElapsed,
+                sw.ElapsedMilliseconds,
+                DateTime.UtcNow,
+                nameof(BlockfrostClient),
+                relativePath,
+                nameof(GetLatestProtocolParameters),
+                isSuccessful: isSuccessful,
+                customProperties: bfResponse != null
+                    ? new Dictionary<string, object> { { "MajorVersion", bfResponse?.Protocol_major_ver ?? 0 } }
+                    : null);
         }
     }
 }

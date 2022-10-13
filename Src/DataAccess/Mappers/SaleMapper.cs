@@ -27,6 +27,12 @@ namespace Mintsafe.DataAccess.Mappers
 
         public static Sale Map(Models.Sale saleDto)
         {
+            if (saleDto == null) throw new ArgumentNullException(nameof(saleDto));
+            if (saleDto.Name == null) throw new ArgumentNullException(nameof(saleDto.Name));
+            if (saleDto.SaleAddress == null) throw new ArgumentNullException(nameof(saleDto.SaleAddress));
+            if (saleDto.ProceedsAddress == null) throw new ArgumentNullException(nameof(saleDto.ProceedsAddress));
+            if (saleDto.CreatorAddress == null) throw new ArgumentNullException(nameof(saleDto.CreatorAddress));
+
             return new Sale(
                 Guid.Parse(saleDto.RowKey),
                 Guid.Parse(saleDto.PartitionKey),

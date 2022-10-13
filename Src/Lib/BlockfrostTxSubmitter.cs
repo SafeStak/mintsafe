@@ -6,9 +6,9 @@ namespace Mintsafe.Lib;
 
 public class BlockfrostTxSubmitter : ITxSubmitter
 {
-    private readonly BlockfrostClient _blockFrostClient;
+    private readonly IBlockfrostClient _blockFrostClient;
 
-    public BlockfrostTxSubmitter(BlockfrostClient blockFrostClient)
+    public BlockfrostTxSubmitter(IBlockfrostClient blockFrostClient)
     {
         _blockFrostClient = blockFrostClient;
     }
@@ -16,7 +16,6 @@ public class BlockfrostTxSubmitter : ITxSubmitter
     public async Task<string> SubmitTxAsync(byte[] txSignedBinary, CancellationToken ct = default)
     {
         var txHash = await _blockFrostClient.SubmitTransactionAsync(txSignedBinary, ct);
-
         return txHash;
     }
 }

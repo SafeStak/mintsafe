@@ -8,7 +8,10 @@ namespace Mintsafe.Abstractions
     public interface ISaleAllocationStore
     {
         Task<SaleContext> GetOrRestoreSaleContextAsync(
-            CollectionAggregate collectionAggregate, Guid workerId, CancellationToken ct);
+            ProjectAggregate collectionAggregate, Guid workerId, CancellationToken ct);
+
+        Task<SaleContext> GetOrRestoreSaleContextAsync(
+            SaleAggregate saleAggregate, Guid workerId, CancellationToken ct);
 
         Task<Nifty[]> AllocateNiftiesAsync(
             PurchaseAttempt request, SaleContext context, CancellationToken ct);

@@ -12,15 +12,15 @@ public class PurchaseAttemptGeneratorShould
     [InlineData(39000000, 15000000, 2)]
     [InlineData(50000000, 10000000, 5)]
     public void Correctly_Calculate_Quantity(
-        long utxoValueLovelace, long costPerTokenLovelace, int expectedQuantity)
+        ulong utxoValueLovelace, ulong costPerTokenLovelace, int expectedQuantity)
     {
         var sale = FakeGenerator.GenerateSale(lovelacesPerToken: costPerTokenLovelace);
 
         var salePurchase = PurchaseAttemptGenerator.FromUtxo(
-                new Utxo(
+                new UnspentTransactionOutput(
                     "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                     0,
-                    new[] { new Value(Assets.LovelaceUnit, utxoValueLovelace) }),
+                    new Balance(utxoValueLovelace, Array.Empty<NativeAssetValue>())),
                 sale);
 
         salePurchase.NiftyQuantityRequested.Should().Be(expectedQuantity);
@@ -31,15 +31,15 @@ public class PurchaseAttemptGeneratorShould
     [InlineData(34000001, 34000000, 1)]
     [InlineData(25000000, 10000000, 5000000)]
     public void Correctly_Calculate_Change(
-        long utxoValueLovelace, long costPerTokenLovelace, int expectedChange)
+        ulong utxoValueLovelace, ulong costPerTokenLovelace, ulong expectedChange)
     {
         var sale = FakeGenerator.GenerateSale(lovelacesPerToken: costPerTokenLovelace);
 
         var salePurchase = PurchaseAttemptGenerator.FromUtxo(
-                new Utxo(
+                new UnspentTransactionOutput(
                     "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                     0,
-                    new[] { new Value(Assets.LovelaceUnit, utxoValueLovelace) }),
+                    new Balance(utxoValueLovelace, Array.Empty<NativeAssetValue>())),
                 sale);
 
         salePurchase.ChangeInLovelace.Should().Be(expectedChange);
@@ -58,10 +58,10 @@ public class PurchaseAttemptGeneratorShould
             end: DateTime.UtcNow.AddSeconds(secondsBeforeEnd));
 
         var salePurchase = PurchaseAttemptGenerator.FromUtxo(
-                new Utxo(
+                new UnspentTransactionOutput(
                     txHash,
                     0,
-                    new[] { new Value(Assets.LovelaceUnit, 10000000) }),
+                    new Balance(10000000, Array.Empty<NativeAssetValue>())),
                 sale);
 
         salePurchase.Utxo.TxHash.Should().Be(txHash); 
@@ -72,17 +72,17 @@ public class PurchaseAttemptGeneratorShould
     [InlineData(1500000, 1500001)]
     [InlineData(34999999, 35000000)]
     public void Throws_InsufficientPaymentException_When_Utxo_Value_Is_Less_Than_LovelacesPerToken(
-        long utxoValueLovelace, long costPerTokenLovelace)
+        ulong utxoValueLovelace, ulong costPerTokenLovelace)
     {
         var sale = FakeGenerator.GenerateSale(lovelacesPerToken: costPerTokenLovelace);
 
         Action action = () =>
         {
             PurchaseAttemptGenerator.FromUtxo(
-                new Utxo(
+                new UnspentTransactionOutput(
                     "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                     0,
-                    new[] { new Value(Assets.LovelaceUnit, utxoValueLovelace) }),
+                    new Balance(utxoValueLovelace, Array.Empty<NativeAssetValue>())),
                 sale);
         };
 
@@ -97,10 +97,10 @@ public class PurchaseAttemptGeneratorShould
         Action action = () =>
         {
             PurchaseAttemptGenerator.FromUtxo(
-                new Utxo(
+                new UnspentTransactionOutput(
                     "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                     0,
-                    new[] { new Value(Assets.LovelaceUnit, 100000000) }),
+                    new Balance(100000000, Array.Empty<NativeAssetValue>())),
                 sale);
         };
 
@@ -111,17 +111,17 @@ public class PurchaseAttemptGeneratorShould
     [InlineData(20000000, 10000000, 1)]
     [InlineData(80000000, 20000000, 3)]
     public void Throws_MaxAllowedPurchaseQuantityExceededException_When_Quantity_Exceeds_Max_Allowed(
-        long utxoValueLovelace, long costPerTokenLovelace, int maxAllowedPurchaseQuantity)
+        ulong utxoValueLovelace, ulong costPerTokenLovelace, int maxAllowedPurchaseQuantity)
     {
         var sale = FakeGenerator.GenerateSale(lovelacesPerToken: costPerTokenLovelace, maxAllowedPurchaseQuantity: maxAllowedPurchaseQuantity);
 
         Action action = () =>
         {
             PurchaseAttemptGenerator.FromUtxo(
-                new Utxo(
+                new UnspentTransactionOutput(
                     "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                     0,
-                    new[] { new Value(Assets.LovelaceUnit, utxoValueLovelace) }),
+                    new Balance(utxoValueLovelace, Array.Empty<NativeAssetValue>())),
                 sale);
         };
 
@@ -139,10 +139,10 @@ public class PurchaseAttemptGeneratorShould
         Action action = () =>
         {
             PurchaseAttemptGenerator.FromUtxo(
-                new Utxo(
+                new UnspentTransactionOutput(
                     "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                     0,
-                    new[] { new Value(Assets.LovelaceUnit, 100000000) }),
+                    new Balance(100000000, Array.Empty<NativeAssetValue>())),
                 sale);
         };
 
@@ -160,10 +160,10 @@ public class PurchaseAttemptGeneratorShould
         Action action = () =>
         {
             PurchaseAttemptGenerator.FromUtxo(
-                new Utxo(
+                new UnspentTransactionOutput(
                     "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                     0,
-                    new[] { new Value(Assets.LovelaceUnit, 100000000) }),
+                    new Balance(100000000, Array.Empty<NativeAssetValue>())),
                 sale);
         };
 

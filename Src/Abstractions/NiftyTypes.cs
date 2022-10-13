@@ -3,7 +3,12 @@ using System.Collections.Generic;
 
 namespace Mintsafe.Abstractions;
 
-public record CollectionAggregate(
+public record SaleAggregate(
+    Sale Sale,
+    NiftyCollection Collection,
+    Nifty[] Tokens);
+
+public record ProjectAggregate(
     NiftyCollection Collection,
     Nifty[] Tokens,
     Sale[] ActiveSales);
@@ -12,13 +17,14 @@ public record NiftyCollection(
     Guid Id,
     string PolicyId,
     string Name,
-    string Description,
+    string? Description,
     bool IsActive,
-    string BrandImage,
+    string? BrandImage,
     string[] Publishers,
     DateTime CreatedAt,
     DateTime LockedAt,
-    long SlotExpiry);
+    long SlotExpiry,
+    Royalty Royalty);
 
 public record Nifty(
     Guid Id,
@@ -26,14 +32,13 @@ public record Nifty(
     bool IsMintable,
     string AssetName,
     string Name,
-    string Description,
+    string? Description,
     string[] Creators,
-    string Image,
-    string MediaType,
+    string? Image,
+    string? MediaType,
     NiftyFile[] Files,
     DateTime CreatedAt,
-    Royalty Royalty,
-    string Version,
+    string? Version,
     KeyValuePair<string, string>[] Attributes);
 
 public record NiftyFile(
@@ -41,7 +46,7 @@ public record NiftyFile(
     Guid NiftyId,
     string Name,
     string MediaType,
-    string Url,
+    string Src,
     string FileHash = "");
 
 public record Royalty(
@@ -54,7 +59,7 @@ public record Sale(
     bool IsActive,
     string Name,
     string Description,
-    long LovelacesPerToken,
+    ulong LovelacesPerToken,
     string SaleAddress,
     string CreatorAddress,
     string ProceedsAddress,
@@ -73,18 +78,22 @@ public record SaleContext
     NiftyCollection Collection,
     List<Nifty> MintableTokens,
     List<Nifty> AllocatedTokens,
-    HashSet<Utxo> LockedUtxos,
-    HashSet<Utxo> SuccessfulUtxos,
-    HashSet<Utxo> RefundedUtxos,
-    HashSet<Utxo> FailedUtxos
+    HashSet<UnspentTransactionOutput> LockedUtxos,
+    HashSet<UnspentTransactionOutput> SuccessfulUtxos,
+    HashSet<UnspentTransactionOutput> RefundedUtxos,
+    HashSet<UnspentTransactionOutput> FailedUtxos
 );
 
 public record PurchaseAttempt(
     Guid Id,
     Guid SaleId,
-    Utxo Utxo,
+    UnspentTransactionOutput Utxo,
     int NiftyQuantityRequested,
-    long ChangeInLovelace);
+    ulong ChangeInLovelace);
+
+public record MintingKeyChain(
+    string[] SigningKeys, 
+    BasicMintingPolicy MintingPolicy);
 
 public enum NiftyDistributionOutcome { 
     Successful = 1, 
@@ -103,7 +112,7 @@ public record NiftyDistributionResult(
     Nifty[]? NiftiesDistributed = null,
     Exception? Exception = null);
 
-public record Mint(
+public record MintRecord(
     Guid PurchaseAttemptId,
     Guid SaleId,
     string SaleAddress,
@@ -118,3 +127,13 @@ public record Mint(
     string PolicyId,
     string AssetName
 );
+
+public record MintMessage(
+    Guid MessageId,
+    string FromAddress,
+    string[] ToAddresses,
+    string[] CcAddresses,
+    string MessageTitle,
+    string MessageBody,
+    DateTime MessageSentAt,
+    string PolicyId);

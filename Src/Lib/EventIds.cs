@@ -22,6 +22,9 @@
         public const int SaleContextReleaseElapsed = 120016;
         public const int UtxoRetrievalError = 130000;
         public const int UtxoRetrievalElapsed = 130004;
+        public const int NetworkContextRetrievalElapsed = 130005;
+        public const int NetworkTipRetrievalElapsed = 130006;
+        public const int NetworkProtocolParamsRetrievalElapsed = 130007;
         public const int SaleHandlerUnhandledError = 140000;
         public const int SaleHandlerElapsed = 140004;
         public const int SaleInactive = 140011;
@@ -41,6 +44,7 @@
         public const int UtxoRefunderError = 200000;
         public const int UtxoRefunderElapsed = 200004;
         public const int PaymentElapsed = 210004;
+        public const int KeychainRetrievalElapsed = 220004;
         public const int BlockfrostServerErrorResponse = 30001;
         public const int BlockfrostBadRequestResponse = 30002;
         public const int BlockfrostTooManyRequestsResponse = 30003;

@@ -13,6 +13,7 @@ using Mintsafe.DataAccess.Supporting;
 using Mintsafe.Lib;
 using Mintsafe.SaleWorker;
 using System;
+using System.Linq;
 
 IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureHostConfiguration(configHost =>
@@ -54,7 +55,13 @@ IHost host = Host.CreateDefaultBuilder(args)
             .GetSection("BlockfrostApi")
             .Get<BlockfrostApiConfig>();
         if (blockfrostApiConfig.BaseUrl == null)
-            throw new MintSafeConfigException("BaseUrl is missing in BlockfrostApiConfig", "MintsafeWorker.BlockfrostApiConfig");
+            throw new MintSafeConfigException("BaseUrl is missing in BlockfrostApiConfig", "MintsafeWorker.BlockfrostApi");
+
+        var keychainConfig = hostContext.Configuration
+            .GetSection("Keychain")
+            .Get<KeychainConfig>();
+        if (string.IsNullOrWhiteSpace(keychainConfig.KeyVaultUrl))
+            throw new MintSafeConfigException("KeyVaultUrl is missing in KeychainConfig", "MintsafeWorker.Keychain.KeyVaultUrl");
 
         var mintsafeWorkerConfig = hostContext.Configuration
             .GetSection("MintsafeWorker")
@@ -66,8 +73,11 @@ IHost host = Host.CreateDefaultBuilder(args)
             Network = cardanoNetworkConfig.Network == "Mainnet" ? Network.Mainnet : Network.Testnet,
             BlockFrostApiKey = blockfrostApiConfig.ApiKey,
             BasePath = mintsafeWorkerConfig.MintBasePath,
-            PollingIntervalSeconds = mintsafeWorkerConfig.PollingIntervalSeconds.HasValue ? mintsafeWorkerConfig.PollingIntervalSeconds.Value : 10,
-            CollectionId = Guid.Parse(mintsafeWorkerConfig.CollectionId)
+            PollingIntervalSeconds = mintsafeWorkerConfig.PollingIntervalSeconds.HasValue ? mintsafeWorkerConfig.PollingIntervalSeconds.Value : 20,
+            PollErrorRetryLimit = mintsafeWorkerConfig.PollErrorRetryLimit.HasValue ? mintsafeWorkerConfig.PollErrorRetryLimit.Value : 8,
+            CollectionId = Guid.Parse(mintsafeWorkerConfig.CollectionId),
+            SaleIds = mintsafeWorkerConfig.SaleIds?.Select(Guid.Parse).ToArray() ?? Array.Empty<Guid>(),
+            KeyVaultUrl = keychainConfig.KeyVaultUrl
         };
         services.AddSingleton(settings);
 
@@ -99,9 +109,7 @@ IHost host = Host.CreateDefaultBuilder(args)
 
         services.AddSingleton<ISaleUtxoHandler, SaleUtxoHandler>();
         services.AddSingleton<INiftyAllocator, NiftyAllocator>();
-        services.AddSingleton<IMetadataFileGenerator, MetadataFileGenerator>();
-        services.AddSingleton<IMetadataJsonBuilder, MetadataJsonBuilder>();
-        services.AddSingleton<INiftyDistributor, NiftyDistributor>();
+        services.AddSingleton<INiftyDistributor, CardanoSharpNiftyDistributor>();
         services.AddSingleton<IUtxoRefunder, UtxoRefunder>();
         services.AddSingleton<ISaleAllocationStore, SaleAllocationFileStore>();
 
@@ -112,11 +120,13 @@ IHost host = Host.CreateDefaultBuilder(args)
         //services.AddSingleton<ITxBuilder, FakeTxBuilder>();
         //services.AddSingleton<ITxSubmitter, FakeTxSubmitter>();
 
-        //// Reals
-        //services.AddSingleton<IUtxoRetriever, CardanoCliUtxoRetriever>();
+        // Reals
+        services.AddSingleton<INetworkContextRetriever, BlockfrostNetworkContextRetriever>();
+        services.AddSingleton<IBlockfrostClient, BlockfrostClient>();
+        services.AddSingleton<IMintingKeychainRetriever, KeyVaultMintingKeychainRetriever>();
         services.AddSingleton<IUtxoRetriever, BlockfrostUtxoRetriever>();
         services.AddSingleton<ITxInfoRetriever, BlockfrostTxInfoRetriever>();
-        services.AddSingleton<ITxBuilder, CardanoCliTxBuilder>();
+        services.AddSingleton<IMintTransactionBuilder, CardanoSharpTxBuilder>();
         services.AddSingleton<ITxSubmitter, BlockfrostTxSubmitter>();
         services.AddSingleton<INiftyDataService, TableStorageDataService>();
         services.AddAzureClients(clientBuilder =>
@@ -128,7 +138,7 @@ IHost host = Host.CreateDefaultBuilder(args)
             clientBuilder.AddTableClient(connectionString, Constants.TableNames.NiftyFile);
         });
         services.AddSingleton<INiftyDataService, TableStorageDataService>();
-        services.AddSingleton<ICollectionAggregateComposer, CollectionAggregateComposer>();
+        services.AddSingleton<IAggregateComposer, AggregateComposer>();
         services.AddSingleton<INiftyCollectionRepository, NiftyCollectionRepository>();
         services.AddSingleton<INiftyRepository, NiftyRepository>();
         services.AddSingleton<ISaleRepository, SaleRepository>();

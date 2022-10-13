@@ -9,11 +9,11 @@ namespace Mintsafe.DataAccess.Models
         public string PartitionKey { get; set; }
         public string RowKey { get; set; }
 
-        public string PolicyId { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
+        public string? PolicyId { get; set; }
+        public string? Name { get; set; }
+        public string? Description { get; set; }
         public bool IsActive { get; set; }
-        public string BrandImage { get; set; }
+        public string? BrandImage { get; set; }
 
         [IgnoreDataMember]
         public string[]? Publishers { get; set; }
@@ -27,6 +27,8 @@ namespace Mintsafe.DataAccess.Models
         public DateTime CreatedAt { get; set; }
         public DateTime LockedAt { get; set; }
         public long SlotExpiry { get; set; }
+        public double RoyaltyPortion { get; set; }
+        public string? RoyaltyAddress { get; set; }
 
         public DateTimeOffset? Timestamp { get; set; }
         public ETag ETag { get; set; }

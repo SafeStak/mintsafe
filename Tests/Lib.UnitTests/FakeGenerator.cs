@@ -1,4 +1,5 @@
-﻿using Mintsafe.Abstractions;
+﻿using CardanoSharp.Wallet.Common;
+using Mintsafe.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,11 +30,12 @@ public static class FakeGenerator
             Name: "GREATARTIST",
             Description: "Top secret artist",
             IsActive: true,
-            Publishers: new[] { "topsecret", "mintsafe.io" },
             BrandImage: "ipfs://cid",
+            Publishers: new[] { "mintsafe.io" },
             CreatedAt: new DateTime(2021, 9, 4, 0, 0, 0, DateTimeKind.Utc),
             LockedAt: new DateTime(2022, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-            SlotExpiry: 44674366);
+            SlotExpiry: 44674366,
+            Royalty: new Royalty(0, String.Empty));
     }
 
     public static List<Nifty> GenerateTokens(int mintableTokenCount)
@@ -51,22 +53,44 @@ public static class FakeGenerator
                 "image/png",
                 Array.Empty<NiftyFile>(),
                 DateTime.UtcNow,
-                new Royalty(0, string.Empty),
                 "1.0",
                 Array.Empty<KeyValuePair<string, string>>()))
             .ToList();
     }
 
-    public static Utxo[] GenerateUtxos(int count, params long[] values)
+    public static List<Nifty> GenerateOnChainTokens(
+        int mintableTokenCount, string onChainImageSrc, string onChainFileSrc)
+    {
+        return Enumerable.Range(0, mintableTokenCount)
+            .Select(i => new Nifty(
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                true,
+                $"Token{i}",
+                $"Token {i}",
+                $"Token {i} Description",
+                new[] { "mintsafe.io" },
+                onChainImageSrc,
+                "image/png",
+                string.IsNullOrEmpty(onChainFileSrc) 
+                    ? Array.Empty<NiftyFile>()
+                    : new[] { new NiftyFile(Guid.NewGuid(), Guid.NewGuid(), "File", "image/jpg", onChainFileSrc) },
+                DateTime.UtcNow,
+                "1.0",
+                Array.Empty<KeyValuePair<string, string>>()))
+            .ToList();
+    }
+
+    public static UnspentTransactionOutput[] GenerateUtxos(int count, params ulong[] values)
     {
         if (values.Length != count)
             throw new ArgumentException($"{nameof(values)} must be the same length as count", nameof(values));
 
         return Enumerable.Range(0, count)
-            .Select(i => new Utxo(
+            .Select(i => new UnspentTransactionOutput(
                 "127745e23b81a5a5e22a409ce17ae8672b234dda7be1f09fc9e3a11906bd3a11",
-                i,
-                new[] { new Value(Assets.LovelaceUnit, values[i]) }))
+                (uint)i,
+                new Balance(values[i], Array.Empty<NativeAssetValue>())))
             .ToArray();
     }
 
@@ -75,7 +99,7 @@ public static class FakeGenerator
         int totalReleaseQuantity = 500,
         int maxAllowedPurchaseQuantity = 10,
         bool isActive = true,
-        long lovelacesPerToken = 15000000,
+        ulong lovelacesPerToken = 15000000,
         string creatorAddress = "addr_test1vz0hx28mmdz0ey3pzqe5nxg08urjhzydpvvmcx4v4we5mvg6733n5",
         string proceedsAddress = "addr_test1vzj4c522pr5n6texvcl24kl9enntr4knl4ucecd7pkt24mglna4pz",
         DateTime? start = null,
@@ -111,17 +135,26 @@ public static class FakeGenerator
             collection ?? GenerateCollection(), 
             mintableTokens ?? GenerateTokens(10), 
             allocatedTokens ?? new List<Nifty>(),
-            new HashSet<Utxo>(), new HashSet<Utxo>(), new HashSet<Utxo>(), new HashSet<Utxo>());
+            new HashSet<UnspentTransactionOutput>(), new HashSet<UnspentTransactionOutput>(), new HashSet<UnspentTransactionOutput>(), new HashSet<UnspentTransactionOutput>());
 
         return context;
+    }
+
+    public static NetworkContext GenerateNetworkContext(
+        uint latestSlot = 63735444, uint protocolMajor = 6, uint protocolMinor = 0, 
+        uint minFeeA = FeeStructure.Coefficient, uint minFeeB = FeeStructure.Constant, uint coinsPerUtxoWord = 34482)
+    {
+        return new NetworkContext(
+            latestSlot, 
+            new ProtocolParams(protocolMajor, protocolMinor, minFeeA, minFeeB, coinsPerUtxoWord));
     }
 
     public static TxInfo GenerateTxIoAggregate(
         string txHash = "01daae688d236601109d9fc1bc11d7380a7617e6835eddca6527738963a87279",
         string inputAddress = "addr_test1vrfxxeuzqfuknfz4hu0ym4fe4l3axvqd7t5agd6pfzml59q30qc4x",
-        long inputLovelaceQuantity = 10200000,
+        ulong inputLovelaceQuantity = 10200000,
         string outputAddress = "addr_test1vre6wmde3qz7h7eerk98lgtkuzjd5nfqj4wy0fwntymr20qee2cxk",
-        long outputLovelaceQuantity = 10000000)
+        ulong outputLovelaceQuantity = 10000000)
     {
         return new TxInfo(
             txHash,

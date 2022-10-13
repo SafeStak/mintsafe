@@ -1,8 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Mintsafe.Abstractions;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 

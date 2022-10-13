@@ -17,12 +17,18 @@ namespace Mintsafe.DataAccess.Mappers
                 Publishers = niftyCollection.Publishers,
                 CreatedAt = niftyCollection.CreatedAt.ToUniversalTime(),
                 LockedAt = niftyCollection.LockedAt.ToUniversalTime(),
-                SlotExpiry = niftyCollection.SlotExpiry
+                SlotExpiry = niftyCollection.SlotExpiry,
+                RoyaltyAddress = niftyCollection.Royalty.Address,
+                RoyaltyPortion = niftyCollection.Royalty.PortionOfSale
             };
         }
 
         public static NiftyCollection Map(Models.NiftyCollection dtoNiftyCollection)
         {
+            if (dtoNiftyCollection == null) throw new ArgumentNullException(nameof(dtoNiftyCollection));
+            if (dtoNiftyCollection.PolicyId == null) throw new ArgumentNullException(nameof(dtoNiftyCollection.PolicyId));
+            if (dtoNiftyCollection.Name == null) throw new ArgumentNullException(nameof(dtoNiftyCollection.Name));
+
             return new NiftyCollection(
                 Guid.Parse(dtoNiftyCollection.RowKey),
                 dtoNiftyCollection.PolicyId,
@@ -30,10 +36,13 @@ namespace Mintsafe.DataAccess.Mappers
                 dtoNiftyCollection.Description,
                 dtoNiftyCollection.IsActive,
                 dtoNiftyCollection.BrandImage,
-                dtoNiftyCollection.Publishers,
+                dtoNiftyCollection.Publishers ?? Array.Empty<string>(),
                 dtoNiftyCollection.CreatedAt,
                 dtoNiftyCollection.LockedAt,
-                dtoNiftyCollection.SlotExpiry);
+                dtoNiftyCollection.SlotExpiry,
+                new Royalty(
+                    dtoNiftyCollection.RoyaltyPortion, 
+                    dtoNiftyCollection.RoyaltyAddress ?? string.Empty));
         }
     }
 }

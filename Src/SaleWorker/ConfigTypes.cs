@@ -6,7 +6,9 @@ public class MintsafeWorkerConfig
 {
     public string? MintBasePath { get; init; }
     public int? PollingIntervalSeconds { get; init; }
+    public int? PollErrorRetryLimit { get; init; }
     public string? CollectionId { get; init; }
+    public string[]? SaleIds { get; init; }
 }
 
 public class CardanoNetworkConfig
@@ -19,6 +21,14 @@ public class BlockfrostApiConfig
 {
     public string? BaseUrl { get; init; }
     public string? ApiKey { get; init; }
+}
+
+public class KeychainConfig
+{
+    public string? KeyVaultUrl { get; init; }
+    public int? RetrievalMaxRetries { get; init; }
+    public int? RetrievalRetryDelaySeconds { get; init; }
+    public int? RetrievalRetryMaxDelaySeconds { get; init; }
 }
 
 public class ApplicationInsightsConfig

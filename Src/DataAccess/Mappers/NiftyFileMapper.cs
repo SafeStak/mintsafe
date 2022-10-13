@@ -6,13 +6,19 @@ namespace Mintsafe.DataAccess.Mappers
     {
         public static NiftyFile Map(Models.NiftyFile niftyFileDto)
         {
+            if (niftyFileDto == null) throw new ArgumentNullException(nameof(niftyFileDto));
+            if (niftyFileDto.NiftyId == null) throw new ArgumentNullException(nameof(niftyFileDto.NiftyId));
+            if (niftyFileDto.Name == null) throw new ArgumentNullException(nameof(niftyFileDto.Name));
+            if (niftyFileDto.MediaType == null) throw new ArgumentNullException(nameof(niftyFileDto.MediaType));
+            if (niftyFileDto.Src == null) throw new ArgumentNullException(nameof(niftyFileDto.Src));
+
             return new NiftyFile(
                 Guid.Parse(niftyFileDto.RowKey),
                 Guid.Parse(niftyFileDto.NiftyId),
                 niftyFileDto.Name,
                 niftyFileDto.MediaType,
-                niftyFileDto.Url,
-                niftyFileDto.FileHash
+                niftyFileDto.Src,
+                niftyFileDto.FileHash ?? string.Empty
             );
         }
 
@@ -25,7 +31,7 @@ namespace Mintsafe.DataAccess.Mappers
                 NiftyId = niftyFile.NiftyId.ToString(),
                 Name = niftyFile.Name,
                 MediaType = niftyFile.MediaType,
-                Url = niftyFile.Url,
+                Src = niftyFile.Src,
                 FileHash = niftyFile.FileHash
             };
         }

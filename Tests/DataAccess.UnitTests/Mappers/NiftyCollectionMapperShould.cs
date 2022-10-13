@@ -1,7 +1,7 @@
 ﻿using System;
 using FluentAssertions;
+using Mintsafe.Abstractions;
 using Mintsafe.DataAccess.Mappers;
-using Mintsafe.DataAccess.Models;
 using Xunit;
 
 namespace Mintsafe.DataAccess.UnitTests.Mappers
@@ -14,7 +14,7 @@ namespace Mintsafe.DataAccess.UnitTests.Mappers
             var now = DateTime.UtcNow;
             var rowKey = Guid.NewGuid();
 
-            var niftyCollection = new NiftyCollection()
+            var niftyCollection = new DataAccess.Models.NiftyCollection()
             {
                 RowKey = rowKey.ToString(),
                 PartitionKey = "1",
@@ -26,7 +26,9 @@ namespace Mintsafe.DataAccess.UnitTests.Mappers
                 Publishers = new[] { "Me", "You" },
                 CreatedAt = now,
                 LockedAt = now.AddDays(-1),
-                SlotExpiry = 5
+                SlotExpiry = 5,
+                RoyaltyPortion = 0.1,
+                RoyaltyAddress = "addr1x"
             };
 
             var model = NiftyCollectionMapper.Map(niftyCollection);
@@ -42,6 +44,8 @@ namespace Mintsafe.DataAccess.UnitTests.Mappers
             model.CreatedAt.Should().Be(now);
             model.LockedAt.Should().Be(now.AddDays(-1));
             model.SlotExpiry.Should().Be(5);
+            model.Royalty.PortionOfSale.Should().Be(0.1);
+            model.Royalty.Address.Should().Be("addr1x");
         }
 
         [Fact]
@@ -51,7 +55,7 @@ namespace Mintsafe.DataAccess.UnitTests.Mappers
             var rowKey = Guid.NewGuid();
 
             var niftyCollection = new Abstractions.NiftyCollection(
-            rowKey,
+                rowKey,
                 "3",
                "Name",
                 "Description",
@@ -60,8 +64,8 @@ namespace Mintsafe.DataAccess.UnitTests.Mappers
                 new[] { "Me", "You" },
                  now,
                 now.AddDays(-1),
-                5
-            );
+                5,
+                new Royalty(0, string.Empty));
 
             var model = NiftyCollectionMapper.Map(niftyCollection);
 
@@ -77,6 +81,8 @@ namespace Mintsafe.DataAccess.UnitTests.Mappers
             model.CreatedAt.Should().Be(now);
             model.LockedAt.Should().Be(now.AddDays(-1));
             model.SlotExpiry.Should().Be(5);
+            model.RoyaltyAddress.Should().BeEmpty();
+            model.RoyaltyPortion.Should().Be(0);
         }
     }
 }
