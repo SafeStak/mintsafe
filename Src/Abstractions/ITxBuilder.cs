@@ -8,4 +8,8 @@ public interface IMintTransactionBuilder
     BuiltTransaction BuildTx(
         BuildTransactionCommand buildCommand,
         NetworkContext networkContext);
+
+    BuiltTransaction BuildTx(
+        BuildTxCommand buildCommand,
+        NetworkContext networkContext);
 }

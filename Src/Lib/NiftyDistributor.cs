@@ -87,14 +87,14 @@ public class CardanoSharpNiftyDistributor : INiftyDistributor
         }
 
         var (txHash, txSubmissionException) = await TrySubmitTxAsync(
-            tx.Bytes, nfts, saleContext, ct).ConfigureAwait(false);
+            tx.CborBytes, nfts, saleContext, ct).ConfigureAwait(false);
         if (txHash == null)
         {
             // TODO: Record a mint in our table storage (see NiftyTypes)
             return new NiftyDistributionResult(
                 NiftyDistributionOutcome.FailureTxSubmit,
                 purchaseAttempt,
-                Convert.ToHexString(tx.Bytes),
+                Convert.ToHexString(tx.CborBytes),
                 Exception: txSubmissionException);
         }
         if (txHash != tx.TxHash)
@@ -114,7 +114,7 @@ public class CardanoSharpNiftyDistributor : INiftyDistributor
         return new NiftyDistributionResult(
             NiftyDistributionOutcome.Successful,
             purchaseAttempt,
-            Convert.ToHexString(tx.Bytes),
+            Convert.ToHexString(tx.CborBytes),
             MintTxHash: tx.TxHash,
             BuyerAddress: address,
             NiftiesDistributed: nfts);
@@ -144,7 +144,7 @@ public class CardanoSharpNiftyDistributor : INiftyDistributor
     {
         var minLovelaceUtxo = TxUtils.CalculateMinUtxoLovelace(tokenMintValues);
         ulong buyerLovelacesReturned = minLovelaceUtxo + purchaseAttempt.ChangeInLovelace;
-        var buyerOutputUtxoValues = new AggregateValue(buyerLovelacesReturned, tokenMintValues);
+        var buyerOutputUtxoValues = new Balance(buyerLovelacesReturned, tokenMintValues);
 
         var saleLovelaces = purchaseAttempt.Utxo.Lovelaces - buyerLovelacesReturned;
         // No NFT creator address specified or we take 100% of the cut
@@ -154,15 +154,15 @@ public class CardanoSharpNiftyDistributor : INiftyDistributor
                 new PendingTransactionOutput(buyerAddress, buyerOutputUtxoValues),
                 new PendingTransactionOutput(
                     sale.ProceedsAddress,
-                    new AggregateValue(saleLovelaces, Array.Empty<NativeAssetValue>()))
+                    new Balance(saleLovelaces, Array.Empty<NativeAssetValue>()))
             };
         }
 
         // Calculate proceeds of ADA from saleContext.Sale to creator and proceeds cut
         var proceedsCutLovelaces = (ulong)(saleLovelaces * sale.PostPurchaseMargin);
         var creatorCutLovelaces = saleLovelaces - proceedsCutLovelaces;
-        var creatorAddressUtxoValues = new AggregateValue(creatorCutLovelaces, Array.Empty<NativeAssetValue>());
-        var proceedsAddressUtxoValues = new AggregateValue(proceedsCutLovelaces, Array.Empty<NativeAssetValue>());
+        var creatorAddressUtxoValues = new Balance(creatorCutLovelaces, Array.Empty<NativeAssetValue>());
+        var proceedsAddressUtxoValues = new Balance(proceedsCutLovelaces, Array.Empty<NativeAssetValue>());
         return new[] {
             new PendingTransactionOutput(buyerAddress, buyerOutputUtxoValues),
             new PendingTransactionOutput(sale.CreatorAddress, creatorAddressUtxoValues),

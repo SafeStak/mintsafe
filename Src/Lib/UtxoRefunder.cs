@@ -71,7 +71,7 @@ public class UtxoRefunder : IUtxoRefunder
         _logger.LogDebug($"{nameof(_txBuilder.BuildTx)} completed after {sw.ElapsedMilliseconds}ms");
 
         sw.Restart();
-        var txHash = await _txSubmitter.SubmitTxAsync(tx.Bytes, ct).ConfigureAwait(false);
+        var txHash = await _txSubmitter.SubmitTxAsync(tx.CborBytes, ct).ConfigureAwait(false);
         _logger.LogDebug($"{nameof(_txSubmitter.SubmitTxAsync)} completed after {sw.ElapsedMilliseconds}ms");
         _logger.LogDebug($"TxID:{txHash} Successfully refunded {utxo.Lovelaces} to {buyerAddress}");
 

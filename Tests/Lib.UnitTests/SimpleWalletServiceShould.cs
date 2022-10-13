@@ -51,7 +51,7 @@ public class SimpleWalletServiceShould
         var network = Network.Testnet;
         // Not used now
         var destinationPaymentAddress = "addr_test1qplxcfvad2uzq2w4k99unzj6d5hmpprgrujn3l0nwsl8vh3e2mgaxpeslac7hghtxxzcwerr3wt6ly2t9hr7unkua9rskg2855";
-        var destinationOutputValue = new AggregateValue(8888888, Array.Empty<NativeAssetValue>());
+        var destinationOutputValue = new Balance(8888888, Array.Empty<NativeAssetValue>());
         var messageBodyMetadata = new Dictionary<string, object>
             { { "msg", new[] { "mintsafe.io test", DateTime.UtcNow.ToString("o") } } };
         var messageMetadata = new Dictionary<int, Dictionary<string, object>>
@@ -93,7 +93,7 @@ public class SimpleWalletServiceShould
             sourcePaymentAddress,
             sourcePaymentXsk,
             network,
-            outputs: new[] { new PendingTransactionOutput(sourcePaymentAddress, new AggregateValue(minUtxoLovelace, nativeAssetsToMint)) },
+            outputs: new[] { new PendingTransactionOutput(sourcePaymentAddress, new Balance(minUtxoLovelace, nativeAssetsToMint)) },
             nativeAssetsToMint: nativeAssetsToMint,
             metadata: royaltyMetadata,
             policySkeys: new[] { policySkey },

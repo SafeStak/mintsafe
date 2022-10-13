@@ -90,7 +90,7 @@ public static class FakeGenerator
             .Select(i => new UnspentTransactionOutput(
                 "127745e23b81a5a5e22a409ce17ae8672b234dda7be1f09fc9e3a11906bd3a11",
                 (uint)i,
-                new AggregateValue(values[i], Array.Empty<NativeAssetValue>())))
+                new Balance(values[i], Array.Empty<NativeAssetValue>())))
             .ToArray();
     }
 

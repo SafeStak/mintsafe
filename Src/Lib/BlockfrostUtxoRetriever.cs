@@ -63,7 +63,7 @@ public class BlockfrostUtxoRetriever : IUtxoRetriever
             var assetName = val.Unit[56..];
             nativeAssets[index++] = new NativeAssetValue(policyId, assetName, ulong.Parse(val.Quantity));
         }
-        var aggValue = new AggregateValue(lovelaces, nativeAssets);
+        var aggValue = new Balance(lovelaces, nativeAssets);
 
         return new UnspentTransactionOutput(
             bfUtxo.Tx_hash,

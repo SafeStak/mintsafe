@@ -24,11 +24,11 @@ public record Utxo(string TxHash, int OutputIndex, Value[] Values)
 // TODO: Ideal types
 public record struct NativeAssetValue(string PolicyId, string AssetName, ulong Quantity);
 
-public record struct AggregateValue(ulong Lovelaces, NativeAssetValue[] NativeAssets);
+public record struct Balance(ulong Lovelaces, NativeAssetValue[] NativeAssets);
 
-public record struct PendingTransactionOutput(string Address, AggregateValue Value);
+public record struct PendingTransactionOutput(string Address, Balance Value);
 
-public record UnspentTransactionOutput(string TxHash, uint OutputIndex, AggregateValue Value)
+public record UnspentTransactionOutput(string TxHash, uint OutputIndex, Balance Value)
 {
     public override int GetHashCode() => ToString().GetHashCode();
     public override string ToString() => $"{TxHash}_{OutputIndex}";
@@ -37,7 +37,7 @@ public record UnspentTransactionOutput(string TxHash, uint OutputIndex, Aggregat
     public ulong Lovelaces => Value.Lovelaces;
 }
 public record TransactionSummary(string TxHash, TransactionIo[] Inputs, TransactionIo[] Outputs);
-public record TransactionIo(string Address, int OutputIndex, AggregateValue Values);
+public record TransactionIo(string Address, int OutputIndex, Balance Values);
 
 public record BasicMintingPolicy(string[] PolicySigningKeysAll, uint ExpirySlot);
 public record Mint(BasicMintingPolicy BasicMintingPolicy, NativeAssetValue[] NativeAssetsToMint);
@@ -53,25 +53,38 @@ public record BuildTransactionCommand(
     string[] PaymentSigningKeys,
     Network Network,
     uint TtlTipOffsetSlots = 5400);
-public record BuiltTransaction(string TxHash, byte[] Bytes);
-// End TODO
+
+public record RewardsWithdrawal(string StakeAddress, uint RewardLovelaces);
+
+public record BuildTxCommand(
+    UnspentTransactionOutput[] Inputs,
+    PendingTransactionOutput[] Outputs,
+    Network Network,
+    NativeAssetValue[]? Mint = null,
+    Dictionary<int, Dictionary<string, object>>? Metadata = null,
+    RewardsWithdrawal[]? RewardsWithdrawals = null,
+    SimpleScript[]? SimpleScripts = null,
+    string[]? SigningKeys = null,
+    uint TtlTipOffsetSlots = 7200);
+
+public record BuiltTransaction(string TxHash, byte[] CborBytes);
 
 public record TxIo(string Address, uint OutputIndex, Value[] Values);
 
 public record TxInfo(string TxHash, TxIo[] Inputs, TxIo[] Outputs);
 
-public record TxBuildOutput(string Address, AggregateValue Values, bool IsFeeDeducted = false);
+public record TxBuildOutput(string Address, Balance Values, bool IsFeeDeducted = false);
 
-public record TxBuildCommand(
-    UnspentTransactionOutput[] Inputs,
-    TxBuildOutput[] Outputs,
-    NativeAssetValue[] Mint,
-    string MintingScriptPath,
-    string MetadataJsonPath,
-    long TtlSlot,
-    string[] SigningKeyFiles);
+public enum NativeScriptType { PubKeyHash = 0, All, Any, AtLeast, InvalidBefore, InvalidAfter }
+public record SimpleScript(
+    NativeScriptType Type, 
+    uint? AtLeast = null, 
+    SimpleScript[]? Scripts = null,
+    string? PubKeyHash = null, 
+    uint? InvalidBefore = null, 
+    uint? InvalidAfter = null);
 
-public interface INativeScript { }
+//public interface INativeScript { }
 //public class ScriptPubKey : INativeScript
 //{
 //    public byte[] KeyHash { get; init; }

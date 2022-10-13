@@ -20,7 +20,7 @@ public class PurchaseAttemptGeneratorShould
                 new UnspentTransactionOutput(
                     "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                     0,
-                    new AggregateValue(utxoValueLovelace, Array.Empty<NativeAssetValue>())),
+                    new Balance(utxoValueLovelace, Array.Empty<NativeAssetValue>())),
                 sale);
 
         salePurchase.NiftyQuantityRequested.Should().Be(expectedQuantity);
@@ -39,7 +39,7 @@ public class PurchaseAttemptGeneratorShould
                 new UnspentTransactionOutput(
                     "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                     0,
-                    new AggregateValue(utxoValueLovelace, Array.Empty<NativeAssetValue>())),
+                    new Balance(utxoValueLovelace, Array.Empty<NativeAssetValue>())),
                 sale);
 
         salePurchase.ChangeInLovelace.Should().Be(expectedChange);
@@ -61,7 +61,7 @@ public class PurchaseAttemptGeneratorShould
                 new UnspentTransactionOutput(
                     txHash,
                     0,
-                    new AggregateValue(10000000, Array.Empty<NativeAssetValue>())),
+                    new Balance(10000000, Array.Empty<NativeAssetValue>())),
                 sale);
 
         salePurchase.Utxo.TxHash.Should().Be(txHash); 
@@ -82,7 +82,7 @@ public class PurchaseAttemptGeneratorShould
                 new UnspentTransactionOutput(
                     "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                     0,
-                    new AggregateValue(utxoValueLovelace, Array.Empty<NativeAssetValue>())),
+                    new Balance(utxoValueLovelace, Array.Empty<NativeAssetValue>())),
                 sale);
         };
 
@@ -100,7 +100,7 @@ public class PurchaseAttemptGeneratorShould
                 new UnspentTransactionOutput(
                     "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                     0,
-                    new AggregateValue(100000000, Array.Empty<NativeAssetValue>())),
+                    new Balance(100000000, Array.Empty<NativeAssetValue>())),
                 sale);
         };
 
@@ -121,7 +121,7 @@ public class PurchaseAttemptGeneratorShould
                 new UnspentTransactionOutput(
                     "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                     0,
-                    new AggregateValue(utxoValueLovelace, Array.Empty<NativeAssetValue>())),
+                    new Balance(utxoValueLovelace, Array.Empty<NativeAssetValue>())),
                 sale);
         };
 
@@ -142,7 +142,7 @@ public class PurchaseAttemptGeneratorShould
                 new UnspentTransactionOutput(
                     "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                     0,
-                    new AggregateValue(100000000, Array.Empty<NativeAssetValue>())),
+                    new Balance(100000000, Array.Empty<NativeAssetValue>())),
                 sale);
         };
 
@@ -163,7 +163,7 @@ public class PurchaseAttemptGeneratorShould
                 new UnspentTransactionOutput(
                     "95c248e17f0fc35be4d2a7d186a84cdcda5b99d7ad2799ebe98a9865",
                     0,
-                    new AggregateValue(100000000, Array.Empty<NativeAssetValue>())),
+                    new Balance(100000000, Array.Empty<NativeAssetValue>())),
                 sale);
         };
 

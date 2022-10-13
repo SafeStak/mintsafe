@@ -236,7 +236,7 @@ public class TxUtilsShould
         values.Add(new Value("e8a447d4e19016ca2aa74d20b4c4de87adb1f21dfb5493bf2d7281a6.COND1", 20));
         values.Add(new Value("e8a447d4e19016ca2aa74d20b4c4de87adb1f21dfb5493bf2d7281a6.COND2", 20));
 
-        var bundle = new AggregateValue(100_000000, new[]
+        var bundle = new Balance(100_000000, new[]
         {
             new NativeAssetValue("e8a447d4e19016ca2aa74d20b4c4de87adb1f21dfb5493bf2d7281a6", "434f4e4431", 20),
             new NativeAssetValue("e8a447d4e19016ca2aa74d20b4c4de87adb1f21dfb5493bf2d7281a6", "434f4e4432", 20),
@@ -256,7 +256,7 @@ public class TxUtilsShould
     public void Consolidate_Output_Values_Calculating_Lovelaces_Correctly_When_No_Native_Assets_Exist(params ulong[] lovelaceValues)
     {
         var outputValues = lovelaceValues
-            .Select(lv => new AggregateValue(lv, Array.Empty<NativeAssetValue>())).ToArray();
+            .Select(lv => new Balance(lv, Array.Empty<NativeAssetValue>())).ToArray();
 
         var foldedOutputValue = outputValues.Sum();
 
@@ -280,7 +280,7 @@ public class TxUtilsShould
     {
         var outputValues = outputJson
             .Select(json => JsonSerializer.Deserialize<OutputValueDto>(json))
-            .Select(ov => new AggregateValue(ov.Lovelaces, ov.NativeAssets.Select(na => new NativeAssetValue(na.PolicyId, na.AssetNameHex, na.Quantity)).ToArray())).ToArray();
+            .Select(ov => new Balance(ov.Lovelaces, ov.NativeAssets.Select(na => new NativeAssetValue(na.PolicyId, na.AssetNameHex, na.Quantity)).ToArray())).ToArray();
 
         var actualOutputValue = outputValues.Sum();
 
@@ -308,7 +308,7 @@ public class TxUtilsShould
     {
         var outputValues = outputValuesJson
             .Select(json => JsonSerializer.Deserialize<OutputValueDto>(json))
-            .Select(ov => new AggregateValue(ov.Lovelaces, ov.NativeAssets.Select(na => new NativeAssetValue(na.PolicyId, na.AssetNameHex, na.Quantity)).ToArray())).ToArray();
+            .Select(ov => new Balance(ov.Lovelaces, ov.NativeAssets.Select(na => new NativeAssetValue(na.PolicyId, na.AssetNameHex, na.Quantity)).ToArray())).ToArray();
 
         var actualOutputValue = outputValues.Sum();
 

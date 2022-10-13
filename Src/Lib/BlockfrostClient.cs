@@ -175,12 +175,12 @@ public class BlockfrostClient : IBlockfrostClient
         }
     }
 
-    public async Task<LatestBlock> GetLatestBlockAsync(CancellationToken ct = default)
+    public async Task<BlockfrostLatestBlock> GetLatestBlockAsync(CancellationToken ct = default)
     {
         var relativePath = $"api/v0/blocks/latest";
 
         var isSuccessful = false;
-        LatestBlock? bfResponse = null;
+        BlockfrostLatestBlock? bfResponse = null;
         var responseCode = 0;
         var sw = Stopwatch.StartNew();
         try
@@ -192,7 +192,7 @@ public class BlockfrostClient : IBlockfrostClient
                 throw new BlockfrostResponseException($"Unsuccessful Blockfrost response:{responseBody}", (int)response.StatusCode, responseBody);
             }
             _logger.LogDebug($"{nameof(BlockfrostClient)}.{nameof(GetLatestBlockAsync)} from {relativePath} reponse: {responseCode}");
-            bfResponse = await response.Content.ReadFromJsonAsync<LatestBlock>(SerialiserOptions, ct).ConfigureAwait(false);
+            bfResponse = await response.Content.ReadFromJsonAsync<BlockfrostLatestBlock>(SerialiserOptions, ct).ConfigureAwait(false);
             if (bfResponse == null)
             {
                 var json = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
@@ -217,11 +217,11 @@ public class BlockfrostClient : IBlockfrostClient
         }
     }
 
-    public async Task<ProtocolParameters> GetLatestProtocolParameters(CancellationToken ct = default)
+    public async Task<BlockfrostProtocolParameters> GetLatestProtocolParameters(CancellationToken ct = default)
     {
         var relativePath = $"api/v0/epochs/latest/parameters";
         var isSuccessful = false;
-        ProtocolParameters? bfResponse = null;
+        BlockfrostProtocolParameters? bfResponse = null;
         var responseCode = 0;
         var sw = Stopwatch.StartNew();
         try
@@ -233,7 +233,7 @@ public class BlockfrostClient : IBlockfrostClient
                 throw new BlockfrostResponseException($"Unsuccessful Blockfrost response:{responseBody}", (int)response.StatusCode, responseBody);
             }
             _logger.LogDebug($"{nameof(BlockfrostClient)}.{nameof(GetLatestProtocolParameters)} from {relativePath} reponse: {responseCode}");
-            bfResponse = await response.Content.ReadFromJsonAsync<ProtocolParameters>(SerialiserOptions, ct).ConfigureAwait(false);
+            bfResponse = await response.Content.ReadFromJsonAsync<BlockfrostProtocolParameters>(SerialiserOptions, ct).ConfigureAwait(false);
             if (bfResponse == null)
             {
                 var json = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);

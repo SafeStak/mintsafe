@@ -9,6 +9,63 @@ namespace Mintsafe.Lib;
 
 public static class TxUtils
 {
+    public static bool IsZero(this Balance value)
+    {
+        return value.Lovelaces == 0 && value.NativeAssets.Length == 0;
+    }
+
+    public static Balance Sum(this IEnumerable<Balance> values)
+    {
+        var lovelaces = 0UL;
+        var nativeAssets = new Dictionary<(string PolicyId, string AssetNameHex), ulong>();
+        foreach (var value in values)
+        {
+            lovelaces += value.Lovelaces;
+            foreach (var nativeAsset in value.NativeAssets)
+            {
+                if (nativeAssets.ContainsKey((nativeAsset.PolicyId, nativeAsset.AssetName)))
+                {
+                    nativeAssets[(nativeAsset.PolicyId, nativeAsset.AssetName)] += nativeAsset.Quantity;
+                    continue;
+                }
+                nativeAssets.Add((nativeAsset.PolicyId, nativeAsset.AssetName), nativeAsset.Quantity);
+            }
+        }
+        return new Balance(
+            lovelaces,
+            nativeAssets.Select(nav => new NativeAssetValue(nav.Key.PolicyId, nav.Key.AssetNameHex, nav.Value)).ToArray());
+    }
+
+    public static Balance Subtract(this Balance lhsValue, Balance rhsValue)
+    {
+        static NativeAssetValue SubtractSingleValue(NativeAssetValue lhsValue, NativeAssetValue rhsValue)
+        {
+            return rhsValue == default
+                ? lhsValue
+                : new NativeAssetValue(lhsValue.PolicyId, lhsValue.AssetName, lhsValue.Quantity - rhsValue.Quantity);
+        };
+
+        if (rhsValue.NativeAssets.Length == 0)
+            return new Balance(lhsValue.Lovelaces - rhsValue.Lovelaces, lhsValue.NativeAssets);
+
+        var missingLhsValues = rhsValue.NativeAssets
+            .Where(rna => !lhsValue.NativeAssets
+                .Any(lna => lna.PolicyId == rna.PolicyId && lna.AssetName == rna.AssetName))
+            .ToArray();
+        if (missingLhsValues.Any())
+            throw new ArgumentException("lhsValue is missing Native Assets found on rhsValue", nameof(rhsValue));
+
+        var nativeAssets = lhsValue.NativeAssets
+            .Select(lv => SubtractSingleValue(
+                lv,
+                rhsValue.NativeAssets.FirstOrDefault(
+                    rv => rv.PolicyId == lv.PolicyId && rv.AssetName == lv.AssetName)))
+            .Where(na => na.Quantity != 0)
+            .ToArray();
+        return new Balance(lhsValue.Lovelaces - rhsValue.Lovelaces, nativeAssets);
+    }
+
+    [Obsolete("Deprecated by Balance based Subtract")]
     public static Value[] SubtractValues(
         this Value[] lhsValues, Value[] rhsValues)
     {
@@ -27,57 +84,6 @@ public static class TxUtils
             .ToArray();
 
         return diff;
-    }
-
-    public static AggregateValue Sum(this IEnumerable<AggregateValue> values)
-    {
-        var lovelaces = 0UL;
-        var nativeAssets = new Dictionary<(string PolicyId, string AssetNameHex), ulong>();
-        foreach (var value in values)
-        {
-            lovelaces += value.Lovelaces;
-            foreach (var nativeAsset in value.NativeAssets)
-            {
-                if (nativeAssets.ContainsKey((nativeAsset.PolicyId, nativeAsset.AssetName)))
-                {
-                    nativeAssets[(nativeAsset.PolicyId, nativeAsset.AssetName)] += nativeAsset.Quantity;
-                    continue;
-                }
-                nativeAssets.Add((nativeAsset.PolicyId, nativeAsset.AssetName), nativeAsset.Quantity);
-            }
-        }
-        return new AggregateValue(
-            lovelaces,
-            nativeAssets.Select(nav => new NativeAssetValue(nav.Key.PolicyId, nav.Key.AssetNameHex, nav.Value)).ToArray());
-    }
-
-    public static AggregateValue Subtract(this AggregateValue lhsValue, AggregateValue rhsValue)
-    {
-        static NativeAssetValue SubtractSingleValue(NativeAssetValue lhsValue, NativeAssetValue rhsValue)
-        {
-            return rhsValue == default
-                ? lhsValue
-                : new NativeAssetValue(lhsValue.PolicyId, lhsValue.AssetName, lhsValue.Quantity - rhsValue.Quantity);
-        };
-
-        if (rhsValue.NativeAssets.Length == 0)
-            return new AggregateValue(lhsValue.Lovelaces - rhsValue.Lovelaces, lhsValue.NativeAssets);
-
-        var missingLhsValues = rhsValue.NativeAssets
-            .Where(rna => !lhsValue.NativeAssets
-                .Any(lna => lna.PolicyId == rna.PolicyId && lna.AssetName == rna.AssetName))
-            .ToArray();
-        if (missingLhsValues.Any())
-            throw new ArgumentException("lhsValue is missing Native Assets found on rhsValue", nameof(rhsValue));
-
-        var nativeAssets = lhsValue.NativeAssets
-            .Select(lv => SubtractSingleValue(
-                lv,
-                rhsValue.NativeAssets.FirstOrDefault(
-                    rv => rv.PolicyId == lv.PolicyId && rv.AssetName == lv.AssetName)))
-            .Where(na => na.Quantity != 0)
-            .ToArray();
-        return new AggregateValue(lhsValue.Lovelaces - rhsValue.Lovelaces, nativeAssets);
     }
 
     public static ulong CalculateMinUtxoLovelace(
@@ -125,7 +131,7 @@ public static class TxUtils
     }
 
     public static ulong CalculateMinUtxoLovelace(
-        AggregateValue txOutBundle,
+        Balance txOutBundle,
         int lovelacePerUtxoWord = 34482, // utxoCostPerWord in protocol params (could change in the future)
         int policyIdSizeBytes = 28, // 224 bit policyID (won't in forseeable future)
         bool hasDataHash = false) // for UTxOs with smart contract datum

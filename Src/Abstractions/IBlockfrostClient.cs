@@ -6,8 +6,8 @@ namespace Mintsafe.Abstractions;
 
 public interface IBlockfrostClient
 {
-    Task<LatestBlock> GetLatestBlockAsync(CancellationToken ct = default);
-    Task<ProtocolParameters> GetLatestProtocolParameters(CancellationToken ct = default);
+    Task<BlockfrostLatestBlock> GetLatestBlockAsync(CancellationToken ct = default);
+    Task<BlockfrostProtocolParameters> GetLatestProtocolParameters(CancellationToken ct = default);
     Task<BlockFrostTransactionUtxoResponse> GetTransactionAsync(string txHash, CancellationToken ct = default);
     Task<BlockFrostAddressUtxo[]> GetUtxosAtAddressAsync(string address, CancellationToken ct = default);
     Task<string> SubmitTransactionAsync(byte[] txSignedBinary, CancellationToken ct = default);
@@ -29,7 +29,7 @@ public class BlockfrostResponseException : ApplicationException
     }
 }
 
-public class LatestBlock
+public class BlockfrostLatestBlock
 {
     public uint? Epoch { get; init; }
     public uint? Slot { get; init; }
@@ -37,7 +37,7 @@ public class LatestBlock
     public string? Hash { get; init; }
 }
 
-public class ProtocolParameters
+public class BlockfrostProtocolParameters
 {
     public uint? Protocol_major_ver { get; init; }
     public uint? Protocol_minor_ver { get; init; }
